@@ -239,22 +239,23 @@ export class CacheManager {
    * Computes hashes and timestamps for all files with same logic.
    * @param precomputedHashes - Optional map of pre-computed hashes for shared dependencies (fileRefs)
    */
-  async buildCacheEntry(
-    itemPaths: string[],
-    outputsByKey: Record<string, string[]>,
-    outputBaseDir: string,
-    itemKey: string,
-    discoveredDependencies?: string[],
-    fileRefPaths?: string[],
+  async buildCacheEntry(options: {
+    itemPaths: string[];
+    outputsByKey: Record<string, string[]>;
+    outputBaseDir: string;
+    itemKey: string;
+    discoveredDependencies?: string[];
+    fileRefPaths?: string[];
     upstreamOutputSignatures?: {
       [nodeName: string]: {
         signature: string;
         outputKey: string;
         glob?: string;
       };
-    },
-    precomputedHashes?: Map<string, {hash: string, timestamp: number}>
-  ): Promise<CacheEntry> {
+    };
+    precomputedHashes?: Map<string, {hash: string, timestamp: number}>;
+  }): Promise<CacheEntry> {
+    const { itemPaths, outputsByKey, outputBaseDir, itemKey, discoveredDependencies, fileRefPaths, upstreamOutputSignatures, precomputedHashes } = options;
     const trackedFiles: Record<string, {hash: string, timestamp: number, source: 'item' | 'fileRef' | 'discovered'}> = {};
 
     // Track items

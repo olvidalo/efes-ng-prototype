@@ -439,16 +439,16 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 const processed = await performWork(item);
 
                 // Build unified cache entry (using pre-computed shared hashes)
-                const cacheEntry = await context.cache.buildCacheEntry(
-                    [item],                    // Item files
-                    processed.outputs,         // Output files by key
-                    outputDir,                 // Output base directory
-                    cacheKey,                  // Cache key
-                    processed.discoveredDependencies,    // Discovered dependencies
-                    sharedDependencyPaths,     // Shared config dependencies (excludes items already tracked per-entry)
-                    upstreamOutputSignatures,  // Upstream node output signatures
-                    sharedFileHashes           // Pre-computed hashes for shared dependencies
-                );
+                const cacheEntry = await context.cache.buildCacheEntry({
+                    itemPaths: [item],
+                    outputsByKey: processed.outputs,
+                    outputBaseDir: outputDir,
+                    itemKey: cacheKey,
+                    discoveredDependencies: processed.discoveredDependencies,
+                    fileRefPaths: sharedDependencyPaths,
+                    upstreamOutputSignatures,
+                    precomputedHashes: sharedFileHashes,
+                });
 
                 return {index, item, processed, cacheEntry, cacheKey};
             });
