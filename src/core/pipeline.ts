@@ -327,12 +327,18 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         context.log(`Cache lookup - contentSignature: ${contentSignature}`);
         // await context.cache.cleanExcept(contentSignature, cacheKeys);
 
+        // Items are already tracked per-entry (source: 'item') by buildCacheEntry.
+        // Tracking them ALSO as shared fileRefs would cause one item's change
+        // to invalidate ALL items. Filter them out.
+        const itemSet = new Set(items);
+        const sharedDependencyPaths = configDependencyPaths.filter(p => !itemSet.has(p));
+
         // Pre-compute hashes for shared dependencies (fileRefs) - these are the same for all items
         // Avoids hashing the same stylesheet 2360 times
         const sharedFileHashes = new Map<string, {hash: string, timestamp: number}>();
-        if (configDependencyPaths.length > 0) {
-            context.log(`Pre-computing hashes for ${configDependencyPaths.length} shared dependencies`);
-            await Promise.all(configDependencyPaths.map(async (filePath) => {
+        if (sharedDependencyPaths.length > 0) {
+            context.log(`Pre-computing hashes for ${sharedDependencyPaths.length} shared dependencies`);
+            await Promise.all(sharedDependencyPaths.map(async (filePath) => {
                 try {
                     const [hash, stats] = await Promise.all([
                         context.cache.computeFileHash(filePath),
@@ -439,7 +445,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                     getOutputDir(),            // Output base directory
                     cacheKey,                  // Cache key
                     processed.discoveredDependencies,    // Discovered dependencies
-                    configDependencyPaths,     // Config dependencies (FileRefs + resolved from() references)
+                    sharedDependencyPaths,     // Shared config dependencies (excludes items already tracked per-entry)
                     upstreamOutputSignatures,  // Upstream node output signatures
                     sharedFileHashes           // Pre-computed hashes for shared dependencies
                 );
