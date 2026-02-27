@@ -30,7 +30,7 @@ interface CacheEntry {
     [filePath: string]: {
       hash: string;
       timestamp: number;
-      source: 'item' | 'fileRef' | 'discovered' | 'explicit';
+      source: 'item' | 'fileRef' | 'discovered';
     }
   };
 
@@ -211,55 +211,6 @@ export class CacheManager {
   }
 
   /**
-   * Clean up cache entries that are not in the current run.
-   * Called at node start to remove orphaned entries for deleted files.
-   *
-   * Example: If *.xml previously matched 3 files but now matches 2,
-   * this removes the cache entry for the deleted file.
-   */
-  async cleanExcept(contentSignature: string, currentItemKeys: string[]): Promise<void> {
-    const signatureDir = path.join(this.cacheDir, this.sanitizeNodeName(contentSignature));
-
-    try {
-      const entries = await fs.readdir(signatureDir);
-      const currentKeysSet = new Set(currentItemKeys.map(k => `${this.sanitizeKey(k)}.json`));
-
-      for (const entry of entries) {
-        if (!currentKeysSet.has(entry)) {
-          // This cache entry is no longer needed
-          const orphanPath = path.join(signatureDir, entry);
-          await fs.unlink(orphanPath);
-        }
-      }
-    } catch (error) {
-      // Signature directory doesn't exist yet - nothing to clean
-    }
-  }
-
-  /**
-   * Clear cache for a specific content signature or all cache.
-   * Useful for manual cache invalidation or debugging.
-   */
-  async clear(contentSignature?: string): Promise<void> {
-    if (contentSignature) {
-      // Clear specific signature's cache
-      const signatureDir = path.join(this.cacheDir, this.sanitizeNodeName(contentSignature));
-      try {
-        await fs.rm(signatureDir, { recursive: true, force: true });
-      } catch {
-        // Directory doesn't exist - already clear
-      }
-    } else {
-      // Clear entire cache
-      try {
-        await fs.rm(this.cacheDir, { recursive: true, force: true });
-      } catch {
-        // Cache directory doesn't exist - already clear
-      }
-    }
-  }
-
-  /**
    * Copy a cached output file to the expected build path when cache is shared
    * between nodes with different output paths.
    */
@@ -284,30 +235,6 @@ export class CacheManager {
   }
 
   /**
-   * Generate a consistent cache key from file paths.
-   * Used to create deterministic, filesystem-safe cache keys.
-   *
-   * Example: makeItemKey('scratch/book.xml') → 'scratch-book-xml-a3f2b1'
-   */
-  static makeItemKey(...paths: string[]): string {
-    // Combine paths and hash them for a unique, consistent key
-    const combined = paths.sort().join('|');
-    const hash = crypto.createHash('sha256').update(combined).digest('hex');
-
-    // Create human-readable prefix from first path (use basename to avoid long paths)
-    const basename = path.basename(paths[0]);
-    const prefix = basename
-      .replace(/[^a-zA-Z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .toLowerCase()
-      .substring(0, 50); // Limit prefix length
-
-    // Combine prefix with hash snippet for uniqueness
-    return `${prefix}-${hash.substring(0, 8)}`;
-  }
-
-  /**
    * Helper to build a cache entry with unified file tracking.
    * Computes hashes and timestamps for all files with same logic.
    * @param precomputedHashes - Optional map of pre-computed hashes for shared dependencies (fileRefs)
@@ -328,7 +255,7 @@ export class CacheManager {
     },
     precomputedHashes?: Map<string, {hash: string, timestamp: number}>
   ): Promise<CacheEntry> {
-    const trackedFiles: Record<string, {hash: string, timestamp: number, source: 'item' | 'fileRef' | 'discovered' | 'explicit'}> = {};
+    const trackedFiles: Record<string, {hash: string, timestamp: number, source: 'item' | 'fileRef' | 'discovered'}> = {};
 
     // Track items
     for (const filePath of itemPaths) {

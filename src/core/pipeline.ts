@@ -326,7 +326,6 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
         const cacheKeys = items.map(getCacheKey);
         context.log(`Cache lookup - contentSignature: ${contentSignature}`);
-        // await context.cache.cleanExcept(contentSignature, cacheKeys);
 
         // Items are already tracked per-entry (source: 'item') by buildCacheEntry.
         // Tracking them ALSO as shared fileRefs would cause one item's change
