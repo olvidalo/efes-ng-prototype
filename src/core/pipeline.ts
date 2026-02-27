@@ -282,7 +282,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
         // Extract fileRef paths and resolve from() references for cache entries
         const configDependencyPaths: string[] = [];
-        const upstreamNodes = new Map<string, NodeOutputReference>(); // Track upstream node references
+        const upstreamResolved = new Map<string, { ref: NodeOutputReference, paths: string[] }>();
 
         const processConfigValue = async (value: any) => {
             if (value?.type === 'file') {
@@ -292,7 +292,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 // from() reference - resolve to file paths AND track upstream node
                 const resolvedPaths = await context.resolveInput(value);
                 configDependencyPaths.push(...resolvedPaths);
-                upstreamNodes.set(value.node.name, value);
+                upstreamResolved.set(value.node.name, { ref: value, paths: resolvedPaths });
             } else if (typeof value === 'object') {
                 // Recursively process object values
                 for (const v of Object.values(value)) {
@@ -305,7 +305,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             await processConfigValue(value);
         }
 
-        // Compute upstream output signatures with metadata
+        // Compute upstream output signatures from already-resolved paths
         const upstreamOutputSignatures: {
             [nodeName: string]: {
                 signature: string;
@@ -313,13 +313,11 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 glob?: string;
             };
         } = {};
-        for (const [nodeName, nodeRef] of upstreamNodes.entries()) {
-            const outputs = await context.resolveInput(nodeRef);
-            const signature = CacheManager.computeOutputSignature(outputs);
+        for (const [nodeName, { ref, paths }] of upstreamResolved.entries()) {
             upstreamOutputSignatures[nodeName] = {
-                signature,
-                outputKey: nodeRef.name,
-                glob: nodeRef.glob
+                signature: CacheManager.computeOutputSignature(paths),
+                outputKey: ref.name,
+                glob: ref.glob
             };
         }
 
@@ -464,6 +462,12 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             }));
             context.log(`Cache storage complete`);
         }
+
+        // TODO: Consider adding stale output cleanup here. When source files are deleted,
+        // their intermediate outputs persist and downstream nodes (e.g. Eleventy) publish
+        // stale content. A manifest-based approach (track outputs per node, diff between runs,
+        // delete orphans) would work for nodes with known output paths, but not for nodes
+        // like EleventyBuildNode that delegate to external tools writing unknown file sets.
 
         return results.filter(r => r !== null);
     }
