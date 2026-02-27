@@ -271,7 +271,6 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         context: PipelineContext,
         items: string[],
         getCacheKey: (item: string) => string,
-        getOutputDir: () => string,
         getOutputPath: (item: string, outputKey: TOutput, filename?: string) => string | undefined,
         performWork: (item: string) => Promise<{
             outputs: Record<TOutput, string[]>;
@@ -279,6 +278,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         }>
     ): Promise<Array<{ item: string, outputs: NodeOutput<TOutput>, cached: boolean }>> {
         const contentSignature = await this.getContentSignature(context);
+        const outputDir = (this.config.outputConfig as any)?.outputDir ?? path.join(context.buildDir, this.name);
 
         // Extract fileRef paths and resolve from() references for cache entries
         const configDependencyPaths: string[] = [];
@@ -375,7 +375,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
             // Recalculate expected paths based on CURRENT config
             const cachedBaseDir = cached.outputBaseDir;
-            const newBaseDir = getOutputDir();
+            const newBaseDir = outputDir;
             const newOutputsByKey: Record<TOutput, string[]> = {} as Record<TOutput, string[]>;
 
             for (const [outputKey, cachedPaths] of Object.entries(cached.outputsByKey)) {
@@ -442,7 +442,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 const cacheEntry = await context.cache.buildCacheEntry(
                     [item],                    // Item files
                     processed.outputs,         // Output files by key
-                    getOutputDir(),            // Output base directory
+                    outputDir,                 // Output base directory
                     cacheKey,                  // Cache key
                     processed.discoveredDependencies,    // Discovered dependencies
                     sharedDependencyPaths,     // Shared config dependencies (excludes items already tracked per-entry)

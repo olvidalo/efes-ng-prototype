@@ -28,7 +28,6 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, "zip"> {
             context,
             [allInputsKey],  // Single dummy item to trigger one execution
             (item) => `zip-all-${inputPaths.length}-files`,
-            () => this.config.outputConfig?.outputDir ?? path.join(context.buildDir, this.name),
             (item, outputKey) => {
                 const outputDir = this.config.outputConfig?.outputDir ?? path.join(context.buildDir, this.name);
                 const filename = typeof this.config.outputConfig!.outputFilename === 'function'

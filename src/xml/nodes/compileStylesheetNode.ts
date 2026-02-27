@@ -44,11 +44,6 @@ export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig,
             context,
             xsltPaths,
             (item) => item,
-            () => {
-                // Output base directory
-                return this.config.outputConfig?.outputDir ??
-                       path.join(context.buildDir, this.name);
-            },
             (item, outputKey, filename?): string | undefined => {
                 if (outputKey === "compiledStylesheet") {
                     return this.getCompiledPath(item, context);

@@ -72,11 +72,6 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, "transfor
             context,
             sourcePaths,
             (item) => isNoSourceMode ? `no-source-${sefStylesheetPath}` : `${item}-with-${sefStylesheetPath}`,
-            () => {
-                // Output base directory
-                return this.config.outputConfig?.outputDir ??
-                       path.join(context.buildDir, this.name);
-            },
             (item, outputKey, filename?): string | undefined => {
                 if (outputKey === "transformed") {
                     return this.getTransformedPath(item, context);
