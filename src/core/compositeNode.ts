@@ -1,4 +1,4 @@
-import { PipelineNode, type PipelineNodeConfig, type NodeOutput, type PipelineContext } from "./pipeline";
+import { PipelineNode, Pipeline, type PipelineNodeConfig, type NodeOutput, type PipelineContext } from "./pipeline";
 
 /**
  * Mapping configuration for connecting internal node outputs to composite node outputs
@@ -68,20 +68,14 @@ export abstract class CompositeNode<
      * Lifecycle hook called when this composite node is added to a pipeline.
      * Expands internal nodes into the main pipeline for streaming and parallelization.
      */
-    onAddedToPipeline(pipeline: any): void {
-        console.log(`Expanding composite node: ${this.name}`);
+    onAddedToPipeline(pipeline: Pipeline): void {
         for (const node of this.internalNodes) {
             pipeline.addNode(node);
         }
 
         // Add dependencies from composite to internal nodes so composite runs AFTER internal nodes
         for (const node of this.internalNodes) {
-            try {
-                pipeline.graph.addDependency(this.name, node.name);
-            } catch (err: any) {
-                // Dependency might already exist or have other issues, continue
-                console.warn(`Could not add dependency from ${this.name} to ${node.name}: ${err.message}`);
-            }
+            pipeline.addGraphDependency(this.name, node.name);
         }
 
         // Propagate explicit dependencies to internal nodes

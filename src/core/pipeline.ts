@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import {fileURLToPath} from "node:url";
+import {EventEmitter} from "node:events";
 import {WorkerPool} from "../xml/workerPool";
 
 interface NodeOutputReference {
@@ -483,12 +484,13 @@ export interface PipelineContext {
     getNodeOutputs(nodeName: string): NodeOutput<any>[] | undefined;
 }
 
-export class Pipeline {
+export class Pipeline extends EventEmitter {
     private graph = new DepGraph<PipelineNode>();
     private nodeOutputs = new Map<string, NodeOutput<any>[]>;
     private nodeTimings = new Map<string, number>();
     private cache: CacheManager;
-    private workerPool: WorkerPool;
+    private workerPool: WorkerPool | null = null;
+    private needsWiring = false;
 
     constructor(
         public readonly name: string,
@@ -496,15 +498,80 @@ export class Pipeline {
         public readonly cacheDir: string = '.efes-cache',
         public readonly executionMode: 'sequential' | 'parallel' | 'dynamic' = 'sequential'
     ) {
+        super();
         this.cache = new CacheManager(cacheDir);
+        this.installDefaultListeners();
+    }
 
-        // Create shared worker pool with generic worker
-        const currentDir = path.dirname(fileURLToPath(import.meta.url));
-        const devPath = path.resolve(currentDir, '../xml/genericWorker.ts');
-        const prodPath = path.resolve(currentDir, 'genericWorker.js');
-        const workerPath = fsSync.existsSync(prodPath) ? prodPath : devPath;
+    private installDefaultListeners(): void {
+        this.on('pipeline:start', ({ name, nodeCount }) =>
+            console.log(`Running pipeline ${name}\nNumber of nodes: ${nodeCount}`));
+        this.on('pipeline:done', ({ name, durationMs, timings }) => {
+            console.log(`  [${name}] Pipeline completed in ${(durationMs / 1000).toFixed(2)}s`);
+            console.log(`  [${name}] \nNode timing summary:`);
+            for (const [nodeName, time] of timings) {
+                console.log(`  [${name}]   ${nodeName.padEnd(40)} ${(time / 1000).toFixed(2)}s`);
+            }
+        });
+        this.on('node:start', ({ name }) =>
+            console.log(`  [${this.name}]   ▶ Running: ${name}`));
+        this.on('node:done', ({ name, durationMs }) =>
+            console.log(`  [${this.name}]     ✓ Completed: ${name} (${(durationMs / 1000).toFixed(2)}s)`));
+        this.on('node:error', ({ name, error }) => {
+            console.log(`  [${this.name}]     ✗ Failed: ${name}`);
+            console.log(`  [${this.name}]       ${error.message}`);
+        });
+    }
 
-        this.workerPool = new WorkerPool(8, workerPath);
+    private getOrCreateWorkerPool(): WorkerPool {
+        if (!this.workerPool) {
+            const currentDir = path.dirname(fileURLToPath(import.meta.url));
+            const devPath = path.resolve(currentDir, '../xml/genericWorker.ts');
+            const prodPath = path.resolve(currentDir, 'genericWorker.js');
+            const workerPath = fsSync.existsSync(prodPath) ? prodPath : devPath;
+            this.workerPool = new WorkerPool(8, workerPath);
+        }
+        return this.workerPool;
+    }
+
+    /**
+     * Wire dependency edges in the graph. Called lazily on first access.
+     * Idempotent — addDependency() silently ignores duplicate edges.
+     */
+    private ensureReady(): void {
+        if (!this.needsWiring) return;
+        this.setupExplicitDependencies();
+        this.setupAutomaticDependencies();
+        this.needsWiring = false;
+    }
+
+    // --- Public accessors ---
+
+    /** Node names in topological (execution) order. */
+    getNodeNames(): string[] {
+        this.ensureReady();
+        return this.graph.overallOrder();
+    }
+
+    /** Direct dependencies of a node. */
+    getDependenciesOf(name: string): string[] {
+        this.ensureReady();
+        return this.graph.dependenciesOf(name);
+    }
+
+    /** Get the node instance by name. */
+    getNodeData(name: string): PipelineNode {
+        return this.graph.getNodeData(name);
+    }
+
+    /** Total number of nodes (including expanded composite internals). */
+    getNodeCount(): number {
+        return this.graph.size();
+    }
+
+    /** Add a raw dependency edge to the graph (used by CompositeNode). */
+    addGraphDependency(fromNode: string, toNode: string): void {
+        this.graph.addDependency(fromNode, toNode);
     }
 
     addNode(...nodes: PipelineNode<any, any>[]): this {
@@ -517,6 +584,7 @@ export class Pipeline {
             }
         }
 
+        this.needsWiring = true;
         return this;
     }
 
@@ -555,7 +623,6 @@ export class Pipeline {
                         if (!this.graph.hasNode(depNodeName)) {
                             throw new Error(`Explicit dependency "${depNodeName}" not found in pipeline`);
                         }
-                        console.log(`Adding explicit dependency for node ${node.name}: ${depNodeName}`);
                         this.graph.addDependency(node.name, depNodeName);
                     } catch (err: any) {
                         throw new Error(`Failed to add explicit dependency for node ${node.name}: ${err.message}`);
@@ -604,15 +671,16 @@ export class Pipeline {
     }
 
     async run() {
+        this.ensureReady();
+
+        // Clear state from previous runs (for re-entrant watch mode)
+        this.nodeOutputs.clear();
+        this.nodeTimings.clear();
+
+        const workerPool = this.getOrCreateWorkerPool();
         const pipelineStart = performance.now();
-        console.log(`Running pipeline ${this.name}`);
-        console.log(`Number of nodes: ${this.graph.size()}`);
 
-        // Setup explicit dependencies
-        this.setupExplicitDependencies();
-
-        // Setup automatic dependencies from NodeOutputReferences
-        this.setupAutomaticDependencies();
+        this.emit('pipeline:start', { name: this.name, nodeCount: this.graph.size() });
 
         // Track currently running nodes for supervisor
         const runningNodes = new Set<string>();
@@ -622,7 +690,7 @@ export class Pipeline {
         // Start supervisor that logs running nodes every 5 seconds
         const supervisorInterval = setInterval(() => {
             if (runningNodes.size > 0) {
-                const activeWorkers = this.workerPool.getActiveWorkers();
+                const activeWorkers = workerPool.getActiveWorkers();
                 console.log(`\n[Supervisor] Currently running ${runningNodes.size} node(s), ${activeWorkers.size} worker(s) busy:`);
                 for (const nodeName of runningNodes) {
                     console.log(`  ⏳ ${nodeName}`);
@@ -630,7 +698,6 @@ export class Pipeline {
                 if (activeWorkers.size > 0) {
                     console.log(`  Workers:`);
                     for (const [workerId, job] of activeWorkers.entries()) {
-                        // Extract node name and file being processed
                         const nodeName = job.nodeName || 'unknown';
                         const fileName = job.xsltPath ? path.basename(job.xsltPath) :
                                         job.sourcePath ? path.basename(job.sourcePath) :
@@ -646,22 +713,18 @@ export class Pipeline {
 
         const context: PipelineContext = {
             resolveInput: async (input: Input): Promise<string[]> => {
-                // Create a cache key from the input
                 const cacheKey = JSON.stringify(input, (key, value) => {
-                    // Handle NodeOutputReference specially to create stable keys
                     if (value && typeof value === 'object' && 'node' in value && 'name' in value) {
                         return `NodeRef:${value.node.name}:${value.name}:${value.glob || ''}`;
                     }
                     return value;
                 });
 
-                // Check cache first
                 const cached = resolveInputCache.get(cacheKey);
                 if (cached) {
                     return cached;
                 }
 
-                // Compute and cache the result (cache the promise to handle concurrent calls)
                 const resultPromise = this.resolveInputImpl(input);
                 resolveInputCache.set(cacheKey, resultPromise);
                 return resultPromise;
@@ -669,7 +732,7 @@ export class Pipeline {
             log: (message: string) => console.log(`  [${this.name}] ${message}`),
             cache: this.cache,
             buildDir: this.buildDir,
-            workerPool: this.workerPool,
+            workerPool,
             getBuildPath: (nodeName: string, inputPath: string, newExtension?: string): string => {
                 let relativePath = inputPath;
 
@@ -732,21 +795,24 @@ export class Pipeline {
                 await this.executeDynamic(executionOrder, context, runningNodes);
             }
 
-            const pipelineTime = ((performance.now() - pipelineStart) / 1000).toFixed(2);
-            context.log(`Pipeline completed in ${pipelineTime}s`);
-
-            // Print timing summary
-            context.log(`\nNode timing summary:`);
+            const durationMs = performance.now() - pipelineStart;
             const timings = Array.from(this.nodeTimings.entries())
-                .sort((a, b) => b[1] - a[1]); // Sort by time, slowest first
+                .sort((a, b) => b[1] - a[1]);
 
-            for (const [nodeName, time] of timings) {
-                context.log(`  ${nodeName.padEnd(40)} ${time.toFixed(2)}s`);
-            }
+            this.emit('pipeline:done', { name: this.name, durationMs, timings });
         } finally {
-            // Always cleanup: stop supervisor and terminate worker pool
             clearInterval(supervisorInterval);
+        }
+    }
+
+    /**
+     * Terminate the worker pool. Call this when done with the pipeline
+     * (after all run() calls, e.g. when exiting watch mode).
+     */
+    async shutdown(): Promise<void> {
+        if (this.workerPool) {
             await this.workerPool.terminate();
+            this.workerPool = null;
         }
     }
 
@@ -787,19 +853,18 @@ export class Pipeline {
         for (const nodeName of executionOrder) {
             const node = this.graph.getNodeData(nodeName);
             const nodeStart = performance.now();
-            context.log(`  ▶ Running: ${node.name}`);
+            this.emit('node:start', { name: node.name });
 
             runningNodes.add(node.name);
 
             try {
                 const output = await node.run(context);
                 this.nodeOutputs.set(node.name, output);
-                const nodeTime = (performance.now() - nodeStart) / 1000;
-                this.nodeTimings.set(node.name, nodeTime);
-                context.log(`    ✓ Completed: ${node.name} (${nodeTime.toFixed(2)}s)`);
+                const durationMs = performance.now() - nodeStart;
+                this.nodeTimings.set(node.name, durationMs);
+                this.emit('node:done', { name: node.name, durationMs });
             } catch (err: any) {
-                context.log(`    ✗ Failed: ${node.name}`);
-                context.log(`      ${err.message}`);
+                this.emit('node:error', { name: node.name, error: err });
                 throw err;
             } finally {
                 runningNodes.delete(node.name);
@@ -821,23 +886,21 @@ export class Pipeline {
         for (const [waveNum, nodeNames] of sortedWaves) {
             context.log(`\n▶▶▶ Wave ${waveNum}: ${nodeNames.length} node(s) - ${nodeNames.join(', ')}`);
 
-            // Run all nodes in this wave in parallel
             await Promise.all(nodeNames.map(async (nodeName) => {
                 const node = this.graph.getNodeData(nodeName);
                 const nodeStart = performance.now();
-                context.log(`  ▶ Running: ${node.name}`);
+                this.emit('node:start', { name: node.name });
 
                 runningNodes.add(node.name);
 
                 try {
                     const output = await node.run(context);
                     this.nodeOutputs.set(node.name, output);
-                    const nodeTime = (performance.now() - nodeStart) / 1000;
-                    this.nodeTimings.set(node.name, nodeTime);
-                    context.log(`    ✓ Completed: ${node.name} (${nodeTime.toFixed(2)}s)`);
+                    const durationMs = performance.now() - nodeStart;
+                    this.nodeTimings.set(node.name, durationMs);
+                    this.emit('node:done', { name: node.name, durationMs });
                 } catch (err: any) {
-                    context.log(`    ✗ Failed: ${node.name}`);
-                    context.log(`      ${err.message}`);
+                    this.emit('node:error', { name: node.name, error: err });
                     throw err;
                 } finally {
                     runningNodes.delete(node.name);
@@ -872,19 +935,18 @@ export class Pipeline {
         const runNode = async (nodeName: string): Promise<void> => {
             const node = this.graph.getNodeData(nodeName);
             const nodeStart = performance.now();
-            context.log(`  ▶ Running: ${node.name}`);
+            this.emit('node:start', { name: node.name });
 
             runningNodes.add(node.name);
 
             try {
                 const output = await node.run(context);
                 this.nodeOutputs.set(node.name, output);
-                const nodeTime = (performance.now() - nodeStart) / 1000;
-                this.nodeTimings.set(node.name, nodeTime);
-                context.log(`    ✓ Completed: ${node.name} (${nodeTime.toFixed(2)}s)`);
+                const durationMs = performance.now() - nodeStart;
+                this.nodeTimings.set(node.name, durationMs);
+                this.emit('node:done', { name: node.name, durationMs });
             } catch (err: any) {
-                context.log(`    ✗ Failed: ${node.name}`);
-                context.log(`      ${err.message}`);
+                this.emit('node:error', { name: node.name, error: err });
                 errors.push(err);
                 throw err;
             } finally {

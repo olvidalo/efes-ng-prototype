@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build:ircyr-11ty": "cd projects/ircyr-11ty && npx tsx ircyr-11ty.pipeline.ts",
-    "build:sigidoc-feind-11ty": "cd projects/sigidoc-feind-11ty && npx tsx sigidoc-feind-11ty.pipeline.ts",
+    "efes": "tsx src/cli.ts",
+    "build:ircyr-11ty": "tsx src/cli.ts run --project projects/ircyr-11ty",
+    "build:sigidoc-feind-11ty": "tsx src/cli.ts run --project projects/sigidoc-feind-11ty",
     "build:all": "npm run build:ircyr-11ty && npm run build:sigidoc-feind-11ty",
-    "clean:ircyr-11ty": "cd projects/ircyr-11ty && rm -rf .efes-build .efes-cache 2-intermediate 3-output",
-    "clean:sigidoc-feind-11ty": "cd projects/sigidoc-feind-11ty && rm -rf .efes-build .efes-cache 2-intermediate 3-output",
+    "clean:ircyr-11ty": "tsx src/cli.ts clean --project projects/ircyr-11ty",
+    "clean:sigidoc-feind-11ty": "tsx src/cli.ts clean --project projects/sigidoc-feind-11ty",
     "clean:all": "npm run clean:ircyr-11ty && npm run clean:sigidoc-feind-11ty",
     "assemble": "rm -rf pages/ircyr-11ty pages/sigidoc-feind-11ty && mkdir -p pages && cp -r projects/ircyr-11ty/3-output pages/ircyr-11ty && cp -r projects/sigidoc-feind-11ty/3-output pages/sigidoc-feind-11ty",
     "relativize": "cd pages/ircyr-11ty && npx all-relative . && cd ../sigidoc-feind-11ty && npx all-relative ."
@@ -19,6 +20,7 @@
   },
   "dependencies": {
     "@11ty/eleventy": "^3.1.2",
+    "chokidar": "^3.6.0",
     "dependency-graph": "^1.0.0",
     "fflate": "^0.8.2",
     "flexsearch": "^0.8.212",

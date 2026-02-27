@@ -290,33 +290,22 @@ const eleventyBuild = new EleventyBuildNode({
 });
 
 
-// Create the pipeline
-const pipeline = new Pipeline("IRCyR Eleventy",".efes-build", ".efes-cache", "dynamic");
+export default new Pipeline("SigiDoc Feind", ".efes-build", ".efes-cache", "dynamic")
+    .addNode(pruneEpidocEnglish)
+    .addNode(transformEpiDocEnglish)
+    .addNode(createEpiDoc11tyFrontmatterEnglish)
 
+    .addNode(pruneEpidocGerman)
+    .addNode(transformEpiDocGerman)
+    .addNode(createEpiDoc11tyFrontmatterGerman)
 
-(async () => {
-    await pipeline
+    .addNode(pruneEpidocGreek)
+    .addNode(transformEpiDocGreek)
+    .addNode(createEpiDoc11tyFrontmatterGreek)
 
-        // Add all nodes
-        .addNode(pruneEpidocEnglish)
-        .addNode(transformEpiDocEnglish)
-        .addNode(createEpiDoc11tyFrontmatterEnglish)
-
-        .addNode(pruneEpidocGerman)
-        .addNode(transformEpiDocGerman)
-        .addNode(createEpiDoc11tyFrontmatterGerman)
-
-        .addNode(pruneEpidocGreek)
-        .addNode(transformEpiDocGreek)
-        .addNode(createEpiDoc11tyFrontmatterGreek)
-
-        .addNode(copyEleventySite)
-        .addNode(aggregateIndices)
-        .addNode(aggregateBibConcordance)
-        .addNode(aggregateSearchData)
-        .addNode(buildSearchIndex)
-        .addNode(eleventyBuild)
-
-        // Run the pipeline
-        .run();
-})()
+    .addNode(copyEleventySite)
+    .addNode(aggregateIndices)
+    .addNode(aggregateBibConcordance)
+    .addNode(aggregateSearchData)
+    .addNode(buildSearchIndex)
+    .addNode(eleventyBuild);

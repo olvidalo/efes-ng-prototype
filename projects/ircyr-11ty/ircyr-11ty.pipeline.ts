@@ -135,22 +135,12 @@ const eleventyBuild = new EleventyBuildNode({
 });
 
 
-// Create the pipeline
-const pipeline = new Pipeline("IRCyR Eleventy", ".efes-build", ".efes-cache", "dynamic");
-
-(async () => {
-    await pipeline
-
-        // Add all nodes
-        .addNode(transformEpiDoc)
-        .addNode(createEpiDoc11tyFrontmatter)
-        .addNode(aggregateIndices)
-        .addNode(aggregateBibConcordance)
-        .addNode(aggregateSearchData)
-        .addNode(buildSearchIndex)
-        .addNode(copyEleventySite)
-        .addNode(eleventyBuild)
-
-        // Run the pipeline
-        .run();
-})()
+export default new Pipeline("IRCyR Eleventy", ".efes-build", ".efes-cache", "dynamic")
+    .addNode(transformEpiDoc)
+    .addNode(createEpiDoc11tyFrontmatter)
+    .addNode(aggregateIndices)
+    .addNode(aggregateBibConcordance)
+    .addNode(aggregateSearchData)
+    .addNode(buildSearchIndex)
+    .addNode(copyEleventySite)
+    .addNode(eleventyBuild);
