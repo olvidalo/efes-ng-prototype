@@ -35,16 +35,15 @@ export class PipelineWatcher {
             console.log(`  ${p}`);
         }
 
-        // TODO: the intermediate, output, build and cache dirs are configureable in the pipeline
-        //       reconsider hardcoded ignores. Also why should most of these dirs land in watchPaths?
+        // NOTE: If a pipeline uses broad globs (e.g. files("**/*.xml")), node output dirs
+        // could fall inside watched trees, causing feedback loops. Possible fix: scan
+        // node outputConfigs to build an ignore list dynamically.
         this.watcher = chokidar.watch(watchPaths, {
             ignoreInitial: true,
             ignored: [
                 '**/node_modules/**',
-                '**/.efes-build/**',
-                '**/.efes-cache/**',
-                '**/2-intermediate/**',
-                '**/3-output/**',
+                `**/${this.pipeline.buildDir}/**`,
+                `**/${this.pipeline.cacheDir}/**`,
             ],
         });
 
