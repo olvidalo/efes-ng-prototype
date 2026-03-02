@@ -1,5 +1,5 @@
 import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
-import {files, from, Pipeline} from "../../src/core/pipeline";
+import {collect, files, from, Pipeline} from "../../src/core/pipeline";
 import {CopyFilesNode} from "../../src/io/copyFilesNode";
 import {EleventyBuildNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode} from "../../src/eleventy";
 import {FlexSearchIndexNode} from "../../src/search/flexSearchIndexNode";
@@ -13,8 +13,8 @@ const copyEleventySite = new CopyFilesNode({
         sourceFiles: files("1-input/eleventy-site/**/*")
     },
     outputConfig: {
-        outputDir: "2-intermediate",
-        stripPathPrefix: "1-input"
+        outputDir: "2-intermediate/eleventy-site",
+        stripPathPrefix: "1-input/eleventy-site"
     }
 })
 
@@ -106,7 +106,7 @@ const buildSearchIndex = new FlexSearchIndexNode({
 const eleventyBuild = new EleventyBuildNode({
     name: 'eleventy-build',
     config: {
-        sourceDir: './2-intermediate/eleventy-site',
+        sourceDir: collect('2-intermediate/eleventy-site'),
         eleventyConfig: {
             config: (eleventyConfig: any) => {
                 eleventyConfig.addPassthroughCopy({
@@ -121,17 +121,6 @@ const eleventyBuild = new EleventyBuildNode({
     outputConfig: {
         outputDir: '3-output',
     },
-
-    // Make sure the other nodes run before this one so all necessary files have been generated.
-    explicitDependencies: [
-        "transform-epidoc",
-        "copy-eleventy-site",
-        "create-epidoc-11ty-frontmatter",
-        "aggregate-indices",
-        "aggregate-bib-concordance",
-        "aggregate-search-data",
-        "build-search-index"
-    ],
 });
 
 

@@ -30,7 +30,20 @@ export function inputIsFilesRef(value: any): value is FilesRef {
     return typeof value === 'object' && value !== null && value?.type === 'files';
 }
 
-export type Input = FilesRef | NodeOutputReference;
+// CollectRef: reference to an intermediate directory assembled by multiple upstream nodes.
+// The pipeline auto-detects which nodes write to this directory and adds dependency edges.
+// Unlike files(), collect() paths are NOT watched (they're intermediate, not source).
+export type CollectRef = { type: 'collect', dir: string };
+
+export function collect(dir: string): CollectRef {
+    return { type: 'collect', dir };
+}
+
+export function inputIsCollectRef(value: any): value is CollectRef {
+    return typeof value === 'object' && value !== null && value?.type === 'collect';
+}
+
+export type Input = FilesRef | NodeOutputReference | CollectRef;
 export type NodeOutput<TKey extends string> = Record<TKey, string[]>;
 
 export function from<TNode extends PipelineNode<any, TOutput>, TOutput extends string>(
@@ -225,6 +238,11 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             return `from(${value.node.name}:${value.name}${globPart})`;
         }
 
+        // collect() reference - use directory path
+        if (inputIsCollectRef(value)) {
+            return `collect(${value.dir})`;
+        }
+
         // Functions - use toString()
         if (typeof value === 'function') {
             return value.toString();
@@ -315,6 +333,10 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 for (const p of resolvedPaths) {
                     pathToProducer.set(p, value.node);
                 }
+            } else if (inputIsCollectRef(value)) {
+                // collect() reference - resolve to file paths for cache tracking
+                const resolvedPaths = await context.resolveInput(value);
+                configDependencyPaths.push(...resolvedPaths);
             } else if (typeof value === 'object' && value !== null) {
                 // Recursively process object values (plain config objects, arrays)
                 for (const v of Object.values(value)) {
@@ -578,6 +600,7 @@ export class Pipeline extends EventEmitter {
     private ensureReady(): void {
         if (!this.needsWiring) return;
         this.setupExplicitDependencies();
+        this.setupCollectDependencies();
         this.setupAutomaticDependencies();
         this.needsWiring = false;
     }
@@ -669,6 +692,48 @@ export class Pipeline extends EventEmitter {
         }
     }
 
+    /**
+     * Auto-detect dependencies for collect() references by matching against
+     * other nodes' outputConfig.outputDir. A node with collect("X") depends on
+     * every node whose outputDir is equal to or under "X".
+     */
+    private setupCollectDependencies() {
+        // Build map: normalized outputDir → node name
+        const outputDirToNode = new Map<string, string>();
+        for (const nodeName of this.graph.overallOrder()) {
+            const node = this.graph.getNodeData(nodeName);
+            const outputDir = (node.config.outputConfig as any)?.outputDir;
+            if (outputDir) {
+                outputDirToNode.set(path.normalize(outputDir), nodeName);
+            }
+        }
+
+        // For each node, scan config for CollectRef and match against outputDirs
+        for (const nodeName of this.graph.overallOrder()) {
+            const node = this.graph.getNodeData(nodeName);
+            this.findCollectRefs(node.config.config, (collectRef) => {
+                const collectDir = path.normalize(collectRef.dir);
+                for (const [outputDir, writerName] of outputDirToNode) {
+                    if (writerName === nodeName) continue;
+                    if (outputDir.startsWith(collectDir)) {
+                        this.graph.addDependency(nodeName, writerName);
+                    }
+                }
+            });
+        }
+    }
+
+    private findCollectRefs(obj: any, callback: (ref: CollectRef) => void): void {
+        if (obj == null) return;
+        if (inputIsCollectRef(obj)) { callback(obj); return; }
+        if (inputIsNodeOutputReference(obj) || inputIsFilesRef(obj)) return;
+        if (typeof obj === 'object') {
+            for (const value of Object.values(obj)) {
+                this.findCollectRefs(value, callback);
+            }
+        }
+    }
+
     private setupAutomaticDependencies() {
         // Setup automatic dependencies from NodeOutputReferences in items and config
         for (const nodeName of this.graph.overallOrder()) {
@@ -677,6 +742,7 @@ export class Pipeline extends EventEmitter {
             // Recursively check config for NodeOutputReferences
             if (node.config) {
                 const findNodeReferences = (obj: any, path: string = 'config') => {
+                    if (inputIsCollectRef(obj) || inputIsFilesRef(obj)) return;  // handled elsewhere
                     if (inputIsNodeOutputReference(obj)) {
                         try {
                             // console.log(`Adding automatic dependency for node ${node.name}: ${obj.node.name} (from ${path})`);
@@ -1069,6 +1135,11 @@ export class Pipeline extends EventEmitter {
                 results.push(...matches);
             }
             return results;
+        }
+
+        // Collect references (intermediate directory assembled by multiple nodes)
+        if (inputIsCollectRef(input)) {
+            return glob(path.join(input.dir, '**/*'), { nodir: true });
         }
 
         throw new Error(`Unknown input type: ${JSON.stringify(input)}`);

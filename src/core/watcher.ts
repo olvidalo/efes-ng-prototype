@@ -1,6 +1,6 @@
 import chokidar from 'chokidar';
 import path from 'node:path';
-import { Pipeline, inputIsNodeOutputReference, inputIsFilesRef } from './pipeline';
+import { Pipeline, inputIsNodeOutputReference, inputIsFilesRef, inputIsCollectRef } from './pipeline';
 
 /**
  * Watches a pipeline's input files and triggers rebuilds on changes.
@@ -119,6 +119,9 @@ export class PipelineWatcher {
 
         // from() reference — skip (inter-node dependency, outputs are pipeline-internal)
         if (inputIsNodeOutputReference(obj)) return;
+
+        // collect() reference — skip (intermediate directory, not a source input)
+        if (inputIsCollectRef(obj)) return;
 
         // files() reference — extract base directories from patterns
         if (inputIsFilesRef(obj)) {

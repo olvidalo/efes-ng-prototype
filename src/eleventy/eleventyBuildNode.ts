@@ -1,4 +1,4 @@
-import {type Input, type PipelineContext, PipelineNode, type PipelineNodeConfig, type UnifiedOutputConfig} from "../core/pipeline";
+import {type CollectRef, type PipelineContext, PipelineNode, type PipelineNodeConfig, type UnifiedOutputConfig} from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
 
@@ -8,7 +8,7 @@ import {Eleventy} from '@11ty/eleventy';
 interface EleventyBuildConfig extends PipelineNodeConfig {
     name: string;
     config: {
-        sourceDir: string;
+        sourceDir: CollectRef;
         eleventyConfig?: any;
     };
     outputConfig?: UnifiedOutputConfig;
@@ -18,14 +18,13 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, "built"
     constructor(config: EleventyBuildConfig) {
         super(config);
 
-        // Validate that source directory is provided
-        if (!this.config.config.sourceDir) {
-            throw new Error(`EleventyBuildNode "${this.name}" requires sourceDir configuration`);
+        if (!this.config.config.sourceDir?.dir) {
+            throw new Error(`EleventyBuildNode "${this.name}" requires sourceDir as a collect() reference`);
         }
     }
 
     async run(context: PipelineContext) {
-        const sourceDir = path.resolve(this.config.config.sourceDir);
+        const sourceDir = path.resolve(this.config.config.sourceDir.dir);
 
         // Check if source directory exists
         try {
