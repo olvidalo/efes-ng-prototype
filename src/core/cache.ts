@@ -83,10 +83,8 @@ export class CacheManager {
    * Retrieve a cache entry for a specific content signature and item.
    * Returns null if entry doesn't exist or can't be read.
    *
-   * Note: Considered separate cache entries per requesting node (with node names in filenames)
-   * for better debugging provenance, but opted for shared entries with runtime copying to keep
-   * the cache simple and avoid file duplication. This decision could be revisited if debugging
-   * benefits outweigh the architectural simplicity.
+   * Nodes with identical configs share a cache slot (same content signature).
+   * Cross-node reuse copies cached outputs to the requesting node's build path.
    */
   async getCache(contentSignature: string, itemKey: string): Promise<CacheEntry | null> {
     const cachePath = this.getCachePath(contentSignature, itemKey);
@@ -94,8 +92,7 @@ export class CacheManager {
     try {
       const content = await fs.readFile(cachePath, 'utf-8');
       return JSON.parse(content) as CacheEntry;
-    } catch (error) {
-      // Cache miss - file doesn't exist or can't be read
+    } catch {
       return null;
     }
   }
@@ -111,12 +108,11 @@ export class CacheManager {
     // Ensure cache directory exists
     await fs.mkdir(cacheNodeDir, { recursive: true });
 
-    // Store with pretty printing for human readability
-    await fs.writeFile(
-      cachePath,
-      JSON.stringify(entry, null, 2),
-      'utf-8'
-    );
+    // Atomic write: write to temp file then rename to prevent corruption
+    // when multiple nodes share a cache slot and write concurrently
+    const tmpPath = `${cachePath}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tmpPath, JSON.stringify(entry, null, 2), 'utf-8');
+    await fs.rename(tmpPath, cachePath);
   }
 
   /**
@@ -136,7 +132,7 @@ export class CacheManager {
     context?: {
       getNodeOutputs: (nodeName: string) => any[] | undefined;
       resolveInput?: (input: any) => Promise<string[]>;
-    }
+    },
   ): Promise<boolean> {
     // 1. Check upstream output signatures (cheapest - string comparison)
     if (entry.upstreamOutputSignatures && context?.resolveInput) {
@@ -181,8 +177,7 @@ export class CacheManager {
         }
         // Timestamp changed but content identical - still valid
       } catch (err) {
-        console.log(`[CACHE DEBUG] File missing or inaccessible: ${filePath}`);
-        return false; // File missing
+          return false; // File missing
       }
     }
 
