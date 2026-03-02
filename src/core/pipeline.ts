@@ -674,16 +674,6 @@ export class Pipeline extends EventEmitter {
         for (const nodeName of this.graph.overallOrder()) {
             const node = this.graph.getNodeData(nodeName);
 
-            // Check items field for NodeOutputReference
-            if (node.items && inputIsNodeOutputReference(node.items)) {
-                try {
-                    // console.log(`Adding automatic dependency for node ${node.name}: ${node.items.node.name} (from items)`);
-                    this.graph.addDependency(node.name, node.items.node.name);
-                } catch (err: any) {
-                    throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err.message}`);
-                }
-            }
-
             // Recursively check config for NodeOutputReferences
             if (node.config) {
                 const findNodeReferences = (obj: any, path: string = 'config') => {
