@@ -4,7 +4,7 @@ import {
     PipelineNode,
     type PipelineNodeConfig,
     type NodeOutput,
-    type UnifiedOutputConfig
+    type OutputConfig
 } from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -14,7 +14,7 @@ interface AggregateBibConcordanceNodeConfig extends PipelineNodeConfig {
     config: {
         frontmatterFiles: Input;
     };
-    outputConfig?: UnifiedOutputConfig;
+    outputConfig?: OutputConfig;
 }
 
 interface BibRef {
@@ -44,7 +44,7 @@ export class AggregateBibConcordanceNode extends PipelineNode<
 > {
     async run(context: PipelineContext): Promise<NodeOutput<"concordance">[]> {
         const files = await context.resolveInput(this.config.config.frontmatterFiles);
-        const outputDir = this.config.outputConfig?.outputDir ??
+        const outputDir = this.config.outputConfig?.to ??
             context.getBuildPath(this.name, "concordance");
 
         this.log(context, `Aggregating bibliography from ${files.length} frontmatter files`);

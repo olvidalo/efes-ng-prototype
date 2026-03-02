@@ -1,4 +1,4 @@
-import {type Input, type PipelineContext, PipelineNode, type PipelineNodeConfig, type UnifiedOutputConfig} from "../../core/pipeline";
+import {type Input, type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../../core/pipeline";
 import path from "node:path";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
@@ -14,7 +14,7 @@ interface CompileStylesheetConfig extends PipelineNodeConfig {
         stylesheets: Input;  // xslt files to compile
         stubLibPath?: Input;  // Optional path to stub library JSON
     };
-    outputConfig?: UnifiedOutputConfig;
+    outputConfig?: OutputConfig;
 }
 
 export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig, "compiledStylesheet"> {

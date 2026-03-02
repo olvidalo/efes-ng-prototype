@@ -1,4 +1,4 @@
-import {type CollectRef, type PipelineContext, PipelineNode, type PipelineNodeConfig, type UnifiedOutputConfig} from "../core/pipeline";
+import {type CollectRef, type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
 
@@ -11,7 +11,7 @@ interface EleventyBuildConfig extends PipelineNodeConfig {
         sourceDir: CollectRef;
         eleventyConfig?: any;
     };
-    outputConfig?: UnifiedOutputConfig;
+    outputConfig?: OutputConfig;
 }
 
 export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, "built"> {
@@ -34,8 +34,8 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, "built"
         }
 
         // Determine output directory
-        const outputDir = this.config.outputConfig?.outputDir ?
-            path.resolve(this.config.outputConfig.outputDir) :
+        const outputDir = this.config.outputConfig?.to ?
+            path.resolve(this.config.outputConfig.to) :
             context.getBuildPath(this.name, sourceDir);
 
         this.log(context, `Building Eleventy site: ${sourceDir} -> ${outputDir}`);

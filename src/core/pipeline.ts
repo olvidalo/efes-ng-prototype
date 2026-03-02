@@ -58,28 +58,17 @@ export function from<TNode extends PipelineNode<any, TOutput>, TOutput extends s
  * Unified output configuration for all node types.
  * Provides smart defaults and escape hatches for common path manipulation patterns.
  */
-export interface UnifiedOutputConfig {
-    // LOCATION: Where files go
+export interface OutputConfig {
     /** Output directory. Default: buildDir/nodeName */
-    outputDir?: string;
-
-    // STRUCTURE: Path manipulation (evaluated in order, pick one)
-    /** Flatten to just basename (filename with extension) */
-    flattenToBasename?: boolean;
-    /** Strip this prefix from the path */
-    stripPathPrefix?: string;
-    /** Full custom path transformation (receives clean path after build prefix stripped) */
-    pathMapping?: (cleanPath: string) => string;
-    // Default: preserve full path
-
-    // NAMING: Filename changes
+    to?: string;
+    /** Strip this prefix from input paths (e.g., from: "1-input", to: "2-intermediate") */
+    from?: string;
+    /** Flatten to just filename, ignoring directory structure */
+    flat?: boolean;
     /** Override entire output filename (string or function) */
     outputFilename?: string | ((inputPath: string) => string);
     /** Change file extension (e.g., '.html', '.json') */
     extension?: string;
-    /** Add suffix before extension (e.g., '-processed') */
-    filenameSuffix?: string;
-    // Default: preserve original filename (or change ext for transforms)
 }
 
 export interface PipelineNodeConfig {
@@ -155,7 +144,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     protected calculateOutputPath(
         inputPath: string,
         context: PipelineContext,
-        outputConfig: UnifiedOutputConfig,
+        outputConfig: OutputConfig,
         defaultExtension?: string
     ): string {
         // Step 1: Strip build prefix to get clean path
@@ -164,12 +153,12 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         // Step 2: Apply path structure manipulation
         let processedPath: string;
 
-        if (outputConfig.flattenToBasename) {
-            // Just basename (filename with extension)
+        if (outputConfig.flat) {
+            // Just filename, no directory structure
             processedPath = path.basename(cleanPath);
-        } else if (outputConfig.stripPathPrefix) {
-            // Strip specific prefix from path
-            const prefix = outputConfig.stripPathPrefix;
+        } else if (outputConfig.from) {
+            // Strip input base prefix from path
+            const prefix = outputConfig.from;
             const normalizedClean = cleanPath.split(path.sep).join('/');
             const normalizedPrefix = prefix.split(path.sep).join('/');
 
@@ -179,9 +168,6 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             } else {
                 processedPath = cleanPath;
             }
-        } else if (outputConfig.pathMapping) {
-            // Custom path transformation
-            processedPath = outputConfig.pathMapping(cleanPath);
         } else {
             // Default: preserve full path
             processedPath = cleanPath;
@@ -205,14 +191,12 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             const nameWithoutExt = path.basename(basename, ext);
 
             const newExt = outputConfig.extension ?? defaultExtension ?? ext;
-            const suffix = outputConfig.filenameSuffix ?? '';
-
-            const newBasename = `${nameWithoutExt}${suffix}${newExt}`;
+            const newBasename = `${nameWithoutExt}${newExt}`;
             finalFilename = dir === '.' ? newBasename : path.join(dir, newBasename);
         }
 
         // Step 4: Combine with output directory
-        const outputDir = outputConfig.outputDir ?? context.getBuildPath(this.name, '');
+        const outputDir = outputConfig.to ?? context.getBuildPath(this.name, '');
         return path.join(outputDir, finalFilename);
     }
 
@@ -311,7 +295,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         }>
     ): Promise<Array<{ item: string, outputs: NodeOutput<TOutput>, cached: boolean }>> {
         const contentSignature = await this.getContentSignature(context);
-        const outputDir = (this.config.outputConfig as any)?.outputDir ?? path.join(context.buildDir, this.name);
+        const outputDir = (this.config.outputConfig as any)?.to ?? path.join(context.buildDir, this.name);
 
         // Resolve all Input values in config for cache dependency tracking
         const configDependencyPaths: string[] = [];
@@ -656,7 +640,7 @@ export class Pipeline extends EventEmitter {
         const outputDirToNode = new Map<string, string>();
         for (const nodeName of this.graph.overallOrder()) {
             const node = this.graph.getNodeData(nodeName);
-            const outputDir = (node.config.outputConfig as any)?.outputDir;
+            const outputDir = (node.config.outputConfig as any)?.to;
             if (outputDir) {
                 outputDirToNode.set(path.normalize(outputDir), nodeName);
             }

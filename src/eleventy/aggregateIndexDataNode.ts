@@ -4,7 +4,7 @@ import {
     PipelineNode,
     type PipelineNodeConfig,
     type NodeOutput,
-    type UnifiedOutputConfig
+    type OutputConfig
 } from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -52,7 +52,7 @@ interface AggregateIndexDataNodeConfig extends PipelineNodeConfig {
         /** Path to indices-config.xsl (single source of truth for index metadata) */
         indicesConfigFile: Input;
     };
-    outputConfig?: UnifiedOutputConfig;
+    outputConfig?: OutputConfig;
 }
 
 interface EntityWithRef {
@@ -89,7 +89,7 @@ export class AggregateIndexDataNode extends PipelineNode<
     async run(context: PipelineContext): Promise<NodeOutput<"indexData">[]> {
         const files = await context.resolveInput(this.config.config.frontmatterFiles);
         const configFile = (await context.resolveInput(this.config.config.indicesConfigFile))[0];
-        const outputDir = this.config.outputConfig?.outputDir ??
+        const outputDir = this.config.outputConfig?.to ??
             context.getBuildPath(this.name, "indices");
 
         // Parse index configuration from XSL file

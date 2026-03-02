@@ -1,4 +1,4 @@
-import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type Input, type UnifiedOutputConfig} from "../core/pipeline";
+import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type Input, type OutputConfig} from "../core/pipeline";
 import {copyFile, mkdir, stat, access, constants} from "node:fs/promises";
 import path from "node:path";
 
@@ -6,7 +6,7 @@ interface CopyFilesConfig extends PipelineNodeConfig {
     config: {
         sourceFiles: Input;
     };
-    outputConfig: UnifiedOutputConfig & {
+    outputConfig: OutputConfig & {
         overwrite?: boolean;
     };
 }
@@ -16,9 +16,9 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, "copied"> {
         const paths = await context.resolveInput(this.config.config.sourceFiles);
         const copiedFiles: string[] = [];
 
-        // Validate that outputDir is specified
-        if (!this.config.outputConfig?.outputDir) {
-            throw new Error(`CopyFilesNode "${this.name}" requires outputConfig.outputDir to be specified`);
+        // Validate that output directory is specified
+        if (!this.config.outputConfig?.to) {
+            throw new Error(`CopyFilesNode "${this.name}" requires outputConfig.to to be specified`);
         }
 
         for (const sourcePath of paths) {

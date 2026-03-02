@@ -13,8 +13,8 @@ const copyEleventySite = new CopyFilesNode({
         sourceFiles: files("1-input/eleventy-site/**/*")
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site",
-        stripPathPrefix: "1-input/eleventy-site"
+        to: "2-intermediate/eleventy-site",
+        from: "1-input/eleventy-site"
     }
 })
 
@@ -37,8 +37,8 @@ const transformEpiDoc = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/en/inscriptions",
-        stripPathPrefix: "1-input/inscriptions",
+        to: "2-intermediate/eleventy-site/en/inscriptions",
+        from: "1-input/inscriptions",
         extension: ".html"
     }
 })
@@ -52,8 +52,8 @@ const createEpiDoc11tyFrontmatter = new XsltTransformNode({
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-epidoc.xsl")
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/en/inscriptions",
-        stripPathPrefix: "1-input/inscriptions",
+        to: "2-intermediate/eleventy-site/en/inscriptions",
+        from: "1-input/inscriptions",
         extension: ".11tydata.json"
     }
 })
@@ -66,7 +66,7 @@ const aggregateIndices = new AggregateIndexDataNode({
         indicesConfigFile: files("1-input/indices-config.xsl")
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/_data/indices"
+        to: "2-intermediate/eleventy-site/_data/indices"
     }
 });
 
@@ -77,7 +77,7 @@ const aggregateBibConcordance = new AggregateBibConcordanceNode({
         frontmatterFiles: from(createEpiDoc11tyFrontmatter, "transformed"),
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/_data/concordance"
+        to: "2-intermediate/eleventy-site/_data/concordance"
     }
 });
 
@@ -87,7 +87,7 @@ const aggregateSearchData = new AggregateSearchDataNode({
     config: {
         frontmatterFiles: from(createEpiDoc11tyFrontmatter, "transformed"),
     },
-    outputConfig: { outputDir: "2-intermediate/eleventy-site/_data/search" }
+    outputConfig: { to: "2-intermediate/eleventy-site/_data/search" }
 });
 
 // Builds a FlexSearch index + facets from the aggregated search data.
@@ -99,7 +99,7 @@ const buildSearchIndex = new FlexSearchIndexNode({
         textFields: ["fullText", "title"],
         facetFields: ["material", "objectType", "textType", "language", "findspot", "repository"]
     },
-    outputConfig: { outputDir: "2-intermediate/eleventy-site/search-data" }
+    outputConfig: { to: "2-intermediate/eleventy-site/search-data" }
 });
 
 // Calls Eleventy to build the site and outputs the result to the output directory.
@@ -119,7 +119,7 @@ const eleventyBuild = new EleventyBuildNode({
         },
     },
     outputConfig: {
-        outputDir: '3-output',
+        to: '3-output',
     },
 });
 

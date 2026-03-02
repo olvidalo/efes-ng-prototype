@@ -7,6 +7,12 @@ import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
 
 // ----- PREPARE KILN XSLs AND TEMPLATES -----
 
+// TODO: Avoid in-place overwrite pattern. Currently copyKiln copies everything to 2-intermediate/, then
+// preprocessKilnXsl and preprocessKilnTemplates overwrite files in the same directory. Instead, have the
+// preprocess nodes read directly from 1-input/ (they only do text replacement, don't need copied files)
+// and change copyKiln to only copy files that don't need preprocessing. This eliminates overlapping writes
+// and lets all three nodes run in parallel.
+
 // Copy all Kiln / EFES files to the preprocessed directory so relative imports in XSLs work, such as for authority
 // files
 const copyKiln = new CopyFilesNode({
@@ -15,8 +21,8 @@ const copyKiln = new CopyFilesNode({
         sourceFiles: files("1-input/ircyr-efes/**/*")
     },
     outputConfig: {
-        outputDir: "2-intermediate",
-        stripPathPrefix: "1-input"
+        to: "2-intermediate",
+        from: "1-input"
     }
 })
 
@@ -35,8 +41,8 @@ const preprocessKilnXsl = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate",
-        stripPathPrefix: "2-intermediate",
+        to: "2-intermediate",
+        from: "2-intermediate",
         extension: ".xsl"
     }
 })
@@ -53,8 +59,8 @@ const preprocessKilnTemplates = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate",
-        stripPathPrefix: "2-intermediate",
+        to: "2-intermediate",
+        from: "2-intermediate",
     }
 })
 
@@ -127,8 +133,8 @@ const epidocTransform = new XsltTransformNode({
         stubLibPath: files("kiln-functions-stub.json")
     },
     outputConfig: {
-        outputDir: "3-output/en/inscriptions",
-        flattenToBasename: true,
+        to: "3-output/en/inscriptions",
+        flat: true,
         extension: ".html"
     }
 })
@@ -208,7 +214,7 @@ const createInscriptionList = new XsltTransformNode({
         stubLibPath: files("kiln-functions-stub.json")
     },
     outputConfig: {
-        outputDir: "3-output",
+        to: "3-output",
         outputFilename: "en/inscriptions/index.html"
     }
 })
@@ -242,7 +248,7 @@ const transformHome = new XsltTransformNode({
 
     },
     outputConfig: {
-        outputDir: "3-output",
+        to: "3-output",
         outputFilename: "en/index.html"
     }
 })
@@ -256,8 +262,8 @@ const copyKilnAssets = new CopyFilesNode({
         sourceFiles: files("1-input/ircyr-efes/webapps/ROOT/assets/{foundation,styles,images,scripts}/**/*")
     },
     outputConfig: {
-        outputDir: "3-output",
-        stripPathPrefix: "1-input/ircyr-efes/webapps/ROOT"
+        to: "3-output",
+        from: "1-input/ircyr-efes/webapps/ROOT"
     }
 });
 

@@ -1,4 +1,4 @@
-import {type Input, type PipelineContext, PipelineNode, type PipelineNodeConfig, type UnifiedOutputConfig} from "../core/pipeline";
+import {type Input, type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
 
@@ -11,7 +11,7 @@ interface FlexSearchIndexConfig extends PipelineNodeConfig {
         textFields: string[];
         facetFields: string[];
     };
-    outputConfig?: UnifiedOutputConfig;
+    outputConfig?: OutputConfig;
 }
 
 export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, "searchIndex"> {
@@ -22,7 +22,7 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, "se
         }
 
         const jsonFile = jsonFiles[0];
-        const outputDir = this.config.outputConfig?.outputDir || context.getBuildPath(this.name, jsonFile);
+        const outputDir = this.config.outputConfig?.to || context.getBuildPath(this.name, jsonFile);
 
         this.log(context, `Generating FlexSearch index from ${jsonFile}`);
 

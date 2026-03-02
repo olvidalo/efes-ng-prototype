@@ -4,7 +4,7 @@ import {
     type PipelineContext,
     PipelineNode,
     type PipelineNodeConfig,
-    type UnifiedOutputConfig
+    type OutputConfig
 } from "../../core/pipeline";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
@@ -23,7 +23,7 @@ interface SefTransformConfig extends PipelineNodeConfig {
         serializationParams?: Record<string, any>;
         initialMode?: string;
     };
-    outputConfig?: UnifiedOutputConfig;
+    outputConfig?: OutputConfig;
 }
 
 

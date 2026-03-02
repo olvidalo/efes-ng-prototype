@@ -1,6 +1,6 @@
 // Core
 export { Pipeline, PipelineNode, from, files, collect, inputIsNodeOutputReference, inputIsFilesRef, inputIsCollectRef } from './core/pipeline';
-export type { Input, NodeOutput, FilesRef, CollectRef, UnifiedOutputConfig, PipelineNodeConfig, PipelineContext } from './core/pipeline';
+export type { Input, NodeOutput, FilesRef, CollectRef, OutputConfig, PipelineNodeConfig, PipelineContext } from './core/pipeline';
 export { CompositeNode } from './core/compositeNode';
 export type { OutputMapping } from './core/compositeNode';
 

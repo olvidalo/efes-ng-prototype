@@ -4,7 +4,7 @@ import {
     PipelineNode,
     type PipelineNodeConfig,
     type NodeOutput,
-    type UnifiedOutputConfig
+    type OutputConfig
 } from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -16,7 +16,7 @@ interface AggregateSearchDataNodeConfig extends PipelineNodeConfig {
         /** Map of language codes to display labels */
         languageLabels?: Record<string, string>;
     };
-    outputConfig?: UnifiedOutputConfig;
+    outputConfig?: OutputConfig;
 }
 
 const DEFAULT_LANGUAGE_LABELS: Record<string, string> = {
@@ -41,7 +41,7 @@ export class AggregateSearchDataNode extends PipelineNode<
 > {
     async run(context: PipelineContext): Promise<NodeOutput<"searchData">[]> {
         const files = await context.resolveInput(this.config.config.frontmatterFiles);
-        const outputDir = this.config.outputConfig?.outputDir ??
+        const outputDir = this.config.outputConfig?.to ??
             context.getBuildPath(this.name, "search");
         const languageLabels = this.config.config.languageLabels ?? DEFAULT_LANGUAGE_LABELS;
 

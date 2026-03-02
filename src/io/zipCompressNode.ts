@@ -1,4 +1,4 @@
-import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type Input, type UnifiedOutputConfig} from "../core/pipeline";
+import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type Input, type OutputConfig} from "../core/pipeline";
 import {Zip, ZipPassThrough} from "fflate";
 import {createReadStream, createWriteStream} from "node:fs";
 import {mkdir} from "node:fs/promises";
@@ -8,7 +8,7 @@ interface ZipCompressConfig extends PipelineNodeConfig {
     config: {
         files: Input;
     };
-    outputConfig: UnifiedOutputConfig;
+    outputConfig: OutputConfig;
 }
 
 export class ZipCompressNode extends PipelineNode<ZipCompressConfig, "zip"> {
@@ -29,14 +29,14 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, "zip"> {
             [allInputsKey],  // Single dummy item to trigger one execution
             (item) => `zip-all-${inputPaths.length}-files`,
             (item, outputKey) => {
-                const outputDir = this.config.outputConfig?.outputDir ?? path.join(context.buildDir, this.name);
+                const outputDir = this.config.outputConfig?.to ?? path.join(context.buildDir, this.name);
                 const filename = typeof this.config.outputConfig!.outputFilename === 'function'
                     ? this.config.outputConfig!.outputFilename(item)
                     : this.config.outputConfig!.outputFilename!;
                 return path.join(outputDir, filename);
             },
             async (item) => {
-                const outputDir = this.config.outputConfig?.outputDir ?? path.join(context.buildDir, this.name);
+                const outputDir = this.config.outputConfig?.to ?? path.join(context.buildDir, this.name);
                 const filename = typeof this.config.outputConfig!.outputFilename === 'function'
                     ? this.config.outputConfig!.outputFilename(item)
                     : this.config.outputConfig!.outputFilename!;
@@ -64,7 +64,7 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, "zip"> {
                     // Use unified config for entry path calculation (but no extension change)
                     const entryConfig = {
                         ...this.config.outputConfig,
-                        outputDir: undefined,  // Don't add outputDir to entry paths
+                        to: undefined,  // Don't add output dir to entry paths
                         outputFilename: undefined  // Don't override filename
                     };
                     const entryPath = this.calculateOutputPath(filePath, context, entryConfig, undefined);

@@ -1,4 +1,4 @@
-import {from, type Input, type PipelineNodeConfig, type UnifiedOutputConfig} from "../../core/pipeline";
+import {from, type Input, type PipelineNodeConfig, type OutputConfig} from "../../core/pipeline";
 import {CompositeNode} from "../../core/compositeNode";
 import {CompileStylesheetNode} from "./compileStylesheetNode";
 import {SefTransformNode} from "./sefTransformNode";
@@ -15,7 +15,7 @@ interface XsltTransformConfig extends PipelineNodeConfig {
         initialMode?: string;
         stubLibPath?: Input;  // Optional path to stub library JSON
     };
-    outputConfig?: UnifiedOutputConfig;
+    outputConfig?: OutputConfig;
 }
 
 export class XsltTransformNode extends CompositeNode<XsltTransformConfig, "transformed" | "result-documents" | "compiledStylesheet"> {

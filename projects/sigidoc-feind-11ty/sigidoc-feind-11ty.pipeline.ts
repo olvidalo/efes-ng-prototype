@@ -21,8 +21,8 @@ const copyEleventySite = new CopyFilesNode({
         sourceFiles: files("1-input/eleventy-site/**/*")
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site",
-        stripPathPrefix: "1-input/eleventy-site"
+        to: "2-intermediate/eleventy-site",
+        from: "1-input/eleventy-site"
     }
 })
 
@@ -56,8 +56,8 @@ const transformEpiDocEnglish = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/en/seals",
-        stripPathPrefix: "1-input/feind-collection",
+        to: "2-intermediate/eleventy-site/en/seals",
+        from: "1-input/feind-collection",
         extension: ".html"
     }
 })
@@ -82,8 +82,8 @@ const createEpiDoc11tyFrontmatterEnglish = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/en/seals",
-        stripPathPrefix: "1-input/feind-collection",
+        to: "2-intermediate/eleventy-site/en/seals",
+        from: "1-input/feind-collection",
         extension: ".11tydata.json"
     }
 })
@@ -113,8 +113,8 @@ const transformEpiDocGerman = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/de/seals",
-        stripPathPrefix: "1-input/feind-collection",
+        to: "2-intermediate/eleventy-site/de/seals",
+        from: "1-input/feind-collection",
         extension: ".html"
     }
 })
@@ -134,8 +134,8 @@ const createEpiDoc11tyFrontmatterGerman = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/de/seals",
-        stripPathPrefix: "1-input/feind-collection",
+        to: "2-intermediate/eleventy-site/de/seals",
+        from: "1-input/feind-collection",
         extension: ".11tydata.json"
     }
 })
@@ -165,8 +165,8 @@ const transformEpiDocGreek = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/el/seals",
-        stripPathPrefix: "1-input/feind-collection",
+        to: "2-intermediate/eleventy-site/el/seals",
+        from: "1-input/feind-collection",
         extension: ".html"
     }
 })
@@ -186,8 +186,8 @@ const createEpiDoc11tyFrontmatterGreek = new XsltTransformNode({
         }
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/el/seals",
-        stripPathPrefix: "1-input/feind-collection",
+        to: "2-intermediate/eleventy-site/el/seals",
+        from: "1-input/feind-collection",
         extension: ".11tydata.json"
     }
 })
@@ -204,7 +204,7 @@ const aggregateIndices = new AggregateIndexDataNode({
         indicesConfigFile: files("1-input/indices-config.xsl")
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/_data/indices"
+        to: "2-intermediate/eleventy-site/_data/indices"
     }
 });
 
@@ -215,7 +215,7 @@ const aggregateBibConcordance = new AggregateBibConcordanceNode({
         frontmatterFiles: from(createEpiDoc11tyFrontmatterEnglish, "transformed"),
     },
     outputConfig: {
-        outputDir: "2-intermediate/eleventy-site/_data/concordance"
+        to: "2-intermediate/eleventy-site/_data/concordance"
     }
 });
 
@@ -229,7 +229,7 @@ const aggregateSearchData = new AggregateSearchDataNode({
     config: {
         frontmatterFiles: from(createEpiDoc11tyFrontmatterEnglish, "transformed"),
     },
-    outputConfig: { outputDir: "2-intermediate/eleventy-site/_data/search" }
+    outputConfig: { to: "2-intermediate/eleventy-site/_data/search" }
 });
 
 // Builds a FlexSearch index + facets from the aggregated search data.
@@ -247,7 +247,7 @@ const buildSearchIndex = new FlexSearchIndexNode({
             "collection", "metrical", "monogram"
         ]
     },
-    outputConfig: { outputDir: "2-intermediate/eleventy-site/search-data" }
+    outputConfig: { to: "2-intermediate/eleventy-site/search-data" }
 });
 
 
@@ -270,7 +270,7 @@ const eleventyBuild = new EleventyBuildNode({
         },
     },
     outputConfig: {
-        outputDir: '3-output',
+        to: '3-output',
     },
 });
 
