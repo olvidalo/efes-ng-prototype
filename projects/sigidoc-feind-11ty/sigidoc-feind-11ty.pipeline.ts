@@ -1,6 +1,6 @@
 import path from "node:path";
 import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
-import {fileRef, from, Pipeline} from "../../src/core/pipeline";
+import {files, from, Pipeline} from "../../src/core/pipeline";
 import {CopyFilesNode} from "../../src/io/copyFilesNode";
 import {EleventyBuildNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode} from "../../src/eleventy";
 import {FlexSearchIndexNode} from "../../src/search/flexSearchIndexNode";
@@ -18,7 +18,7 @@ const bibliographyFileUri = `file://${path.resolve('1-input/authority/bibliograp
 const copyEleventySite = new CopyFilesNode({
     name: "copy-eleventy-site",
     config: {
-        sourceFiles: "1-input/eleventy-site/**/*"
+        sourceFiles: files("1-input/eleventy-site/**/*")
     },
     outputConfig: {
         outputDir: "2-intermediate",
@@ -36,8 +36,8 @@ const copyEleventySite = new CopyFilesNode({
 const pruneEpidocEnglish = new XsltTransformNode({
     name: "prune-epidoc-english",
     config: {
-        sourceFiles: '1-input/feind-collection/*.xml',
-        stylesheet: fileRef("1-input/stylesheets/prune-to-language.xsl"),
+        sourceFiles: files('1-input/feind-collection/*.xml'),
+        stylesheet: files("1-input/stylesheets/prune-to-language.xsl"),
         stylesheetParams: {
             language: 'en',
         }
@@ -50,7 +50,7 @@ const transformEpiDocEnglish = new XsltTransformNode({
     name: "transform-epidoc-en",
     config: {
         sourceFiles: from(pruneEpidocEnglish, "transformed"),
-        stylesheet: fileRef("1-input/stylesheets/epidoc-to-html.xsl"),
+        stylesheet: files("1-input/stylesheets/epidoc-to-html.xsl"),
         stylesheetParams: {
             language: 'en',
         }
@@ -71,7 +71,7 @@ const createEpiDoc11tyFrontmatterEnglish = new XsltTransformNode({
     name: "create-epidoc-11ty-frontmatter-en",
     config: {
         sourceFiles: from(pruneEpidocEnglish, "transformed"),
-        stylesheet: fileRef("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
+        stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
         stylesheetParams: {
             language: 'en',
             'geography-file': geographyFileUri,
@@ -95,8 +95,8 @@ const createEpiDoc11tyFrontmatterEnglish = new XsltTransformNode({
 const pruneEpidocGerman = new XsltTransformNode({
     name: "prune-epidoc-german",
     config: {
-        sourceFiles: '1-input/feind-collection/*.xml',
-        stylesheet: fileRef("1-input/stylesheets/prune-to-language.xsl"),
+        sourceFiles: files('1-input/feind-collection/*.xml'),
+        stylesheet: files("1-input/stylesheets/prune-to-language.xsl"),
         stylesheetParams: {
             language: 'de',
         }
@@ -107,7 +107,7 @@ const transformEpiDocGerman = new XsltTransformNode({
     name: "transform-epidoc-de",
     config: {
         sourceFiles: from(pruneEpidocGerman, "transformed"),
-        stylesheet: fileRef("1-input/stylesheets/epidoc-to-html.xsl"),
+        stylesheet: files("1-input/stylesheets/epidoc-to-html.xsl"),
         stylesheetParams: {
             language: 'de',
         }
@@ -123,7 +123,7 @@ const createEpiDoc11tyFrontmatterGerman = new XsltTransformNode({
     name: "create-epidoc-11ty-frontmatter-de",
     config: {
         sourceFiles: from(pruneEpidocGerman, "transformed"),
-        stylesheet: fileRef("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
+        stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
         stylesheetParams: {
             language: 'de',
             'geography-file': geographyFileUri,
@@ -147,8 +147,8 @@ const createEpiDoc11tyFrontmatterGerman = new XsltTransformNode({
 const pruneEpidocGreek = new XsltTransformNode({
     name: "prune-epidoc-greek",
     config: {
-        sourceFiles: '1-input/feind-collection/*.xml',
-        stylesheet: fileRef("1-input/stylesheets/prune-to-language.xsl"),
+        sourceFiles: files('1-input/feind-collection/*.xml'),
+        stylesheet: files("1-input/stylesheets/prune-to-language.xsl"),
         stylesheetParams: {
             language: 'el',
         }
@@ -159,7 +159,7 @@ const transformEpiDocGreek = new XsltTransformNode({
     name: "transform-epidoc-el",
     config: {
         sourceFiles: from(pruneEpidocGreek, "transformed"),
-        stylesheet: fileRef("1-input/stylesheets/epidoc-to-html.xsl"),
+        stylesheet: files("1-input/stylesheets/epidoc-to-html.xsl"),
         stylesheetParams: {
             language: 'el',
         }
@@ -175,7 +175,7 @@ const createEpiDoc11tyFrontmatterGreek = new XsltTransformNode({
     name: "create-epidoc-11ty-frontmatter-el",
     config: {
         sourceFiles: from(pruneEpidocGerman, "transformed"),
-        stylesheet: fileRef("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
+        stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
         stylesheetParams: {
             language: 'el',
             'geography-file': geographyFileUri,
@@ -201,7 +201,7 @@ const aggregateIndices = new AggregateIndexDataNode({
     name: "aggregate-indices",
     config: {
         frontmatterFiles: from(createEpiDoc11tyFrontmatterEnglish, "transformed"),
-        indicesConfigFile: fileRef("1-input/indices-config.xsl")
+        indicesConfigFile: files("1-input/indices-config.xsl")
     },
     outputConfig: {
         outputDir: "2-intermediate/eleventy-site/_data/indices"

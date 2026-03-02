@@ -1,5 +1,5 @@
 import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
-import {fileRef, from, Pipeline} from "../../src/core/pipeline";
+import {files, from, Pipeline} from "../../src/core/pipeline";
 import {CopyFilesNode} from "../../src/io/copyFilesNode";
 import {EleventyBuildNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode} from "../../src/eleventy";
 import {FlexSearchIndexNode} from "../../src/search/flexSearchIndexNode";
@@ -10,7 +10,7 @@ import {FlexSearchIndexNode} from "../../src/search/flexSearchIndexNode";
 const copyEleventySite = new CopyFilesNode({
     name: "copy-eleventy-site",
     config: {
-        sourceFiles: "1-input/eleventy-site/**/*"
+        sourceFiles: files("1-input/eleventy-site/**/*")
     },
     outputConfig: {
         outputDir: "2-intermediate",
@@ -23,8 +23,8 @@ const copyEleventySite = new CopyFilesNode({
 const transformEpiDoc = new XsltTransformNode({
     name: "transform-epidoc",
     config: {
-        sourceFiles: '1-input/inscriptions/*.xml',
-        stylesheet: fileRef("1-input/epidoc-stylesheets/start-edition.xsl"),
+        sourceFiles: files('1-input/inscriptions/*.xml'),
+        stylesheet: files("1-input/epidoc-stylesheets/start-edition.xsl"),
         initialTemplate: "inslib-body-structure",
         stylesheetParams: {
             "parm-edition-type": "interpretive",
@@ -48,8 +48,8 @@ const transformEpiDoc = new XsltTransformNode({
 const createEpiDoc11tyFrontmatter = new XsltTransformNode({
     name: "create-epidoc-11ty-frontmatter",
     config: {
-        sourceFiles: "1-input/inscriptions/*.xml",
-        stylesheet: fileRef("1-input/stylesheets/create-11ty-frontmatter-for-epidoc.xsl")
+        sourceFiles: files("1-input/inscriptions/*.xml"),
+        stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-epidoc.xsl")
     },
     outputConfig: {
         outputDir: "2-intermediate/eleventy-site/en/inscriptions",
@@ -63,7 +63,7 @@ const aggregateIndices = new AggregateIndexDataNode({
     name: "aggregate-indices",
     config: {
         frontmatterFiles: from(createEpiDoc11tyFrontmatter, "transformed"),
-        indicesConfigFile: fileRef("1-input/indices-config.xsl")
+        indicesConfigFile: files("1-input/indices-config.xsl")
     },
     outputConfig: {
         outputDir: "2-intermediate/eleventy-site/_data/indices"

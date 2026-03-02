@@ -1,6 +1,5 @@
 import {
     type Input,
-    type FileRef,
     type PipelineContext,
     PipelineNode,
     type PipelineNodeConfig,
@@ -51,7 +50,7 @@ interface AggregateIndexDataNodeConfig extends PipelineNodeConfig {
         /** Input frontmatter files (typically from XSLT extraction) */
         frontmatterFiles: Input;
         /** Path to indices-config.xsl (single source of truth for index metadata) */
-        indicesConfigFile: FileRef | string;
+        indicesConfigFile: Input;
     };
     outputConfig?: UnifiedOutputConfig;
 }
@@ -89,9 +88,7 @@ export class AggregateIndexDataNode extends PipelineNode<
 > {
     async run(context: PipelineContext): Promise<NodeOutput<"indexData">[]> {
         const files = await context.resolveInput(this.config.config.frontmatterFiles);
-        const configFile = typeof this.config.config.indicesConfigFile === 'string'
-            ? this.config.config.indicesConfigFile
-            : this.config.config.indicesConfigFile.path;
+        const configFile = (await context.resolveInput(this.config.config.indicesConfigFile))[0];
         const outputDir = this.config.outputConfig?.outputDir ??
             context.getBuildPath(this.name, "indices");
 

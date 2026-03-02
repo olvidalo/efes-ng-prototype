@@ -15,15 +15,23 @@ interface NodeOutputReference {
     glob?: string;  // Optional glob pattern to filter output files
 }
 
-export function inputIsNodeOutputReference(input: Input): input is NodeOutputReference {
-    return typeof input === 'object' && 'node' in input && 'name' in input;
+export function inputIsNodeOutputReference(value: any): value is NodeOutputReference {
+    return typeof value === 'object' && value !== null && 'node' in value && 'name' in value;
 }
 
-export type Input = string | string[] | NodeOutputReference;
-export type NodeOutput<TKey extends string> = Record<TKey, string[]>;
+// FilesRef: tagged filesystem reference (glob patterns or literal paths)
+export type FilesRef = { type: 'files', patterns: string[] };
 
-// File reference type for tracking dependencies in config
-export type FileRef = { type: 'file', path: string };
+export function files(...patterns: string[]): FilesRef {
+    return { type: 'files', patterns };
+}
+
+export function inputIsFilesRef(value: any): value is FilesRef {
+    return typeof value === 'object' && value !== null && value?.type === 'files';
+}
+
+export type Input = FilesRef | NodeOutputReference;
+export type NodeOutput<TKey extends string> = Record<TKey, string[]>;
 
 export function from<TNode extends PipelineNode<any, TOutput>, TOutput extends string>(
     node: TNode,
@@ -31,10 +39,6 @@ export function from<TNode extends PipelineNode<any, TOutput>, TOutput extends s
     glob?: string
 ): NodeOutputReference {
     return {node, name: output as string, glob};
-}
-
-export function fileRef(path: string): FileRef {
-    return { type: 'file', path };
 }
 
 /**
@@ -67,7 +71,7 @@ export interface UnifiedOutputConfig {
 
 export interface PipelineNodeConfig {
     name: string;
-    // Processing configuration (may contain Input values via FileRef or from())
+    // Processing configuration (may contain Input values via files() or from())
     config: Record<string, any>;
     // Output settings (excluded from content signature)
     outputConfig?: Record<string, any>;
@@ -198,9 +202,9 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             return 'null';
         }
 
-        // FileRef - use relative path
-        if (value?.type === 'file') {
-            return `FileRef(${value.path})`;
+        // files() reference - use patterns
+        if (inputIsFilesRef(value)) {
+            return `files(${value.patterns.join(',')})`;
         }
 
         // from() reference - use logical reference
@@ -280,21 +284,22 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         const contentSignature = await this.getContentSignature(context);
         const outputDir = (this.config.outputConfig as any)?.outputDir ?? path.join(context.buildDir, this.name);
 
-        // Extract fileRef paths and resolve from() references for cache entries
+        // Resolve all Input values in config for cache dependency tracking
         const configDependencyPaths: string[] = [];
         const upstreamResolved = new Map<string, { ref: NodeOutputReference, paths: string[] }>();
 
         const processConfigValue = async (value: any) => {
-            if (value?.type === 'file') {
-                // FileRef - extract path directly
-                configDependencyPaths.push(value.path);
+            if (inputIsFilesRef(value)) {
+                // files() reference - resolve to file paths
+                const resolvedPaths = await context.resolveInput(value);
+                configDependencyPaths.push(...resolvedPaths);
             } else if (inputIsNodeOutputReference(value)) {
                 // from() reference - resolve to file paths AND track upstream node
                 const resolvedPaths = await context.resolveInput(value);
                 configDependencyPaths.push(...resolvedPaths);
                 upstreamResolved.set(value.node.name, { ref: value, paths: resolvedPaths });
-            } else if (typeof value === 'object') {
-                // Recursively process object values
+            } else if (typeof value === 'object' && value !== null) {
+                // Recursively process object values (plain config objects, arrays)
                 for (const v of Object.values(value)) {
                     await processConfigValue(v);
                 }
@@ -365,7 +370,6 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
             const cached = await context.cache.getCache(contentSignature, cacheKey);
             if (!cached) {
-                // context.log(`  - Cache miss for ${item}: no cache entry found (key: ${cacheKey.substring(0, 50)}...)`);
                 cacheMisses.push({item, cacheKey, index: i});
                 results[i] = null; // Placeholder
                 continue;
@@ -1034,26 +1038,20 @@ export class Pipeline extends EventEmitter {
             return outputs
         }
 
-        // File paths
-        if (typeof input === "string") {
-            const results = await glob(input)
-            if (results.length === 0) {
-                throw new Error(`No files found for pattern: ${input}`);
-            }
-            return results
-        }
-
-        // Arrays of node references or file paths
-        if (Array.isArray(input)) {
+        // Files references (glob patterns or literal paths)
+        if (inputIsFilesRef(input)) {
             const results: string[] = [];
-            for (const item of input) {
-                // Recursively call resolveInputImpl (not the cached version)
-                results.push(...(await this.resolveInputImpl(item)))
+            for (const pattern of input.patterns) {
+                const matches = await glob(pattern);
+                if (matches.length === 0) {
+                    throw new Error(`No files found for pattern: ${pattern}`);
+                }
+                results.push(...matches);
             }
             return results;
         }
 
-        return []
+        throw new Error(`Unknown input type: ${JSON.stringify(input)}`);
     }
 
     /**

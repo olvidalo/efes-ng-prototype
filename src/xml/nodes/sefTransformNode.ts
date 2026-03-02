@@ -1,5 +1,4 @@
 import {
-    type FileRef,
     type Input,
     inputIsNodeOutputReference,
     type PipelineContext,
@@ -15,7 +14,7 @@ import { fileURLToPath } from "node:url";
 interface SefTransformConfig extends PipelineNodeConfig {
     config: {
         sourceFiles?: Input;  // sourceXml files (optional for no-source transforms)
-        sefStylesheet: FileRef | Input;  // Can be FileRef or NodeOutputReference
+        sefStylesheet: Input;
         initialTemplate?: string;
         stylesheetParams?: Record<string, any | ((inputPath: string) => any)>;
         tunnelParams?: Record<string, any | ((inputPath: string) => any)>;
@@ -41,12 +40,7 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, "transfor
     async run(context: PipelineContext) {
         // const startTime = Date.now();
 
-        // Handle both FileRef and Input (NodeOutputReference) for sefStylesheet
-        // this.log(context, `[DEBUG] Resolving SEF stylesheet reference...`);
-        // const resolveStartTime = Date.now();
-        const sefStylesheetPath = (this.config.config.sefStylesheet as any).path
-            ? (this.config.config.sefStylesheet as FileRef).path
-            : (await context.resolveInput(this.config.config.sefStylesheet as Input))[0];
+        const sefStylesheetPath = (await context.resolveInput(this.config.config.sefStylesheet))[0];
         // this.log(context, `[DEBUG] SEF stylesheet resolved in ${Date.now() - resolveStartTime}ms: ${sefStylesheetPath}`);
 
         // this.log(context, `[DEBUG] Loading SEF stylesheet JSON...`);

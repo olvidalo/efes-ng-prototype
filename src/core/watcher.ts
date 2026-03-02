@@ -1,6 +1,6 @@
 import chokidar from 'chokidar';
 import path from 'node:path';
-import { Pipeline, inputIsNodeOutputReference } from './pipeline';
+import { Pipeline, inputIsNodeOutputReference, inputIsFilesRef } from './pipeline';
 
 /**
  * Watches a pipeline's input files and triggers rebuilds on changes.
@@ -101,7 +101,7 @@ export class PipelineWatcher {
 
     /**
      * Extract filesystem paths to watch from all node configs.
-     * Scans for string inputs (glob patterns) and FileRef objects.
+     * Scans for files() and from() references in node configs.
      * Skips from() references (inter-node dependencies).
      */
     private collectWatchPaths(): string[] {
@@ -118,30 +118,20 @@ export class PipelineWatcher {
     private extractPaths(obj: any, paths: Set<string>): void {
         if (obj == null) return;
 
-        // from() reference — skip (inter-node dependency)
+        // from() reference — skip (inter-node dependency, outputs are pipeline-internal)
         if (inputIsNodeOutputReference(obj)) return;
 
-        // FileRef — watch the file's parent directory
-        if (obj?.type === 'file' && typeof obj.path === 'string') {
-            paths.add(path.dirname(obj.path));
-            return;
-        }
-
-        // String — could be a glob pattern or a file path
-        if (typeof obj === 'string') {
-            // Skip URIs (e.g. file://, http://) — these are XSLT params, not filesystem inputs
-            // TODO: we should probably mark path intputs as such / refactor nodes to use fileRef() or
-            //       similar instead of string inputs.
-            if (/^[a-z]+:\/\//i.test(obj)) return;
-
-            // Extract base directory before any glob wildcard
-            const firstWild = obj.search(/[*?{]/);
-            if (firstWild >= 0) {
-                const baseDir = obj.substring(0, firstWild).replace(/\/[^/]*$/, '') || '.';
-                paths.add(baseDir);
-            } else if (obj.includes('/')) {
-                // Literal path — watch its directory
-                paths.add(path.dirname(obj));
+        // files() reference — extract base directories from patterns
+        if (inputIsFilesRef(obj)) {
+            for (const pattern of obj.patterns) {
+                const firstWild = pattern.search(/[*?{]/);
+                if (firstWild >= 0) {
+                    const baseDir = pattern.substring(0, firstWild).replace(/\/[^/]*$/, '') || '.';
+                    paths.add(baseDir);
+                } else {
+                    // Literal path — watch its directory
+                    paths.add(path.dirname(pattern));
+                }
             }
             return;
         }
@@ -154,7 +144,7 @@ export class PipelineWatcher {
             return;
         }
 
-        // Objects — recurse into values
+        // Objects — recurse into values (plain config objects)
         if (typeof obj === 'object') {
             for (const value of Object.values(obj)) {
                 this.extractPaths(value, paths);

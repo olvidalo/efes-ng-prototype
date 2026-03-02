@@ -1,4 +1,4 @@
-import {from, type Input, type PipelineNodeConfig, type FileRef, type UnifiedOutputConfig} from "../../core/pipeline";
+import {from, type Input, type PipelineNodeConfig, type UnifiedOutputConfig} from "../../core/pipeline";
 import {CompositeNode} from "../../core/compositeNode";
 import {CompileStylesheetNode} from "./compileStylesheetNode";
 import {SefTransformNode} from "./sefTransformNode";
@@ -6,14 +6,14 @@ import {SefTransformNode} from "./sefTransformNode";
 interface XsltTransformConfig extends PipelineNodeConfig {
     config: {
         sourceFiles?: Input;  // sourceXml files (optional for no-source transforms)
-        stylesheet: FileRef | Input;
+        stylesheet: Input;
         initialTemplate?: string;
         stylesheetParams?: Record<string, any | ((inputPath: string) => any)>;
         tunnelParams?: Record<string, any | ((inputPath: string) => any)>;
         templateParams?: Record<string, any | ((inputPath: string) => any)>;
         serializationParams?: Record<string, any>;
         initialMode?: string;
-        stubLibPath?: FileRef | Input;  // Optional path to stub library JSON
+        stubLibPath?: Input;  // Optional path to stub library JSON
     };
     outputConfig?: UnifiedOutputConfig;
 }
@@ -27,9 +27,7 @@ export class XsltTransformNode extends CompositeNode<XsltTransformConfig, "trans
         const compile = new CompileStylesheetNode({
             name: compileName,
             config: {
-                stylesheets: typeof this.config.config.stylesheet === "object" && "path" in this.config.config.stylesheet
-                    ? this.config.config.stylesheet.path
-                    : this.config.config.stylesheet,
+                stylesheets: this.config.config.stylesheet,
                 stubLibPath: this.config.config.stubLibPath,
             },
         })

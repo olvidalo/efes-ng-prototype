@@ -1,5 +1,5 @@
 import {CopyFilesNode} from "../../src/io/copyFilesNode";
-import {fileRef, from, Pipeline} from "../../src/core/pipeline";
+import {files, from, Pipeline} from "../../src/core/pipeline";
 import path from "node:path";
 import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
 
@@ -12,7 +12,7 @@ import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
 const copyKiln = new CopyFilesNode({
     name: "copy-kiln",
     config: {
-        sourceFiles: "1-input/ircyr-efes/**/*"
+        sourceFiles: files("1-input/ircyr-efes/**/*")
     },
     outputConfig: {
         outputDir: "2-intermediate",
@@ -28,7 +28,7 @@ const preprocessKilnXsl = new XsltTransformNode({
     name: "kiln-xsl-preprocess",
     config: {
         sourceFiles: from(copyKiln, "copied", "2-intermediate/ircyr-efes/webapps/ROOT/**/*.xsl"),
-        stylesheet: fileRef("1-input/stylesheets/preprocess-kiln-xsl.xsl"),
+        stylesheet: files("1-input/stylesheets/preprocess-kiln-xsl.xsl"),
         stylesheetParams: {
             "stylesheet-base-path": path.resolve("2-intermediate/ircyr-efes/webapps/ROOT"),
             "efes-base-path": path.resolve("1-input/ircyr-efes"),
@@ -46,7 +46,7 @@ const preprocessKilnTemplates = new XsltTransformNode({
     name: "templates-preprocess",
     config: {
         sourceFiles: from(copyKiln, "copied", "2-intermediate/ircyr-efes/webapps/ROOT/assets/templates/**/*.xml"),
-        stylesheet: fileRef("1-input/stylesheets/preprocess-kiln-xsl.xsl"),
+        stylesheet: files("1-input/stylesheets/preprocess-kiln-xsl.xsl"),
         stylesheetParams: {
             "stylesheet-base-path": path.resolve("2-intermediate/ircyr-efes/webapps/ROOT"),
             "efes-base-path": path.resolve("1-input/ircyr-efes")
@@ -64,7 +64,7 @@ const templatesExpandXIncludes = new XsltTransformNode({
     name: "templates-expand-xincludes",
     config: {
         sourceFiles: from(preprocessKilnTemplates, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/assets/templates/{epidoc-inslib,inscription-index,home}.xml"),
-        stylesheet: fileRef("1-input/stylesheets/expand-xincludes.xsl")
+        stylesheet: files("1-input/stylesheets/expand-xincludes.xsl")
     }
 })
 
@@ -77,7 +77,7 @@ const templatesInherit = new XsltTransformNode({
 
         // Templates use functions from the kiln: namespace. We provide a stub with an own implementation of these
         // functions so that the XSLT can run outside of Kiln.
-        stubLibPath: fileRef("kiln-functions-stub.json")
+        stubLibPath: files("kiln-functions-stub.json")
     },
     outputConfig: {
         extension: '.xsl'
@@ -94,8 +94,8 @@ const templatesInherit = new XsltTransformNode({
 const epidocMenuAggregation = new XsltTransformNode({
     name: "epidoc-menu-aggregation",
     config: {
-        sourceFiles: "1-input/ircyr-efes/webapps/ROOT/content/xml/epidoc/*.xml",
-        stylesheet: fileRef("1-input/stylesheets/create-menu-aggregation.xsl"),
+        sourceFiles: files("1-input/ircyr-efes/webapps/ROOT/content/xml/epidoc/*.xml"),
+        stylesheet: files("1-input/stylesheets/create-menu-aggregation.xsl"),
         stylesheetParams: {
             url: (inputPath: string) => {
                 const inputFilename = path.basename(inputPath);
@@ -122,7 +122,7 @@ const epidocTransform = new XsltTransformNode({
             "method": "html",
             "indent": true
         },
-        stubLibPath: fileRef("kiln-functions-stub.json")
+        stubLibPath: files("kiln-functions-stub.json")
     },
     outputConfig: {
         outputDir: "3-output/en/inscriptions",
@@ -138,7 +138,7 @@ const epidocTransform = new XsltTransformNode({
 const transformEpiDocToSolr = new XsltTransformNode({
     name: 'epidoc-to-solr',
     config: {
-        sourceFiles: "1-input/ircyr-efes/webapps/ROOT/content/xml/epidoc/*.xml",
+        sourceFiles: files("1-input/ircyr-efes/webapps/ROOT/content/xml/epidoc/*.xml"),
         stylesheet: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/stylesheets/solr/tei-to-solr.xsl"),
         stylesheetParams: {
             'file-path': function (inputPath: string) {
@@ -154,7 +154,7 @@ const transformEpiDocToSolr = new XsltTransformNode({
 const aggregateSolrDocs = new XsltTransformNode({
     name: 'epidoc-aggregate-solr-docs',
     config: {
-        stylesheet: fileRef('1-input/stylesheets/aggregate-epidoc-solr-docs.xsl'),
+        stylesheet: files('1-input/stylesheets/aggregate-epidoc-solr-docs.xsl'),
         initialTemplate: 'main',
         stylesheetParams: {
             'documents': from(transformEpiDocToSolr, "transformed")
@@ -168,7 +168,7 @@ const solrDocsToResults = new XsltTransformNode({
     name: "epidoc-solr-docs-to-results",
     config: {
         sourceFiles: from(aggregateSolrDocs, "transformed"),
-        stylesheet: fileRef("1-input/stylesheets/solr-docs-to-results.xsl"),
+        stylesheet: files("1-input/stylesheets/solr-docs-to-results.xsl"),
         stylesheetParams: {
             "document_type": "epidoc"
         }
@@ -181,7 +181,7 @@ const createInscriptionListMenuAggregation = new XsltTransformNode({
     name: "epidoc-inscription-list-menu-aggregation",
     config: {
         sourceFiles: from(solrDocsToResults, "transformed"),
-        stylesheet: fileRef("1-input/stylesheets/create-menu-aggregation.xsl"),
+        stylesheet: files("1-input/stylesheets/create-menu-aggregation.xsl"),
         stylesheetParams: {
             url: "/en/inscriptions/index.html",
             language: "en"
@@ -200,7 +200,7 @@ const createInscriptionList = new XsltTransformNode({
         stylesheetParams: {
             "language": "en"
         },
-        stubLibPath: fileRef("kiln-functions-stub.json")
+        stubLibPath: files("kiln-functions-stub.json")
     },
     outputConfig: {
         outputDir: "3-output",
@@ -216,7 +216,7 @@ const homeMenuAggregation = new XsltTransformNode({
     name: "home-menu-aggregation",
     config: {
         sourceFiles: from(preprocessKilnTemplates, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/assets/templates/home.xml"),
-        stylesheet: fileRef("1-input/stylesheets/create-menu-aggregation.xsl"),
+        stylesheet: files("1-input/stylesheets/create-menu-aggregation.xsl"),
         stylesheetParams: {
             url: "/en",
             language: "en"
@@ -231,7 +231,7 @@ const transformHome = new XsltTransformNode({
     config: {
         sourceFiles: from(homeMenuAggregation, "transformed"),
         stylesheet: from(templatesInherit, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/assets/templates/home.xsl"),
-        stubLibPath: fileRef("kiln-functions-stub.json")
+        stubLibPath: files("kiln-functions-stub.json")
 
     },
     outputConfig: {
@@ -246,7 +246,7 @@ const transformHome = new XsltTransformNode({
 const copyKilnAssets = new CopyFilesNode({
     name: "copy-assets",
     config: {
-        sourceFiles: "1-input/ircyr-efes/webapps/ROOT/assets/{foundation,styles,images,scripts}/**/*"
+        sourceFiles: files("1-input/ircyr-efes/webapps/ROOT/assets/{foundation,styles,images,scripts}/**/*")
     },
     outputConfig: {
         outputDir: "3-output",
