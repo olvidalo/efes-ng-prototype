@@ -24,7 +24,7 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, "built"
     }
 
     async run(context: PipelineContext) {
-        const sourceDir = path.resolve(this.config.config.sourceDir.dir);
+        const sourceDir = path.resolve(context.projectDir, this.config.config.sourceDir.dir);
 
         // Check if source directory exists
         try {
@@ -35,7 +35,7 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, "built"
 
         // Determine output directory
         const outputDir = this.config.outputConfig?.to ?
-            path.resolve(this.config.outputConfig.to) :
+            path.resolve(context.projectDir, this.config.outputConfig.to) :
             context.getBuildPath(this.name, sourceDir);
 
         this.log(context, `Building Eleventy site: ${sourceDir} -> ${outputDir}`);

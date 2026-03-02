@@ -44,6 +44,7 @@ async function discoverPipeline(dir: string): Promise<Pipeline> {
         throw new Error(`${files[0]} must export default a Pipeline instance`);
     }
 
+    pipeline.projectDir = absDir;
     return pipeline;
 }
 

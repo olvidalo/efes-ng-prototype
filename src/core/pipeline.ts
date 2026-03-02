@@ -140,7 +140,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     protected getCleanRelativePath(item: string, context: PipelineContext): string {
         const itemDir = path.dirname(item);
         const cleanDir = context.stripBuildPrefix(itemDir);
-        return path.relative(process.cwd(), cleanDir);
+        return path.relative(context.projectDir, cleanDir);
     }
 
     /**
@@ -531,6 +531,7 @@ export interface PipelineContext {
 
     cache: CacheManager;
     buildDir: string;
+    projectDir: string;
     workerPool: WorkerPool;
 
     getBuildPath(nodeName: string, inputPath: string, newExtension?: string): string;
@@ -550,10 +551,12 @@ export class Pipeline extends EventEmitter {
         public readonly name: string,
         public readonly buildDir: string = '.efes-build',
         public readonly cacheDir: string = '.efes-cache',
-        public readonly executionMode: 'sequential' | 'parallel' | 'dynamic' = 'sequential'
+        public readonly executionMode: 'sequential' | 'parallel' | 'dynamic' = 'sequential',
+        public projectDir: string = process.cwd(),
+        public workerThreads: number = 8
     ) {
         super();
-        this.cache = new CacheManager(cacheDir);
+        this.cache = new CacheManager(path.resolve(this.projectDir, cacheDir));
         this.installDefaultListeners();
     }
 
@@ -583,7 +586,7 @@ export class Pipeline extends EventEmitter {
             const devPath = path.resolve(currentDir, '../xml/genericWorker.ts');
             const prodPath = path.resolve(currentDir, 'genericWorker.js');
             const workerPath = fsSync.existsSync(prodPath) ? prodPath : devPath;
-            this.workerPool = new WorkerPool(8, workerPath);
+            this.workerPool = new WorkerPool(this.workerThreads, workerPath);
         }
         return this.workerPool;
     }
@@ -775,13 +778,14 @@ export class Pipeline extends EventEmitter {
             log: (message: string) => console.log(`  [${this.name}] ${message}`),
             cache: this.cache,
             buildDir: this.buildDir,
+            projectDir: this.projectDir,
             workerPool,
             getBuildPath: (nodeName: string, inputPath: string, newExtension?: string): string => {
                 let relativePath = inputPath;
 
                 // Check if this is a build artifact path and strip build dir + source node name
-                const resolvedBuildDir = path.resolve(this.buildDir);
-                const resolvedInputPath = path.resolve(inputPath);
+                const resolvedBuildDir = path.resolve(this.projectDir, this.buildDir);
+                const resolvedInputPath = path.resolve(this.projectDir, inputPath);
 
                 if (resolvedInputPath.startsWith(resolvedBuildDir)) {
                     // Strip build dir: .efes-build/upstream:transform/some/path/file.html
@@ -793,8 +797,8 @@ export class Pipeline extends EventEmitter {
                         relativePath = path.join(...pathParts.slice(1));
                     }
                 } else {
-                    // For non-build paths, make them relative to cwd
-                    relativePath = path.relative(process.cwd(), inputPath);
+                    // For non-build paths, make them relative to projectDir
+                    relativePath = path.relative(this.projectDir, inputPath);
                 }
 
                 // Now build the new path
@@ -804,8 +808,8 @@ export class Pipeline extends EventEmitter {
                     buildPath;
             },
             stripBuildPrefix: (inputPath: string): string => {
-                const resolvedBuildDir = path.resolve(this.buildDir);
-                const resolvedInputPath = path.resolve(inputPath);
+                const resolvedBuildDir = path.resolve(this.projectDir, this.buildDir);
+                const resolvedInputPath = path.resolve(this.projectDir, inputPath);
 
                 if (resolvedInputPath.startsWith(resolvedBuildDir)) {
                     // Strip build dir: .efes-build/node-name/some/path/file.html
@@ -820,8 +824,8 @@ export class Pipeline extends EventEmitter {
                     return afterBuildDir;
                 }
 
-                // For non-build paths, make them relative to cwd
-                return path.relative(process.cwd(), inputPath);
+                // For non-build paths, make them relative to projectDir
+                return path.relative(this.projectDir, inputPath);
             },
             getNodeOutputs: (nodeName: string) => this.nodeOutputs.get(nodeName)
         }
@@ -1059,7 +1063,7 @@ export class Pipeline extends EventEmitter {
                 }
 
                 // Run glob ONCE to get all matches
-                const matches = await glob(globPattern);
+                const matches = await glob(globPattern, { cwd: this.projectDir });
                 const matchSet = new Set(matches);
 
                 // Filter outputs to only those that match
@@ -1078,15 +1082,15 @@ export class Pipeline extends EventEmitter {
         if (inputIsFilesRef(input)) {
             const results: string[] = [];
             for (const pattern of input.patterns) {
-                const matches = await glob(pattern);
+                const matches = await glob(pattern, { cwd: this.projectDir, nodir: true });
                 if (matches.length === 0) {
-                    throw new Error(`No files found for pattern: ${pattern}`);
-                }
-                for (const match of matches) {
-                    const stat = await fs.stat(match);
-                    if (stat.isDirectory()) {
-                        throw new Error(`files() resolved to a directory: ${match}. Use absolute() for directory paths.`);
+                    // Check if it's a directory to give a better error message
+                    const resolved = path.resolve(this.projectDir, pattern);
+                    const isDir = await fs.stat(resolved).then(s => s.isDirectory(), () => false);
+                    if (isDir) {
+                        throw new Error(`files() resolved to a directory: ${pattern}. Use absolute() for directory paths or add a glob pattern (e.g., "${pattern}/**/*").`);
                     }
+                    throw new Error(`No files found for pattern: ${pattern}`);
                 }
                 results.push(...matches);
             }
@@ -1095,7 +1099,7 @@ export class Pipeline extends EventEmitter {
 
         // Collect references (intermediate directory assembled by multiple nodes)
         if (inputIsCollectRef(input)) {
-            return glob(path.join(input.dir, '**/*'), { nodir: true });
+            return glob(path.join(input.dir, '**/*'), { nodir: true, cwd: this.projectDir });
         }
 
         throw new Error(`Unknown input type: ${JSON.stringify(input)}`);

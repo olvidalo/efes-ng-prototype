@@ -49,7 +49,7 @@ export class PipelineWatcher {
 
         this.watcher.on('all', (event, filePath) => {
             this.pipeline.emit('watch:change', { event, path: filePath });
-            console.log(`  [watch] ${event}: ${path.relative(process.cwd(), filePath)}`);
+            console.log(`  [watch] ${event}: ${path.relative(this.pipeline.projectDir, filePath)}`);
             this.scheduleRebuild();
         });
 
