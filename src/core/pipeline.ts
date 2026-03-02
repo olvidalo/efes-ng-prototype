@@ -88,7 +88,6 @@ export interface PipelineNodeConfig {
     config: Record<string, any>;
     // Output settings (excluded from content signature)
     outputConfig?: Record<string, any>;
-    explicitDependencies?: string[];
 }
 
 
@@ -599,7 +598,6 @@ export class Pipeline extends EventEmitter {
      */
     private ensureReady(): void {
         if (!this.needsWiring) return;
-        this.setupExplicitDependencies();
         this.setupCollectDependencies();
         this.setupAutomaticDependencies();
         this.needsWiring = false;
@@ -646,50 +644,6 @@ export class Pipeline extends EventEmitter {
 
         this.needsWiring = true;
         return this;
-    }
-
-    // TODO probably useless
-    addExplicitDependency(fromNodeName: string, toNodeName: string): this {
-        // Validate that both nodes exist
-        if (!this.graph.hasNode(fromNodeName)) {
-            throw new Error(`Node "${fromNodeName}" not found in pipeline`);
-        }
-        if (!this.graph.hasNode(toNodeName)) {
-            throw new Error(`Node "${toNodeName}" not found in pipeline`);
-        }
-
-        // Add to the node's explicit dependencies config
-        const node = this.graph.getNodeData(fromNodeName);
-        if (!node.config.explicitDependencies) {
-            node.config.explicitDependencies = [];
-        }
-        if (!node.config.explicitDependencies.includes(toNodeName)) {
-            node.config.explicitDependencies.push(toNodeName);
-        }
-
-        return this;
-    }
-
-    private setupExplicitDependencies() {
-        // Setup explicit dependencies first
-        for (const nodeName of this.graph.overallOrder()) {
-            const node = this.graph.getNodeData(nodeName);
-
-            // Handle explicit dependencies only
-            if (node.config.explicitDependencies) {
-                for (const depNodeName of node.config.explicitDependencies) {
-                    try {
-                        // Validate that the dependency node exists
-                        if (!this.graph.hasNode(depNodeName)) {
-                            throw new Error(`Explicit dependency "${depNodeName}" not found in pipeline`);
-                        }
-                        this.graph.addDependency(node.name, depNodeName);
-                    } catch (err: any) {
-                        throw new Error(`Failed to add explicit dependency for node ${node.name}: ${err.message}`);
-                    }
-                }
-            }
-        }
     }
 
     /**

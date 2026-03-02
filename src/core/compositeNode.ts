@@ -78,21 +78,6 @@ export abstract class CompositeNode<
             pipeline.addGraphDependency(this.name, node.name);
         }
 
-        // Propagate explicit dependencies to internal nodes
-        // This ensures that if composite depends on X, all internal nodes also depend on X
-        if (this.config.explicitDependencies) {
-            for (const node of this.internalNodes) {
-                // Add explicit dependencies to internal node config
-                if (!node.config.explicitDependencies) {
-                    node.config.explicitDependencies = [];
-                }
-                for (const dep of this.config.explicitDependencies) {
-                    if (!node.config.explicitDependencies.includes(dep)) {
-                        node.config.explicitDependencies.push(dep);
-                    }
-                }
-            }
-        }
     }
 
     /**
