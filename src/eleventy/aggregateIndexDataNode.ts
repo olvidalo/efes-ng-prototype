@@ -216,7 +216,7 @@ export class AggregateIndexDataNode extends PipelineNode<
             resultForm: 'array'
         });
 
-        return indexElements.map((indexEl: Element) => {
+        return indexElements.map((indexEl: any) => {
             const id = XPath.evaluate("string(@id)", indexEl, { resultForm: 'value' });
             const title = XPath.evaluate("string(@title)", indexEl, { resultForm: 'value' });
             const order = parseInt(XPath.evaluate("string(@order)", indexEl, { resultForm: 'value' }) || '99', 10);
@@ -230,7 +230,7 @@ export class AggregateIndexDataNode extends PipelineNode<
                 namespaceContext: nsContext,
                 resultForm: 'array'
             });
-            const columns: ColumnConfig[] = columnElements.map((col: Element) => {
+            const columns: ColumnConfig[] = columnElements.map((col: any) => {
                 const type = XPath.evaluate("string(@type)", col, { resultForm: 'value' });
                 const labelKey = XPath.evaluate("string(@labelKey)", col, { resultForm: 'value' });
                 return {
@@ -247,7 +247,7 @@ export class AggregateIndexDataNode extends PipelineNode<
                 resultForm: 'array'
             });
             const notes = noteElements.length > 0
-                ? noteElements.map((n: Element) => XPath.evaluate("string(.)", n, { resultForm: 'value' }))
+                ? noteElements.map((n: any) => XPath.evaluate("string(.)", n, { resultForm: 'value' }))
                 : undefined;
 
             // Parse sort keys
@@ -256,7 +256,7 @@ export class AggregateIndexDataNode extends PipelineNode<
                 resultForm: 'array'
             });
             const sortKeys = sortKeyElements.length > 0
-                ? sortKeyElements.map((attr: Attr) => attr.value)
+                ? sortKeyElements.map((attr: any) => attr.value)
                 : undefined;
 
             // Parse groupBy configuration
@@ -305,7 +305,7 @@ export class AggregateIndexDataNode extends PipelineNode<
         }
 
         return Array.from(groups.entries())
-            .map(([sortKey, refs]) => {
+            .map(([sortKey, refs]): AggregatedEntry => {
                 const { inscriptionId, line, indexType, isRestored, ...baseFields } = refs[0];
                 return {
                     ...baseFields,
