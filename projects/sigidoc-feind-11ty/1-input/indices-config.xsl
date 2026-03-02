@@ -99,17 +99,17 @@
         </idx:columns>
     </idx:index>
 
-    <!-- Authority file paths – passed as stylesheet parameters (absolute URIs) -->
+    <!-- Authority file paths – passed as stylesheet parameters (absolute paths) -->
     <xsl:param name="geography-file" as="xs:string" select="''"/>
-    <xsl:variable name="geography" select="if ($geography-file != '') then document($geography-file) else ()"/>
+    <xsl:variable name="geography" select="if ($geography-file != '') then document('file://' || $geography-file) else ()"/>
     <xsl:param name="dignities-file" as="xs:string" select="''"/>
-    <xsl:variable name="dignities" select="if ($dignities-file != '') then document($dignities-file) else ()"/>
+    <xsl:variable name="dignities" select="if ($dignities-file != '') then document('file://' || $dignities-file) else ()"/>
     <xsl:param name="offices-file" as="xs:string" select="''"/>
-    <xsl:variable name="offices" select="if ($offices-file != '') then document($offices-file) else ()"/>
+    <xsl:variable name="offices" select="if ($offices-file != '') then document('file://' || $offices-file) else ()"/>
     <xsl:param name="invocations-file" as="xs:string" select="''"/>
-    <xsl:variable name="invocations" select="if ($invocations-file != '') then document($invocations-file) else ()"/>
+    <xsl:variable name="invocations" select="if ($invocations-file != '') then document('file://' || $invocations-file) else ()"/>
     <xsl:param name="bibliography-file" as="xs:string" select="''"/>
-    <xsl:variable name="bibliography-authority" select="if ($bibliography-file != '') then document($bibliography-file) else ()"/>
+    <xsl:variable name="bibliography-authority" select="if ($bibliography-file != '') then document('file://' || $bibliography-file) else ()"/>
 
     <xsl:template match="tei:TEI" mode="extract-places">
         <xsl:for-each select=".//tei:div[@type='textpart']//tei:placeName[starts-with(@ref, '#geo')]">

@@ -8,7 +8,7 @@
     <xsl:param name="schemaPath" required="yes" />
 
     <!-- Load the Solr schema to determine multiValued fields -->
-    <xsl:variable name="schema" select="document($schemaPath)"/>
+    <xsl:variable name="schema" select="document('file://' || $schemaPath)"/>
 
     <!-- Get all field names that are multiValued="true" -->
     <xsl:variable name="multiValued-fields" select="$schema//field[@multiValued='true']/@name"/>

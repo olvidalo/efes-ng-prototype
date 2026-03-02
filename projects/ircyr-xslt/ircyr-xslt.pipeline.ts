@@ -1,5 +1,5 @@
 import {CopyFilesNode} from "../../src/io/copyFilesNode";
-import {files, from, Pipeline} from "../../src/core/pipeline";
+import {absolute, files, from, Pipeline} from "../../src/core/pipeline";
 import path from "node:path";
 import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
 
@@ -36,8 +36,8 @@ const preprocessKilnXsl = new XsltTransformNode({
         sourceFiles: from(copyKiln, "copied", "2-intermediate/ircyr-efes/webapps/ROOT/**/*.xsl"),
         stylesheet: files("1-input/stylesheets/preprocess-kiln-xsl.xsl"),
         stylesheetParams: {
-            "stylesheet-base-path": path.resolve("2-intermediate/ircyr-efes/webapps/ROOT"),
-            "efes-base-path": path.resolve("1-input/ircyr-efes"),
+            "stylesheet-base-path": absolute("2-intermediate/ircyr-efes/webapps/ROOT"),
+            "efes-base-path": absolute("1-input/ircyr-efes"),
         }
     },
     outputConfig: {
@@ -54,8 +54,8 @@ const preprocessKilnTemplates = new XsltTransformNode({
         sourceFiles: from(copyKiln, "copied", "2-intermediate/ircyr-efes/webapps/ROOT/assets/templates/**/*.xml"),
         stylesheet: files("1-input/stylesheets/preprocess-kiln-xsl.xsl"),
         stylesheetParams: {
-            "stylesheet-base-path": path.resolve("2-intermediate/ircyr-efes/webapps/ROOT"),
-            "efes-base-path": path.resolve("1-input/ircyr-efes")
+            "stylesheet-base-path": absolute("2-intermediate/ircyr-efes/webapps/ROOT"),
+            "efes-base-path": absolute("1-input/ircyr-efes")
         }
     },
     outputConfig: {
@@ -109,7 +109,7 @@ const epidocMenuAggregation = new XsltTransformNode({
                 return path.join( "/en/inscriptions", inputBasename + '.html');
             },
             language: "en",
-            menuXmlPath: `file://${path.resolve("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml")}`,
+            menuXmlPath: files("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml"),
             normaliseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/normalise-menu.xsl"),
             contextualiseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/contextualise-menu.xsl"),
         }
@@ -179,7 +179,7 @@ const solrDocsToResults = new XsltTransformNode({
         stylesheet: files("1-input/stylesheets/solr-docs-to-results.xsl"),
         stylesheetParams: {
             "document_type": "epidoc",
-            "schemaPath": `file://${path.resolve("1-input/ircyr-efes/webapps/solr/conf/schema.xml")}`
+            "schemaPath": files("1-input/ircyr-efes/webapps/solr/conf/schema.xml")
         }
     }
 })
@@ -194,7 +194,7 @@ const createInscriptionListMenuAggregation = new XsltTransformNode({
         stylesheetParams: {
             url: "/en/inscriptions/index.html",
             language: "en",
-            menuXmlPath: `file://${path.resolve("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml")}`,
+            menuXmlPath: files("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml"),
             normaliseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/normalise-menu.xsl"),
             contextualiseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/contextualise-menu.xsl"),
         }
@@ -231,7 +231,7 @@ const homeMenuAggregation = new XsltTransformNode({
         stylesheetParams: {
             url: "/en",
             language: "en",
-            menuXmlPath: `file://${path.resolve("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml")}`,
+            menuXmlPath: files("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml"),
             normaliseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/normalise-menu.xsl"),
             contextualiseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/contextualise-menu.xsl"),
         }

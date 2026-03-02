@@ -30,6 +30,18 @@ export function inputIsFilesRef(value: any): value is FilesRef {
     return typeof value === 'object' && value !== null && value?.type === 'files';
 }
 
+// AbsolutePath: a project-relative path that should be resolved to an absolute path at runtime.
+// Unlike files(), this is not a dependency reference — it's just path resolution. No glob, no tracking.
+export type AbsolutePath = { type: 'absolute', path: string };
+
+export function absolute(p: string): AbsolutePath {
+    return { type: 'absolute', path: p };
+}
+
+export function isAbsolutePath(value: any): value is AbsolutePath {
+    return typeof value === 'object' && value !== null && value?.type === 'absolute';
+}
+
 // CollectRef: reference to an intermediate directory assembled by multiple upstream nodes.
 // The pipeline auto-detects which nodes write to this directory and adds dependency edges.
 // Unlike files(), collect() paths are NOT watched (they're intermediate, not source).
@@ -1069,6 +1081,12 @@ export class Pipeline extends EventEmitter {
                 const matches = await glob(pattern);
                 if (matches.length === 0) {
                     throw new Error(`No files found for pattern: ${pattern}`);
+                }
+                for (const match of matches) {
+                    const stat = await fs.stat(match);
+                    if (stat.isDirectory()) {
+                        throw new Error(`files() resolved to a directory: ${match}. Use absolute() for directory paths.`);
+                    }
                 }
                 results.push(...matches);
             }

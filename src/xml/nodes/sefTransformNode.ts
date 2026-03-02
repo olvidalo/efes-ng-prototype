@@ -1,6 +1,8 @@
 import {
     type Input,
     inputIsNodeOutputReference,
+    inputIsFilesRef,
+    isAbsolutePath,
     type PipelineContext,
     PipelineNode,
     type PipelineNodeConfig,
@@ -164,11 +166,12 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, "transfor
         for (const [key, value] of Object.entries(this.config.config.stylesheetParams)) {
             if (typeof value === 'function') {
                 resolved[key] = value(sourcePath);
-            } else if (inputIsNodeOutputReference(value)) {
-                // Resolve to absolute file:// URIs so XSLT document() calls work
-                // regardless of stylesheet base URI
+            } else if (inputIsNodeOutputReference(value) || inputIsFilesRef(value)) {
                 const resolvedPaths = await context.resolveInput(value);
-                resolved[key] = resolvedPaths.map(p => `file://${path.resolve(p)}`);
+                const absolutePaths = resolvedPaths.map(p => path.resolve(p));
+                resolved[key] = absolutePaths.length === 1 ? absolutePaths[0] : absolutePaths;
+            } else if (isAbsolutePath(value)) {
+                resolved[key] = path.resolve(value.path);
             } else {
                 resolved[key] = value;
             }

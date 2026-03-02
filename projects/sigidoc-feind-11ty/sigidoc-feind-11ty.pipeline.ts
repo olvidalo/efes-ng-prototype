@@ -1,16 +1,15 @@
-import path from "node:path";
 import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
 import {collect, files, from, Pipeline} from "../../src/core/pipeline";
 import {CopyFilesNode} from "../../src/io/copyFilesNode";
 import {EleventyBuildNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode} from "../../src/eleventy";
 import {FlexSearchIndexNode} from "../../src/search/flexSearchIndexNode";
 
-// Absolute file URIs for authority files (needed for XSLT document() calls in compiled SEF)
-const geographyFileUri = `file://${path.resolve('1-input/authority/geography.xml')}`;
-const dignitiesFileUri = `file://${path.resolve('1-input/authority/dignities.xml')}`;
-const officesFileUri = `file://${path.resolve('1-input/authority/offices.xml')}`;
-const invocationsFileUri = `file://${path.resolve('1-input/authority/invocation.xml')}`;
-const bibliographyFileUri = `file://${path.resolve('1-input/authority/bibliography.xml')}`;
+// Authority files referenced by XSLT document() calls
+const geographyFile = files('1-input/authority/geography.xml');
+const dignitiesFile = files('1-input/authority/dignities.xml');
+const officesFile = files('1-input/authority/offices.xml');
+const invocationsFile = files('1-input/authority/invocation.xml');
+const bibliographyFile = files('1-input/authority/bibliography.xml');
 
 // We copy the eleventy site files to the intermediate directory so that they can be used as input for the Eleventy build.
 // In the next step, we add the transformed EpiDoc XML files as HTML partials to the inscription directory.
@@ -74,11 +73,11 @@ const createEpiDoc11tyFrontmatterEnglish = new XsltTransformNode({
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
         stylesheetParams: {
             language: 'en',
-            'geography-file': geographyFileUri,
-            'dignities-file': dignitiesFileUri,
-            'offices-file': officesFileUri,
-            'invocations-file': invocationsFileUri,
-            'bibliography-file': bibliographyFileUri,
+            'geography-file': geographyFile,
+            'dignities-file': dignitiesFile,
+            'offices-file': officesFile,
+            'invocations-file': invocationsFile,
+            'bibliography-file': bibliographyFile,
         }
     },
     outputConfig: {
@@ -126,11 +125,11 @@ const createEpiDoc11tyFrontmatterGerman = new XsltTransformNode({
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
         stylesheetParams: {
             language: 'de',
-            'geography-file': geographyFileUri,
-            'dignities-file': dignitiesFileUri,
-            'offices-file': officesFileUri,
-            'invocations-file': invocationsFileUri,
-            'bibliography-file': bibliographyFileUri,
+            'geography-file': geographyFile,
+            'dignities-file': dignitiesFile,
+            'offices-file': officesFile,
+            'invocations-file': invocationsFile,
+            'bibliography-file': bibliographyFile,
         }
     },
     outputConfig: {
@@ -178,11 +177,11 @@ const createEpiDoc11tyFrontmatterGreek = new XsltTransformNode({
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
         stylesheetParams: {
             language: 'el',
-            'geography-file': geographyFileUri,
-            'dignities-file': dignitiesFileUri,
-            'offices-file': officesFileUri,
-            'invocations-file': invocationsFileUri,
-            'bibliography-file': bibliographyFileUri,
+            'geography-file': geographyFile,
+            'dignities-file': dignitiesFile,
+            'offices-file': officesFile,
+            'invocations-file': invocationsFile,
+            'bibliography-file': bibliographyFile,
         }
     },
     outputConfig: {

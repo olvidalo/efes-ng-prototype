@@ -8,9 +8,9 @@
     <xsl:param name="normaliseMenuStylesheetPath" required="yes" />
     <xsl:param name="contextualiseMenuStylesheetPath" required="yes" />
 
-    <xsl:variable name="menuXml" select="document($menuXmlPath)"/>
-    <xsl:variable name="normaliseMenuStylesheet" select="document($normaliseMenuStylesheetPath)"/>
-    <xsl:variable name="contextualiseMenuStylesheet" select="document($contextualiseMenuStylesheetPath)"/>
+    <xsl:variable name="menuXml" select="document('file://' || $menuXmlPath)"/>
+    <xsl:variable name="normaliseMenuStylesheet" select="document('file://' || $normaliseMenuStylesheetPath)"/>
+    <xsl:variable name="contextualiseMenuStylesheet" select="document('file://' || $contextualiseMenuStylesheetPath)"/>
 
     <xsl:variable name="normalisedMenuXml" select="transform(map {
                 'stylesheet-node': $normaliseMenuStylesheet,
