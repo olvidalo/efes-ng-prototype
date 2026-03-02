@@ -165,7 +165,10 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, "transfor
             if (typeof value === 'function') {
                 resolved[key] = value(sourcePath);
             } else if (inputIsNodeOutputReference(value)) {
-                resolved[key] = await context.resolveInput(value);
+                // Resolve to absolute file:// URIs so XSLT document() calls work
+                // regardless of stylesheet base URI
+                const resolvedPaths = await context.resolveInput(value);
+                resolved[key] = resolvedPaths.map(p => `file://${path.resolve(p)}`);
             } else {
                 resolved[key] = value;
             }

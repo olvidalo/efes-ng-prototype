@@ -4,11 +4,13 @@
 
     <xsl:param name="url" required="yes" />
     <xsl:param name="language" required="yes" />
+    <xsl:param name="menuXmlPath" required="yes" />
+    <xsl:param name="normaliseMenuStylesheetPath" required="yes" />
+    <xsl:param name="contextualiseMenuStylesheetPath" required="yes" />
 
-    <!-- TODO: Don't hardcode paths -->
-    <xsl:variable name="menuXml" select="document('../ircyr-efes/webapps/ROOT/assets/menu/main.xml')"/>
-    <xsl:variable name="normaliseMenuStylesheet" select="document('../../2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/normalise-menu.xsl')"/>
-    <xsl:variable name="contextualiseMenuStylesheet" select="document('../../2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/contextualise-menu.xsl')"/>
+    <xsl:variable name="menuXml" select="document($menuXmlPath)"/>
+    <xsl:variable name="normaliseMenuStylesheet" select="document($normaliseMenuStylesheetPath)"/>
+    <xsl:variable name="contextualiseMenuStylesheet" select="document($contextualiseMenuStylesheetPath)"/>
 
     <xsl:variable name="normalisedMenuXml" select="transform(map {
                 'stylesheet-node': $normaliseMenuStylesheet,

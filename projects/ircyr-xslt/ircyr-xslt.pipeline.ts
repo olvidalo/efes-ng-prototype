@@ -102,10 +102,12 @@ const epidocMenuAggregation = new XsltTransformNode({
                 const inputBasename = path.basename(inputFilename, path.extname(inputFilename));
                 return path.join( "/en/inscriptions", inputBasename + '.html');
             },
-            language: "en"
+            language: "en",
+            menuXmlPath: `file://${path.resolve("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml")}`,
+            normaliseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/normalise-menu.xsl"),
+            contextualiseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/contextualise-menu.xsl"),
         }
     },
-    explicitDependencies: ["copy-kiln", "kiln-xsl-preprocess", "templates-preprocess"]
 })
 
 // Transforms each inscription+menu aggregation created in the previous step with the epidoc-inslib template to create
@@ -170,7 +172,8 @@ const solrDocsToResults = new XsltTransformNode({
         sourceFiles: from(aggregateSolrDocs, "transformed"),
         stylesheet: files("1-input/stylesheets/solr-docs-to-results.xsl"),
         stylesheetParams: {
-            "document_type": "epidoc"
+            "document_type": "epidoc",
+            "schemaPath": `file://${path.resolve("1-input/ircyr-efes/webapps/solr/conf/schema.xml")}`
         }
     }
 })
@@ -184,10 +187,12 @@ const createInscriptionListMenuAggregation = new XsltTransformNode({
         stylesheet: files("1-input/stylesheets/create-menu-aggregation.xsl"),
         stylesheetParams: {
             url: "/en/inscriptions/index.html",
-            language: "en"
+            language: "en",
+            menuXmlPath: `file://${path.resolve("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml")}`,
+            normaliseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/normalise-menu.xsl"),
+            contextualiseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/contextualise-menu.xsl"),
         }
     },
-    explicitDependencies: ["copy-kiln", "kiln-xsl-preprocess", "templates-preprocess"]
 })
 
 
@@ -219,10 +224,12 @@ const homeMenuAggregation = new XsltTransformNode({
         stylesheet: files("1-input/stylesheets/create-menu-aggregation.xsl"),
         stylesheetParams: {
             url: "/en",
-            language: "en"
+            language: "en",
+            menuXmlPath: `file://${path.resolve("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml")}`,
+            normaliseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/normalise-menu.xsl"),
+            contextualiseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/contextualise-menu.xsl"),
         }
     },
-    explicitDependencies: ["copy-kiln", "kiln-xsl-preprocess", "templates-preprocess"]
 })
 
 // Create the final home page using the home template from the original EFES.

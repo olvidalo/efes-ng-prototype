@@ -10,7 +10,7 @@
         <response>
             <result>
                 <!-- Process all XML files in the collection -->
-                <xsl:for-each select="$documents ! document('../../' || .)">
+                <xsl:for-each select="$documents ! document(.)">
                     <!-- Copy all doc elements from each file -->
                     <xsl:copy-of select="//doc"/>
                 </xsl:for-each>

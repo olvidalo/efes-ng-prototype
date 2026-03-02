@@ -5,10 +5,10 @@
     <xsl:mode on-no-match="shallow-skip" />
 
     <xsl:param name="document_type" as="xs:string?" />
+    <xsl:param name="schemaPath" required="yes" />
 
     <!-- Load the Solr schema to determine multiValued fields -->
-    <!-- TODO: DON'T HARDCODE -->
-    <xsl:variable name="schema" select="document('../ircyr-efes/webapps/solr/conf/schema.xml')"/>
+    <xsl:variable name="schema" select="document($schemaPath)"/>
 
     <!-- Get all field names that are multiValued="true" -->
     <xsl:variable name="multiValued-fields" select="$schema//field[@multiValued='true']/@name"/>
