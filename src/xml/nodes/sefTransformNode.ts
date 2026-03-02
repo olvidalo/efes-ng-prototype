@@ -173,7 +173,9 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, "transfor
             } else if (isAbsolutePath(value)) {
                 resolved[key] = path.resolve(value.path);
             } else {
-                resolved[key] = value;
+                resolved[key] = typeof value === 'string'
+                    ? value.replaceAll('{basename}', path.basename(sourcePath, path.extname(sourcePath)))
+                    : value;
             }
         }
         return resolved;

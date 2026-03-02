@@ -1,6 +1,5 @@
 import {CopyFilesNode} from "../../src/io/copyFilesNode";
 import {absolute, files, from, Pipeline} from "../../src/core/pipeline";
-import path from "node:path";
 import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
 
 
@@ -103,11 +102,7 @@ const epidocMenuAggregation = new XsltTransformNode({
         sourceFiles: files("1-input/ircyr-efes/webapps/ROOT/content/xml/epidoc/*.xml"),
         stylesheet: files("1-input/stylesheets/create-menu-aggregation.xsl"),
         stylesheetParams: {
-            url: (inputPath: string) => {
-                const inputFilename = path.basename(inputPath);
-                const inputBasename = path.basename(inputFilename, path.extname(inputFilename));
-                return path.join( "/en/inscriptions", inputBasename + '.html');
-            },
+            url: "/en/inscriptions/{basename}.html",
             language: "en",
             menuXmlPath: files("1-input/ircyr-efes/webapps/ROOT/assets/menu/main.xml"),
             normaliseMenuStylesheetPath: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/kiln/stylesheets/menu/normalise-menu.xsl"),
@@ -149,10 +144,7 @@ const transformEpiDocToSolr = new XsltTransformNode({
         sourceFiles: files("1-input/ircyr-efes/webapps/ROOT/content/xml/epidoc/*.xml"),
         stylesheet: from(preprocessKilnXsl, "transformed", "2-intermediate/ircyr-efes/webapps/ROOT/stylesheets/solr/tei-to-solr.xsl"),
         stylesheetParams: {
-            'file-path': function (inputPath: string) {
-                const relativePath = inputPath.replace("1-input/ircyr-efes/webapps/ROOT/content/xml/", "")
-                return relativePath.replace(".xml", "")
-            }
+            'file-path': "epidoc/{basename}"
         }
     }
 })
