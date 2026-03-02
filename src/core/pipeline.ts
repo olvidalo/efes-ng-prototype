@@ -95,6 +95,18 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     }
 
     /**
+     * Hash an output file for cache tracking purposes.
+     * Override in subclasses to normalize non-deterministic output before hashing
+     * (e.g., strip compiler timestamps from generated files).
+     *
+     * Used by downstream nodes when tracking this node's outputs as dependencies.
+     */
+    async hashOutputFile(filePath: string): Promise<string> {
+        const content = await fs.readFile(filePath);
+        return crypto.createHash('sha256').update(content).digest('hex');
+    }
+
+    /**
      * Optional lifecycle hook called when this node is added to a pipeline.
      * Composite nodes can use this to expand their internal nodes.
      */
@@ -287,6 +299,8 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         // Resolve all Input values in config for cache dependency tracking
         const configDependencyPaths: string[] = [];
         const upstreamResolved = new Map<string, { ref: NodeOutputReference, paths: string[] }>();
+        // Track which upstream node produced each file path (for custom hash dispatch)
+        const pathToProducer = new Map<string, PipelineNode<any, any>>();
 
         const processConfigValue = async (value: any) => {
             if (inputIsFilesRef(value)) {
@@ -298,6 +312,9 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 const resolvedPaths = await context.resolveInput(value);
                 configDependencyPaths.push(...resolvedPaths);
                 upstreamResolved.set(value.node.name, { ref: value, paths: resolvedPaths });
+                for (const p of resolvedPaths) {
+                    pathToProducer.set(p, value.node);
+                }
             } else if (typeof value === 'object' && value !== null) {
                 // Recursively process object values (plain config objects, arrays)
                 for (const v of Object.values(value)) {
@@ -338,13 +355,15 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
         // Pre-compute hashes for shared dependencies (fileRefs) - these are the same for all items
         // Avoids hashing the same stylesheet 2360 times
+        // Uses upstream node's hashOutputFile() when available (e.g., strips SEF timestamps)
         const sharedFileHashes = new Map<string, {hash: string, timestamp: number}>();
         if (sharedDependencyPaths.length > 0) {
             context.log(`Pre-computing hashes for ${sharedDependencyPaths.length} shared dependencies`);
             await Promise.all(sharedDependencyPaths.map(async (filePath) => {
                 try {
+                    const producer = pathToProducer.get(filePath);
                     const [hash, stats] = await Promise.all([
-                        context.cache.computeFileHash(filePath),
+                        producer ? producer.hashOutputFile(filePath) : context.cache.computeFileHash(filePath),
                         fs.stat(filePath)
                     ]);
                     sharedFileHashes.set(filePath, { hash, timestamp: stats.mtimeMs });
@@ -363,6 +382,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         // Phase 1: Cache validation (sequential) - identify cache hits and misses
         const results = [];
         const cacheMisses: Array<{item: string, cacheKey: string, index: number}> = [];
+        const hashMemo = new Map<string, string>();
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
@@ -408,7 +428,17 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             }
 
             // Validate dependencies (regardless of where outputs currently are)
-            const dependenciesValid = await context.cache.isValid(cached, context);
+            // Build hashFile callback that dispatches to upstream node's hashOutputFile()
+            // Memoized: shared dependencies (e.g. SEF files) are hashed once, not per-item
+            const hashFile = async (fp: string): Promise<string> => {
+                let result = hashMemo.get(fp);
+                if (result) return result;
+                const producer = pathToProducer.get(fp);
+                result = await (producer ? producer.hashOutputFile(fp) : context.cache.computeFileHash(fp));
+                hashMemo.set(fp, result);
+                return result;
+            };
+            const dependenciesValid = await context.cache.isValid(cached, { ...context, hashFile });
 
             if (!dependenciesValid) {
                 // context.log(`  - Cache miss for ${item}: dependencies changed`);
@@ -419,9 +449,9 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 // TODO: Could optimize by checking if file already exists at expectedPath with same hash
                 for (const [outputKey, cachedPaths] of Object.entries(cached.outputsByKey)) {
                     const expectedPaths = newOutputsByKey[outputKey as TOutput];
-                    for (let i = 0; i < cachedPaths.length; i++) {
-                        const cachedPath = cachedPaths[i];
-                        const expectedPath = expectedPaths[i];
+                    for (let j = 0; j < cachedPaths.length; j++) {
+                        const cachedPath = cachedPaths[j];
+                        const expectedPath = expectedPaths[j];
                         if (cachedPath !== expectedPath) {
                             // Cross-node reuse - copy to expected location
                             await context.cache.copyToExpectedPath(cachedPath, expectedPath);

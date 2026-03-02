@@ -1,5 +1,6 @@
 import {type Input, type PipelineContext, PipelineNode, type PipelineNodeConfig, type UnifiedOutputConfig} from "../../core/pipeline";
 import path from "node:path";
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -17,6 +18,25 @@ interface CompileStylesheetConfig extends PipelineNodeConfig {
 }
 
 export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig, "compiledStylesheet"> {
+
+    /**
+     * Normalize SEF JSON before hashing by stripping buildDateTime.
+     * Saxon-JS compilation is non-deterministic — each compilation produces a
+     * different buildDateTime even for identical input. Normalizing ensures
+     * cross-node cache sharing works correctly for downstream consumers.
+     */
+    async hashOutputFile(filePath: string): Promise<string> {
+        const content = await fs.readFile(filePath, 'utf-8');
+        const sef = JSON.parse(content);
+        // Saxon-JS embeds non-deterministic metadata in compiled SEFs:
+        // - buildDateTime: compilation timestamp
+        // - Σ, Σ2: checksums that vary per compilation
+        delete sef.buildDateTime;
+        delete sef['Σ'];
+        delete sef['Σ2'];
+        const normalized = JSON.stringify(sef);
+        return crypto.createHash('sha256').update(normalized).digest('hex');
+    }
 
     // Helper: Calculate compiled output path using unified path handling
     private getCompiledPath(item: string, context: PipelineContext): string {

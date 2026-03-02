@@ -110,7 +110,7 @@ export class CacheManager {
 
     // Atomic write: write to temp file then rename to prevent corruption
     // when multiple nodes share a cache slot and write concurrently
-    const tmpPath = `${cachePath}.${process.pid}.${Date.now()}.tmp`;
+    const tmpPath = `${cachePath}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2, 8)}.tmp`;
     await fs.writeFile(tmpPath, JSON.stringify(entry, null, 2), 'utf-8');
     await fs.rename(tmpPath, cachePath);
   }
@@ -132,6 +132,7 @@ export class CacheManager {
     context?: {
       getNodeOutputs: (nodeName: string) => any[] | undefined;
       resolveInput?: (input: any) => Promise<string[]>;
+      hashFile?: (filePath: string) => Promise<string>;
     },
   ): Promise<boolean> {
     // 1. Check upstream output signatures (cheapest - string comparison)
@@ -170,8 +171,10 @@ export class CacheManager {
           continue; // Unchanged
         }
 
-        // Slow path: verify content
-        const currentHash = await this.computeFileHash(filePath);
+        // Slow path: verify content (use custom hasher if provided)
+        const currentHash = context?.hashFile
+          ? await context.hashFile(filePath)
+          : await this.computeFileHash(filePath);
         if (currentHash !== fileInfo.hash) {
           return false; // Content changed
         }
