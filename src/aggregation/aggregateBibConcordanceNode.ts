@@ -12,7 +12,7 @@ import fs from "node:fs/promises";
 interface AggregateBibConcordanceNodeConfig extends PipelineNodeConfig {
     name: string;
     config: {
-        frontmatterFiles: Input;
+        metadataFiles: Input;
     };
     outputConfig?: OutputConfig;
 }
@@ -43,11 +43,11 @@ export class AggregateBibConcordanceNode extends PipelineNode<
     "concordance"
 > {
     async run(context: PipelineContext): Promise<NodeOutput<"concordance">[]> {
-        const files = await context.resolveInput(this.config.config.frontmatterFiles);
+        const files = await context.resolveInput(this.config.config.metadataFiles);
         const outputDir = this.config.outputConfig?.to ??
             context.getBuildPath(this.name, "concordance");
 
-        this.log(context, `Aggregating bibliography from ${files.length} frontmatter files`);
+        this.log(context, `Aggregating bibliography from ${files.length} metadata files`);
 
         // Collect all bibliography references with their inscription IDs
         const allRefs: (BibRef & { inscriptionId: string })[] = [];

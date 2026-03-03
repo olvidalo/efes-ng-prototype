@@ -17,5 +17,8 @@ export { ZipCompressNode } from './io/zipCompressNode';
 // Search
 export { FlexSearchIndexNode } from './search/flexSearchIndexNode';
 
+// Aggregation
+export { AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode } from './aggregation';
+
 // Eleventy integration
-export { EleventyBuildNode, AggregateIndexDataNode, AggregateSearchDataNode, AggregateBibConcordanceNode } from './eleventy';
+export { EleventyBuildNode, GenerateEleventyDataNode } from './eleventy';

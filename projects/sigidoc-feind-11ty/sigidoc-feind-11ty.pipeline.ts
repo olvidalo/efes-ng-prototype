@@ -1,4 +1,4 @@
-import {XsltTransformNode, Pipeline, collect, files, from, CopyFilesNode, EleventyBuildNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode, FlexSearchIndexNode} from "efes-ng-phase-2-poc";
+import {XsltTransformNode, Pipeline, collect, files, from, CopyFilesNode, EleventyBuildNode, GenerateEleventyDataNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode, FlexSearchIndexNode} from "efes-ng-phase-2-poc";
 
 // Authority files referenced by XSLT document() calls
 const geographyFile = files('1-input/authority/geography.xml');
@@ -57,13 +57,10 @@ const transformEpiDocEnglish = new XsltTransformNode({
     }
 })
 
-// Extracts metadata from each English SigiDoc XML source file to a JSON
-// companion file as metadata for Eleventy that it can use to generate the inscription navigation and the inscription
-// list. Outputs the JSON files to the inscription directory of the intermediate eleventy-site directory, alongside the
-// HTML partials.
-
-const createEpiDoc11tyFrontmatterEnglish = new XsltTransformNode({
-    name: "create-epidoc-11ty-frontmatter-en",
+// Extracts metadata from each English SigiDoc XML source file to a JSON file.
+// Contains all extracted data: entities, search facets, and page metadata.
+const extractEpidocMetadataEn = new XsltTransformNode({
+    name: "extract-epidoc-metadata-en",
     config: {
         sourceFiles: from(pruneEpidocEnglish, "transformed"),
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
@@ -77,11 +74,23 @@ const createEpiDoc11tyFrontmatterEnglish = new XsltTransformNode({
         }
     },
     outputConfig: {
-        to: "2-intermediate/eleventy-site/en/seals",
+        to: "2-intermediate/metadata/en/seals",
         from: "1-input/feind-collection",
-        extension: ".11tydata.json"
+        extension: ".metadata.json"
     }
 })
+
+// Generates slim .11tydata.json for English Eleventy pages.
+const generateEleventyDataEn = new GenerateEleventyDataNode({
+    name: "generate-eleventy-data-en",
+    config: {
+        metadataFiles: from(extractEpidocMetadataEn, "transformed"),
+    },
+    outputConfig: {
+        to: "2-intermediate/eleventy-site/en/seals",
+        from: "2-intermediate/metadata/en/seals"
+    }
+});
 
 
 // ---- GERMAN ----
@@ -114,8 +123,8 @@ const transformEpiDocGerman = new XsltTransformNode({
     }
 })
 
-const createEpiDoc11tyFrontmatterGerman = new XsltTransformNode({
-    name: "create-epidoc-11ty-frontmatter-de",
+const extractEpidocMetadataDe = new XsltTransformNode({
+    name: "extract-epidoc-metadata-de",
     config: {
         sourceFiles: from(pruneEpidocGerman, "transformed"),
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
@@ -129,11 +138,22 @@ const createEpiDoc11tyFrontmatterGerman = new XsltTransformNode({
         }
     },
     outputConfig: {
-        to: "2-intermediate/eleventy-site/de/seals",
+        to: "2-intermediate/metadata/de/seals",
         from: "1-input/feind-collection",
-        extension: ".11tydata.json"
+        extension: ".metadata.json"
     }
 })
+
+const generateEleventyDataDe = new GenerateEleventyDataNode({
+    name: "generate-eleventy-data-de",
+    config: {
+        metadataFiles: from(extractEpidocMetadataDe, "transformed"),
+    },
+    outputConfig: {
+        to: "2-intermediate/eleventy-site/de/seals",
+        from: "2-intermediate/metadata/de/seals"
+    }
+});
 
 
 // ---- GREEK ----
@@ -166,8 +186,8 @@ const transformEpiDocGreek = new XsltTransformNode({
     }
 })
 
-const createEpiDoc11tyFrontmatterGreek = new XsltTransformNode({
-    name: "create-epidoc-11ty-frontmatter-el",
+const extractEpidocMetadataEl = new XsltTransformNode({
+    name: "extract-epidoc-metadata-el",
     config: {
         sourceFiles: from(pruneEpidocGerman, "transformed"),
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
@@ -181,21 +201,32 @@ const createEpiDoc11tyFrontmatterGreek = new XsltTransformNode({
         }
     },
     outputConfig: {
-        to: "2-intermediate/eleventy-site/el/seals",
+        to: "2-intermediate/metadata/el/seals",
         from: "1-input/feind-collection",
-        extension: ".11tydata.json"
+        extension: ".metadata.json"
     }
 })
+
+const generateEleventyDataEl = new GenerateEleventyDataNode({
+    name: "generate-eleventy-data-el",
+    config: {
+        metadataFiles: from(extractEpidocMetadataEl, "transformed"),
+    },
+    outputConfig: {
+        to: "2-intermediate/eleventy-site/el/seals",
+        from: "2-intermediate/metadata/el/seals"
+    }
+});
 
 
 // ---- INDEX AGGREGATION ----
 
-// Aggregates entity data from English frontmatter files into per-index JSON files.
-// We only use English frontmatter since entities are the same across languages.
+// Aggregates entity data from English metadata files into per-index JSON files.
+// We only use English metadata since entities are the same across languages.
 const aggregateIndices = new AggregateIndexDataNode({
     name: "aggregate-indices",
     config: {
-        frontmatterFiles: from(createEpiDoc11tyFrontmatterEnglish, "transformed"),
+        metadataFiles: from(extractEpidocMetadataEn, "transformed"),
         indicesConfigFile: files("1-input/indices-config.xsl")
     },
     outputConfig: {
@@ -203,11 +234,11 @@ const aggregateIndices = new AggregateIndexDataNode({
     }
 });
 
-// Aggregates bibliography data from English frontmatter files into a concordance JSON file.
+// Aggregates bibliography data from English metadata files into a concordance JSON file.
 const aggregateBibConcordance = new AggregateBibConcordanceNode({
     name: "aggregate-bib-concordance",
     config: {
-        frontmatterFiles: from(createEpiDoc11tyFrontmatterEnglish, "transformed"),
+        metadataFiles: from(extractEpidocMetadataEn, "transformed"),
     },
     outputConfig: {
         to: "2-intermediate/eleventy-site/_data/concordance"
@@ -217,12 +248,12 @@ const aggregateBibConcordance = new AggregateBibConcordanceNode({
 
 // ---- SEARCH DATA ----
 
-// Aggregates search data from English frontmatter files into search-documents.json.
-// We only use English frontmatter since search data is language-independent.
+// Aggregates search data from English metadata files into search-documents.json.
+// We only use English metadata since search data is language-independent.
 const aggregateSearchData = new AggregateSearchDataNode({
     name: "aggregate-search-data",
     config: {
-        frontmatterFiles: from(createEpiDoc11tyFrontmatterEnglish, "transformed"),
+        metadataFiles: from(extractEpidocMetadataEn, "transformed"),
     },
     outputConfig: { to: "2-intermediate/eleventy-site/_data/search" }
 });
@@ -273,15 +304,18 @@ const eleventyBuild = new EleventyBuildNode({
 export default new Pipeline("SigiDoc Feind", ".efes-build", ".efes-cache", "dynamic")
     .addNode(pruneEpidocEnglish)
     .addNode(transformEpiDocEnglish)
-    .addNode(createEpiDoc11tyFrontmatterEnglish)
+    .addNode(extractEpidocMetadataEn)
+    .addNode(generateEleventyDataEn)
 
     .addNode(pruneEpidocGerman)
     .addNode(transformEpiDocGerman)
-    .addNode(createEpiDoc11tyFrontmatterGerman)
+    .addNode(extractEpidocMetadataDe)
+    .addNode(generateEleventyDataDe)
 
     .addNode(pruneEpidocGreek)
     .addNode(transformEpiDocGreek)
-    .addNode(createEpiDoc11tyFrontmatterGreek)
+    .addNode(extractEpidocMetadataEl)
+    .addNode(generateEleventyDataEl)
 
     .addNode(copyEleventySite)
     .addNode(aggregateIndices)

@@ -1,4 +1,4 @@
-import {XsltTransformNode, Pipeline, collect, files, from, CopyFilesNode, EleventyBuildNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode, FlexSearchIndexNode} from "efes-ng-phase-2-poc";
+import {XsltTransformNode, Pipeline, collect, files, from, CopyFilesNode, EleventyBuildNode, GenerateEleventyDataNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode, FlexSearchIndexNode} from "efes-ng-phase-2-poc";
 
 
 // We copy the eleventy site files to the intermediate directory so that they can be used as input for the Eleventy build.
@@ -39,26 +39,36 @@ const transformEpiDoc = new XsltTransformNode({
     }
 })
 
-// Extracts metadata from each EpiDoc XML source file to a JSON companion file.
-// Now also extracts entity data (persons, abbreviations, etc.) for index aggregation.
-const createEpiDoc11tyFrontmatter = new XsltTransformNode({
-    name: "create-epidoc-11ty-frontmatter",
+// Extracts metadata from each EpiDoc XML source file to a JSON file.
+// Contains all extracted data: entities, search facets, and page metadata.
+const extractEpidocMetadata = new XsltTransformNode({
+    name: "extract-epidoc-metadata",
     config: {
         sourceFiles: files("1-input/inscriptions/*.xml"),
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-epidoc.xsl")
     },
     outputConfig: {
-        to: "2-intermediate/eleventy-site/en/inscriptions",
-        from: "1-input/inscriptions",
-        extension: ".11tydata.json"
+        extension: ".metadata.json"
     }
 })
 
-// Aggregates entity data from all frontmatter files into index data files.
+// Generates slim .11tydata.json files for Eleventy by stripping heavy entity/search data.
+const generateEleventyData = new GenerateEleventyDataNode({
+    name: "generate-eleventy-data",
+    config: {
+        metadataFiles: from(extractEpidocMetadata, "transformed"),
+    },
+    outputConfig: {
+        from: "1-input/inscriptions/**/*.json",
+        to: "2-intermediate/eleventy-site/en/inscriptions"
+    }
+});
+
+// Aggregates entity data from all metadata files into index data files.
 const aggregateIndices = new AggregateIndexDataNode({
     name: "aggregate-indices",
     config: {
-        frontmatterFiles: from(createEpiDoc11tyFrontmatter, "transformed"),
+        metadataFiles: from(extractEpidocMetadata, "transformed"),
         indicesConfigFile: files("1-input/indices-config.xsl")
     },
     outputConfig: {
@@ -66,24 +76,24 @@ const aggregateIndices = new AggregateIndexDataNode({
     }
 });
 
-// Aggregates bibliography data from all frontmatter files into a concordance JSON file.
+// Aggregates bibliography data from all metadata files into a concordance JSON file.
 const aggregateBibConcordance = new AggregateBibConcordanceNode({
     name: "aggregate-bib-concordance",
     config: {
-        frontmatterFiles: from(createEpiDoc11tyFrontmatter, "transformed"),
+        metadataFiles: from(extractEpidocMetadata, "transformed"),
     },
     outputConfig: {
         to: "2-intermediate/eleventy-site/_data/concordance"
     }
 });
 
-// Aggregates search data from all frontmatter files into a single search-documents.json.
+// Aggregates search data from all metadata files into a single search-documents.json.
 const aggregateSearchData = new AggregateSearchDataNode({
     name: "aggregate-search-data",
     config: {
-        frontmatterFiles: from(createEpiDoc11tyFrontmatter, "transformed"),
+        metadataFiles: from(extractEpidocMetadata, "transformed"),
     },
-    outputConfig: { to: "2-intermediate/eleventy-site/_data/search" }
+    outputConfig: { to: "2-intermediate/search-data" }
 });
 
 // Builds a FlexSearch index + facets from the aggregated search data.
@@ -122,7 +132,8 @@ const eleventyBuild = new EleventyBuildNode({
 
 export default new Pipeline("IRCyR Eleventy", ".efes-build", ".efes-cache", "dynamic")
     .addNode(transformEpiDoc)
-    .addNode(createEpiDoc11tyFrontmatter)
+    .addNode(extractEpidocMetadata)
+    .addNode(generateEleventyData)
     .addNode(aggregateIndices)
     .addNode(aggregateBibConcordance)
     .addNode(aggregateSearchData)

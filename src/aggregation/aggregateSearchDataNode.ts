@@ -12,7 +12,7 @@ import fs from "node:fs/promises";
 interface AggregateSearchDataNodeConfig extends PipelineNodeConfig {
     name: string;
     config: {
-        frontmatterFiles: Input;
+        metadataFiles: Input;
         /** Map of language codes to display labels */
         languageLabels?: Record<string, string>;
     };
@@ -40,12 +40,12 @@ export class AggregateSearchDataNode extends PipelineNode<
     "searchData"
 > {
     async run(context: PipelineContext): Promise<NodeOutput<"searchData">[]> {
-        const files = await context.resolveInput(this.config.config.frontmatterFiles);
+        const files = await context.resolveInput(this.config.config.metadataFiles);
         const outputDir = this.config.outputConfig?.to ??
             context.getBuildPath(this.name, "search");
         const languageLabels = this.config.config.languageLabels ?? DEFAULT_LANGUAGE_LABELS;
 
-        this.log(context, `Aggregating search data from ${files.length} frontmatter files`);
+        this.log(context, `Aggregating search data from ${files.length} metadata files`);
 
         const documents: Record<string, any>[] = [];
 

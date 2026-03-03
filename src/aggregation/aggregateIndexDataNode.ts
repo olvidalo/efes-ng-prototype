@@ -47,8 +47,8 @@ interface IndexConfig {
 interface AggregateIndexDataNodeConfig extends PipelineNodeConfig {
     name: string;
     config: {
-        /** Input frontmatter files (typically from XSLT extraction) */
-        frontmatterFiles: Input;
+        /** Input metadata files (from XSLT metadata extraction) */
+        metadataFiles: Input;
         /** Path to indices-config.xsl (single source of truth for index metadata) */
         indicesConfigFile: Input;
     };
@@ -87,7 +87,7 @@ export class AggregateIndexDataNode extends PipelineNode<
     "indexData"
 > {
     async run(context: PipelineContext): Promise<NodeOutput<"indexData">[]> {
-        const files = await context.resolveInput(this.config.config.frontmatterFiles);
+        const files = await context.resolveInput(this.config.config.metadataFiles);
         const configFile = (await context.resolveInput(this.config.config.indicesConfigFile))[0];
         const outputDir = this.config.outputConfig?.to ??
             context.getBuildPath(this.name, "indices");
@@ -96,7 +96,7 @@ export class AggregateIndexDataNode extends PipelineNode<
         const indexConfigs = await this.parseIndicesConfig(configFile);
         this.log(context, `Parsed ${indexConfigs.length} index configs from ${path.basename(configFile)}`);
 
-        this.log(context, `Aggregating entities from ${files.length} frontmatter files`);
+        this.log(context, `Aggregating entities from ${files.length} metadata files`);
 
         // Read all frontmatter files and collect entities
         const allEntities: Record<string, EntityWithRef[]> = {};

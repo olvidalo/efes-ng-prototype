@@ -211,8 +211,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         }
 
         // Step 4: Combine with output directory
-        const outputDir = outputConfig.to ?? context.getBuildPath(this.name, '');
-        return path.join(outputDir, finalFilename);
+        return path.join(context.getNodeOutputDir(this.name), finalFilename);
     }
 
     /**
@@ -548,6 +547,7 @@ export interface PipelineContext {
     workerPool: WorkerPool;
 
     getBuildPath(nodeName: string, inputPath: string, newExtension?: string): string;
+    getNodeOutputDir(nodeName: string): string;
     stripBuildPrefix(inputPath: string): string;
     getNodeOutputs(nodeName: string): NodeOutput<any>[] | undefined;
 }
@@ -634,6 +634,13 @@ export class Pipeline extends EventEmitter {
     /** Get the node instance by name. */
     getNodeData(name: string): PipelineNode {
         return this.graph.getNodeData(name);
+    }
+
+    /** Get the resolved output directory for a node. */
+    getNodeOutputDir(name: string): string {
+        const node = this.graph.getNodeData(name);
+        const to = (node.config.outputConfig as any)?.to;
+        return path.resolve(this.projectDir, to ?? path.join(this.buildDir, name));
     }
 
     /** Total number of nodes (including expanded composite internals). */
@@ -851,6 +858,7 @@ export class Pipeline extends EventEmitter {
                 // For non-build paths, make them relative to projectDir
                 return path.relative(this.projectDir, inputPath);
             },
+            getNodeOutputDir: (nodeName: string): string => this.getNodeOutputDir(nodeName),
             getNodeOutputs: (nodeName: string) => this.nodeOutputs.get(nodeName),
             progress: (nodeName: string, completed: number, total: number) => {
                 this.emit('node:progress', { name: nodeName, completed, total });
