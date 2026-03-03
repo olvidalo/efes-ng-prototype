@@ -10,7 +10,7 @@ import fs from "node:fs/promises";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {
-    metadataFiles: { type: 'input' },
+    metadataFiles: { type: 'input', description: 'Per-document metadata JSON files to process.' },
 } as const satisfies NodeConfigSchema;
 
 interface AggregateBibConcordanceNodeConfig extends PipelineNodeConfig {
@@ -49,6 +49,7 @@ export class AggregateBibConcordanceNode extends PipelineNode<
     static readonly xmlElement = 'aggregateBibConcordance' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
+    static readonly description = 'Build a bibliography concordance from per-document metadata: groups cited ranges by bibliographic reference and links them back to the citing documents.';
 
     async run(context: PipelineContext): Promise<NodeOutput<"concordance">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);

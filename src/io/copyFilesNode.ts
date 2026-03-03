@@ -4,7 +4,7 @@ import path from "node:path";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {
-    sourceFiles: { type: 'input' },
+    sourceFiles: { type: 'input', description: 'Source files to process. Accepts a glob pattern or a node output reference.' },
 } as const satisfies NodeConfigSchema;
 
 interface CopyFilesConfig extends PipelineNodeConfig {
@@ -20,6 +20,7 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKe
     static readonly xmlElement = 'copyFiles' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
+    static readonly description = 'Copy files from source to destination, preserving directory structure. Requires an output element with a "to" attribute.';
 
     async run(context: PipelineContext) {
         const paths = await context.resolveInput(this.config.config.sourceFiles);

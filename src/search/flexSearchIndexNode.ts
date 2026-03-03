@@ -6,10 +6,10 @@ import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema"
 import FlexSearch, {type DocumentData, type IndexOptions} from 'flexsearch';
 
 const configSchema = {
-    documents:   { type: 'input' },
-    idField:     { type: 'scalar' },
-    textFields:  { type: 'array' },
-    facetFields: { type: 'array' },
+    documents:   { type: 'input', description: 'Path to a JSON file containing an array of documents to index.' },
+    idField:     { type: 'scalar', description: 'The document field to use as a unique identifier (e.g. "documentId").' },
+    textFields:  { type: 'array', description: 'Document fields to include in the full-text search index.' },
+    facetFields: { type: 'array', description: 'Document fields to use as facet filters in the search interface.' },
 } as const satisfies NodeConfigSchema;
 
 interface FlexSearchIndexConfig extends PipelineNodeConfig {
@@ -23,6 +23,7 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
     static readonly xmlElement = 'flexSearchIndex' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
+    static readonly description = 'Build a FlexSearch full-text search index from JSON documents. Produces index files that can be loaded client-side for in-browser search.';
 
     async run(context: PipelineContext) {
         const jsonFiles = await context.resolveInput(this.config.config.documents);

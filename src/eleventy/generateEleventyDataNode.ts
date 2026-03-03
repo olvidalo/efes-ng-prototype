@@ -10,8 +10,8 @@ import fs from "node:fs/promises";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {
-    metadataFiles: { type: 'input' },
-    excludeFields: { type: 'array', optional: true },
+    metadataFiles: { type: 'input', description: 'Per-document metadata JSON files to process.' },
+    excludeFields: { type: 'array', optional: true, description: 'Metadata fields to strip. Defaults to "entities" and "search".' },
 } as const satisfies NodeConfigSchema;
 
 interface GenerateEleventyDataConfig extends PipelineNodeConfig {
@@ -38,6 +38,7 @@ export class GenerateEleventyDataNode extends PipelineNode<
     static readonly xmlElement = 'generateEleventyData' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
+    static readonly description = 'Generate lightweight .11tydata.json companion files from full metadata files, stripping heavy fields (entities, search data) that Eleventy does not need for rendering.';
 
     async run(context: PipelineContext): Promise<NodeOutput<"eleventyData">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);

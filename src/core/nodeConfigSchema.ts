@@ -8,6 +8,7 @@ export type SchemaFieldType = 'input' | 'scalar' | 'boolean' | 'number' | 'map' 
 export interface SchemaField {
     readonly type: SchemaFieldType;
     readonly optional?: true;
+    readonly description?: string;
 }
 
 export type NodeConfigSchema = Readonly<Record<string, SchemaField>>;
@@ -35,5 +36,6 @@ export interface XmlRegistrableNode {
     readonly xmlElement: string;
     readonly configSchema: NodeConfigSchema;
     readonly outputKeys: readonly string[];
+    readonly description?: string;
     new (config: any): PipelineNode<any, any>;
 }

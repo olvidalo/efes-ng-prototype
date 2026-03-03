@@ -6,7 +6,7 @@ import path from "node:path";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {
-    files: { type: 'input' },
+    files: { type: 'input', description: 'Files to include in the ZIP archive. Accepts a glob pattern or a node output reference.' },
 } as const satisfies NodeConfigSchema;
 
 interface ZipCompressConfig extends PipelineNodeConfig {
@@ -20,6 +20,7 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, typeof outp
     static readonly xmlElement = 'zipCompress' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
+    static readonly description = 'Compress files into a single ZIP archive. Requires an output element with a "filename" attribute.';
 
     async run(context: PipelineContext) {
         const inputPaths = await context.resolveInput(this.config.config.files);

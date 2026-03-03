@@ -6,8 +6,8 @@ import {fileURLToPath} from "node:url";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {
-    sourceDir:       { type: 'input' },
-    passthroughCopy: { type: 'map', optional: true },
+    sourceDir:       { type: 'input', description: 'The directory containing the assembled Eleventy site (templates, data, content). Must use a collect reference.' },
+    passthroughCopy: { type: 'map', optional: true, description: 'Files to copy directly into the Eleventy output without processing (e.g. search data, CSS, images).' },
 } as const satisfies NodeConfigSchema;
 
 interface EleventyBuildConfig extends PipelineNodeConfig {
@@ -22,6 +22,7 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
     static readonly xmlElement = 'eleventyBuild' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
+    static readonly description = 'Run Eleventy to build the final static website from the assembled intermediate files. This is typically the last step in the pipeline.';
 
     constructor(config: EleventyBuildConfig) {
         super(config);

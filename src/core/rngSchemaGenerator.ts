@@ -12,7 +12,10 @@ export function generateRngSchema(): string {
         .join('\n');
 
     const nodeDefinitions = NodeRegistry.elementNames()
-        .map(name => generateNodeDefinition(name, NodeRegistry.get(name)!.configSchema))
+        .map(name => {
+            const entry = NodeRegistry.get(name)!;
+            return generateNodeDefinition(name, entry.configSchema, entry.description);
+        })
         .join('\n\n');
 
     const allOutputKeys = [...new Set(NodeRegistry.elementNames().flatMap(name => NodeRegistry.get(name)!.outputKeys))];
@@ -30,6 +33,7 @@ export function generateRngSchema(): string {
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
          xmlns:sch="http://purl.oclc.org/dsdl/schematron"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
@@ -64,8 +68,12 @@ ${nodeRefs}
   <!-- Input: files, from, collect, absolute, or variable ref -->
   <define name="inputContent">
     <choice>
-      <element name="files"><text/></element>
+      <element name="files">
+        <a:documentation>File path or glob pattern (e.g. "*.xml", "stylesheets/**/*.xsl"), resolved relative to the project directory.</a:documentation>
+        <text/>
+      </element>
       <element name="from">
+        <a:documentation>Use the output of another pipeline node as input. Output directory structure is preserved by default.</a:documentation>
         <attribute name="node"><data type="IDREF"/></attribute>
         <attribute name="output">
           <choice>
@@ -74,20 +82,30 @@ ${outputKeyValues}
         </attribute>
         <text/>
       </element>
-      <element name="collect"><text/></element>
-      <element name="absolute"><text/></element>
-      <element name="ref"><attribute name="name"><data type="IDREF"/></attribute></element>
+      <element name="collect">
+        <a:documentation>A shared directory that multiple nodes write into. The node waits for all writers to finish before reading.</a:documentation>
+        <text/>
+      </element>
+      <element name="absolute">
+        <a:documentation>Resolve a project-relative path to an absolute filesystem path. Useful for passing directory locations as XSLT parameters, e.g. for document() calls.</a:documentation>
+        <text/>
+      </element>
+      <element name="ref">
+        <a:documentation>Reference a reusable value defined in a &lt;variable&gt; element.</a:documentation>
+        <attribute name="name"><data type="IDREF"/></attribute>
+      </element>
     </choice>
   </define>
 
   <!-- Output configuration -->
   <define name="outputConfig">
     <element name="output">
-      <optional><attribute name="to"/></optional>
-      <optional><attribute name="from"/></optional>
-      <optional><attribute name="extension"/></optional>
-      <optional><attribute name="flat"/></optional>
-      <optional><attribute name="filename"/></optional>
+      <a:documentation>Configure where and how this node writes its output files.</a:documentation>
+      <optional><attribute name="to"><a:documentation>Destination directory for output files.</a:documentation></attribute></optional>
+      <optional><attribute name="from"><a:documentation>Source path prefix to strip when calculating output paths, preserving only the relative structure below it.</a:documentation></attribute></optional>
+      <optional><attribute name="extension"><a:documentation>Replace the file extension on output files (e.g. ".html").</a:documentation></attribute></optional>
+      <optional><attribute name="flat"><a:documentation>If "true", flatten all output into a single directory, ignoring subdirectory structure.</a:documentation></attribute></optional>
+      <optional><attribute name="filename"><a:documentation>Write output to a single file with this name. Only for nodes that produce exactly one output file.</a:documentation></attribute></optional>
     </element>
   </define>
 
@@ -115,6 +133,7 @@ ${outputKeyValues}
   <!-- Variable definition (reusable via <ref>) -->
   <define name="variable">
     <element name="variable">
+      <a:documentation>Define a reusable value that can be referenced with &lt;ref&gt; in node configurations. Useful for shared file paths like authority files.</a:documentation>
       <attribute name="name"><data type="ID"/></attribute>
       <choice>
         <text/>
@@ -147,7 +166,7 @@ ${outputKeyAsserts}
 </grammar>`;
 }
 
-function generateNodeDefinition(elementName: string, schema: Record<string, SchemaField>): string {
+function generateNodeDefinition(elementName: string, schema: Record<string, SchemaField>, description?: string): string {
     const entries = Object.entries(schema);
     const required = entries.filter(([, f]) => !f.optional);
     const optional = entries.filter(([, f]) => f.optional);
@@ -159,9 +178,10 @@ function generateNodeDefinition(elementName: string, schema: Record<string, Sche
     ];
 
     const fieldsBlock = fields.map(f => '        ' + f).join('\n');
+    const doc = description ? `\n      <a:documentation>${description}</a:documentation>` : '';
 
     return `  <define name="${elementName}">
-    <element name="${elementName}">
+    <element name="${elementName}">${doc}
       <attribute name="name"><data type="ID"/></attribute>
       <interleave>
 ${fieldsBlock}
@@ -172,7 +192,8 @@ ${fieldsBlock}
 
 function fieldToRng(fieldName: string, field: SchemaField, isOptional: boolean): string {
     const content = fieldContentRng(field.type);
-    const element = `<element name="${fieldName}">${content}</element>`;
+    const doc = field.description ? `<a:documentation>${field.description}</a:documentation>` : '';
+    const element = `<element name="${fieldName}">${doc}${content}</element>`;
     return isOptional ? `<optional>${element}</optional>` : element;
 }
 

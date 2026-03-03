@@ -10,8 +10,8 @@ import fs from "node:fs/promises";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {
-    metadataFiles:  { type: 'input' },
-    languageLabels: { type: 'map', optional: true },
+    metadataFiles:  { type: 'input', description: 'Per-document metadata JSON files to process.' },
+    languageLabels: { type: 'map', optional: true, description: 'Display labels for language codes used in the edition (e.g. grc = "Ancient Greek").' },
 } as const satisfies NodeConfigSchema;
 
 interface AggregateSearchDataNodeConfig extends PipelineNodeConfig {
@@ -45,6 +45,7 @@ export class AggregateSearchDataNode extends PipelineNode<
     static readonly xmlElement = 'aggregateSearchData' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
+    static readonly description = 'Merge per-document metadata files into a single JSON file for search indexing.';
 
     async run(context: PipelineContext): Promise<NodeOutput<"searchData">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);

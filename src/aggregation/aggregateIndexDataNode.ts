@@ -45,8 +45,8 @@ interface IndexConfig {
 }
 
 const configSchema = {
-    metadataFiles:    { type: 'input' },
-    indicesConfigFile: { type: 'input' },
+    metadataFiles:     { type: 'input', description: 'Per-document metadata JSON files to process.' },
+    indicesConfigFile: { type: 'input', description: 'XSLT stylesheet that defines index types, column layout, and sorting.' },
 } as const satisfies NodeConfigSchema;
 
 interface AggregateIndexDataNodeConfig extends PipelineNodeConfig {
@@ -91,6 +91,7 @@ export class AggregateIndexDataNode extends PipelineNode<
     static readonly xmlElement = 'aggregateIndexData' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
+    static readonly description = 'Collect entity references (persons, places, etc.) from individual metadata files and group them into index data files, one per index type. Index titles, columns, and grouping are configured via the indices config stylesheet.';
 
     async run(context: PipelineContext): Promise<NodeOutput<"indexData">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);
