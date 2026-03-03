@@ -122,6 +122,11 @@ async function watchCommand(projectDir: string): Promise<void> {
     await watcher.start();
 }
 
+function schemaCommand(): void {
+    const { generateRngSchema } = require('./core/rngSchemaGenerator');
+    console.log(generateRngSchema());
+}
+
 // --- Main ---
 
 (async () => {
@@ -141,6 +146,9 @@ async function watchCommand(projectDir: string): Promise<void> {
             case 'watch':
                 await watchCommand(projectDir);
                 break;
+            case 'schema':
+                schemaCommand();
+                break;
             default:
                 console.log(`Usage: efes <command> [options]
 
@@ -149,6 +157,7 @@ Commands:
   clean     Remove build artifacts
   status    Show node graph and cache status
   watch     Watch inputs and rebuild on changes
+  schema    Print RELAX NG schema for pipeline XML format
 
 Options:
   --project <path>   Project directory (default: cwd)

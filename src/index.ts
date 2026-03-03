@@ -26,6 +26,7 @@ export { EleventyBuildNode, GenerateEleventyDataNode } from './eleventy';
 // XML pipeline configuration
 export { loadPipelineFromXml } from './core/xmlPipelineLoader';
 export { NodeRegistry } from './core/nodeRegistry';
+export { generateRngSchema } from './core/rngSchemaGenerator';
 export { discoverPipelineFile } from './core/discoverPipelineFile';
 export type { PipelineFileInfo } from './core/discoverPipelineFile';
 export type { NodeConfigSchema, SchemaField, SchemaFieldType, XmlRegistrableNode, ConfigFromSchema } from './core/nodeConfigSchema';
