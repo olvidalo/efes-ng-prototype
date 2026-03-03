@@ -1,5 +1,4 @@
 import {
-    type Input,
     type PipelineContext,
     PipelineNode,
     type PipelineNodeConfig,
@@ -8,15 +7,16 @@ import {
 } from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
+import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
+
+const configSchema = {
+    metadataFiles: { type: 'input' },
+    excludeFields: { type: 'array', optional: true },
+} as const satisfies NodeConfigSchema;
 
 interface GenerateEleventyDataConfig extends PipelineNodeConfig {
     name: string;
-    config: {
-        /** Input metadata files (from XSLT metadata extraction) */
-        metadataFiles: Input;
-        /** Fields to exclude from Eleventy data (default: ['entities', 'search']) */
-        excludeFields?: string[];
-    };
+    config: ConfigFromSchema<typeof configSchema>;
     outputConfig?: OutputConfig;
 }
 
@@ -33,6 +33,9 @@ export class GenerateEleventyDataNode extends PipelineNode<
     GenerateEleventyDataConfig,
     "eleventyData"
 > {
+    static readonly xmlElement = 'generateEleventyData' as const;
+    static readonly configSchema = configSchema;
+
     async run(context: PipelineContext): Promise<NodeOutput<"eleventyData">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);
         const excludeFields = this.config.config.excludeFields ?? DEFAULT_EXCLUDE_FIELDS;

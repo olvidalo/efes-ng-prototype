@@ -1,20 +1,26 @@
-import {type Input, type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../core/pipeline";
+import {type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
+import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 import FlexSearch, {type DocumentData, type IndexOptions} from 'flexsearch';
 
+const configSchema = {
+    documents:   { type: 'input' },
+    idField:     { type: 'scalar' },
+    textFields:  { type: 'array' },
+    facetFields: { type: 'array' },
+} as const satisfies NodeConfigSchema;
+
 interface FlexSearchIndexConfig extends PipelineNodeConfig {
-    config: {
-        documents: Input;  // documentsJson files
-        idField: string;
-        textFields: string[];
-        facetFields: string[];
-    };
+    config: ConfigFromSchema<typeof configSchema>;
     outputConfig?: OutputConfig;
 }
 
 export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, "searchIndex"> {
+    static readonly xmlElement = 'flexSearchIndex' as const;
+    static readonly configSchema = configSchema;
+
     async run(context: PipelineContext) {
         const jsonFiles = await context.resolveInput(this.config.config.documents);
         if (jsonFiles.length !== 1) {

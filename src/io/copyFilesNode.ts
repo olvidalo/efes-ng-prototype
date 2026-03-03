@@ -1,17 +1,23 @@
-import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type Input, type OutputConfig} from "../core/pipeline";
+import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type OutputConfig} from "../core/pipeline";
 import {copyFile, mkdir, stat, access, constants} from "node:fs/promises";
 import path from "node:path";
+import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
+
+const configSchema = {
+    sourceFiles: { type: 'input' },
+} as const satisfies NodeConfigSchema;
 
 interface CopyFilesConfig extends PipelineNodeConfig {
-    config: {
-        sourceFiles: Input;
-    };
+    config: ConfigFromSchema<typeof configSchema>;
     outputConfig: OutputConfig & {
         overwrite?: boolean;
     };
 }
 
 export class CopyFilesNode extends PipelineNode<CopyFilesConfig, "copied"> {
+    static readonly xmlElement = 'copyFiles' as const;
+    static readonly configSchema = configSchema;
+
     async run(context: PipelineContext) {
         const paths = await context.resolveInput(this.config.config.sourceFiles);
         const copiedFiles: string[] = [];

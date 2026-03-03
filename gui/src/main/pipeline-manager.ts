@@ -24,29 +24,21 @@ export class PipelineManager {
     await this.dispose()
 
     const absDir = path.resolve(projectDir)
-    if (!fs.existsSync(absDir)) {
-      throw new Error(`Project directory not found: ${absDir}`)
-    }
-
-    const pipelineFiles = fs.readdirSync(absDir).filter(f => f.endsWith('.pipeline.ts'))
-    if (pipelineFiles.length === 0) {
-      throw new Error(`No *.pipeline.ts found in ${absDir}`)
-    }
-    if (pipelineFiles.length > 1) {
-      throw new Error(`Multiple pipeline files found: ${pipelineFiles.join(', ')}`)
-    }
-
-    const pipelineFilePath = path.resolve(absDir, pipelineFiles[0])
 
     // chdir for node compat (nodes may use relative paths with fs)
     process.chdir(absDir)
 
-    // Load pipeline via tsx CJS loader
     await this.ensureTsxLoader()
-    const mod = require(pipelineFilePath)
-    this.pipeline = mod.default
+    const { discoverPipelineFile, loadPipelineFromXml } = require('efes-ng-phase-2-poc')
+    const { filePath, format } = discoverPipelineFile(absDir)
 
-    // Set projectDir (Phase A feature)
+    if (format === 'xml') {
+      this.pipeline = await loadPipelineFromXml(filePath)
+    } else {
+      const mod = require(filePath)
+      this.pipeline = mod.default
+    }
+
     this.pipeline.projectDir = absDir
 
     // Remove default console listeners, install event forwarding

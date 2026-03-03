@@ -1,5 +1,4 @@
 import {
-    type Input,
     type PipelineContext,
     PipelineNode,
     type PipelineNodeConfig,
@@ -8,12 +7,15 @@ import {
 } from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
+import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
+
+const configSchema = {
+    metadataFiles: { type: 'input' },
+} as const satisfies NodeConfigSchema;
 
 interface AggregateBibConcordanceNodeConfig extends PipelineNodeConfig {
     name: string;
-    config: {
-        metadataFiles: Input;
-    };
+    config: ConfigFromSchema<typeof configSchema>;
     outputConfig?: OutputConfig;
 }
 
@@ -42,6 +44,9 @@ export class AggregateBibConcordanceNode extends PipelineNode<
     AggregateBibConcordanceNodeConfig,
     "concordance"
 > {
+    static readonly xmlElement = 'aggregateBibConcordance' as const;
+    static readonly configSchema = configSchema;
+
     async run(context: PipelineContext): Promise<NodeOutput<"concordance">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);
         const outputDir = this.config.outputConfig?.to ??

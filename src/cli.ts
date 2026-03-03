@@ -2,6 +2,8 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { Pipeline } from './core/pipeline';
+import { discoverPipelineFile } from './core/discoverPipelineFile';
+import { loadPipelineFromXml } from './core/xmlPipelineLoader';
 
 // --- Arg parsing ---
 
@@ -21,27 +23,23 @@ function hasFlag(name: string): boolean {
 // --- Pipeline discovery ---
 
 async function discoverPipeline(dir: string): Promise<Pipeline> {
+    const { filePath, format } = discoverPipelineFile(dir);
     const absDir = path.resolve(dir);
-    if (!fs.existsSync(absDir)) {
-        throw new Error(`Project directory not found: ${absDir}`);
-    }
-
-    const files = fs.readdirSync(absDir).filter(f => f.endsWith('.pipeline.ts'));
-    if (files.length === 0) {
-        throw new Error(`No *.pipeline.ts found in ${absDir}`);
-    }
-    if (files.length > 1) {
-        throw new Error(`Multiple pipeline files found: ${files.join(', ')}`);
-    }
 
     // chdir so relative paths in pipeline files resolve correctly
     process.chdir(absDir);
 
-    const mod = await import(path.resolve(absDir, files[0]));
+    if (format === 'xml') {
+        const pipeline = await loadPipelineFromXml(filePath);
+        pipeline.projectDir = absDir;
+        return pipeline;
+    }
+
+    const mod = await import(filePath);
     const pipeline = mod.default;
 
     if (!(pipeline instanceof Pipeline)) {
-        throw new Error(`${files[0]} must export default a Pipeline instance`);
+        throw new Error(`${path.basename(filePath)} must export default a Pipeline instance`);
     }
 
     pipeline.projectDir = absDir;

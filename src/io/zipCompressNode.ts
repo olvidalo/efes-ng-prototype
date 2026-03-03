@@ -1,17 +1,23 @@
-import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type Input, type OutputConfig} from "../core/pipeline";
+import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type OutputConfig} from "../core/pipeline";
 import {Zip, ZipPassThrough} from "fflate";
 import {createReadStream, createWriteStream} from "node:fs";
 import {mkdir} from "node:fs/promises";
 import path from "node:path";
+import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
+
+const configSchema = {
+    files: { type: 'input' },
+} as const satisfies NodeConfigSchema;
 
 interface ZipCompressConfig extends PipelineNodeConfig {
-    config: {
-        files: Input;
-    };
+    config: ConfigFromSchema<typeof configSchema>;
     outputConfig: OutputConfig;
 }
 
 export class ZipCompressNode extends PipelineNode<ZipCompressConfig, "zip"> {
+    static readonly xmlElement = 'zipCompress' as const;
+    static readonly configSchema = configSchema;
+
     async run(context: PipelineContext) {
         const inputPaths = await context.resolveInput(this.config.config.files);
 

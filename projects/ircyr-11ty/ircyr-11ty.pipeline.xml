@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline name="IRCyR Eleventy">
+
+  <copyFiles name="copy-eleventy-site">
+    <sourceFiles><files>1-input/eleventy-site/**/*</files></sourceFiles>
+    <output to="2-intermediate/eleventy-site" from="1-input/eleventy-site"/>
+  </copyFiles>
+
+  <xsltTransform name="transform-epidoc">
+    <sourceFiles><files>1-input/inscriptions/*.xml</files></sourceFiles>
+    <stylesheet><files>1-input/epidoc-stylesheets/start-edition.xsl</files></stylesheet>
+    <initialTemplate>inslib-body-structure</initialTemplate>
+    <stylesheetParams>
+      <param name="parm-edition-type">interpretive</param>
+      <param name="parm-edn-structure">inslib</param>
+      <param name="parm-external-app-style">inslib</param>
+      <param name="parm-internal-app-style">none</param>
+      <param name="parm-leiden-style">panciera</param>
+      <param name="parm-line-inc">5</param>
+      <param name="parm-verse-lines">on</param>
+    </stylesheetParams>
+    <output to="2-intermediate/eleventy-site/en/inscriptions"
+            from="1-input/inscriptions"
+            extension=".html"/>
+  </xsltTransform>
+
+  <xsltTransform name="extract-epidoc-metadata">
+    <sourceFiles><files>1-input/inscriptions/*.xml</files></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/create-11ty-frontmatter-for-epidoc.xsl</files></stylesheet>
+    <output extension=".metadata.json"/>
+  </xsltTransform>
+
+  <generateEleventyData name="generate-eleventy-data">
+    <metadataFiles><from node="extract-epidoc-metadata" output="transformed"/></metadataFiles>
+    <output from="1-input/inscriptions/**/*.json"
+            to="2-intermediate/eleventy-site/en/inscriptions"/>
+  </generateEleventyData>
+
+  <aggregateIndexData name="aggregate-indices">
+    <metadataFiles><from node="extract-epidoc-metadata" output="transformed"/></metadataFiles>
+    <indicesConfigFile><files>1-input/indices-config.xsl</files></indicesConfigFile>
+    <output to="2-intermediate/eleventy-site/_data/indices"/>
+  </aggregateIndexData>
+
+  <aggregateBibConcordance name="aggregate-bib-concordance">
+    <metadataFiles><from node="extract-epidoc-metadata" output="transformed"/></metadataFiles>
+    <output to="2-intermediate/eleventy-site/_data/concordance"/>
+  </aggregateBibConcordance>
+
+  <aggregateSearchData name="aggregate-search-data">
+    <metadataFiles><from node="extract-epidoc-metadata" output="transformed"/></metadataFiles>
+    <output to="2-intermediate/search-data"/>
+  </aggregateSearchData>
+
+  <flexSearchIndex name="build-search-index">
+    <documents><from node="aggregate-search-data" output="searchData"/></documents>
+    <idField>documentId</idField>
+    <textFields>
+      <field>fullText</field>
+      <field>title</field>
+    </textFields>
+    <facetFields>
+      <field>material</field>
+      <field>objectType</field>
+      <field>textType</field>
+      <field>language</field>
+      <field>findspot</field>
+      <field>repository</field>
+    </facetFields>
+    <output to="2-intermediate/eleventy-site/search-data"/>
+  </flexSearchIndex>
+
+  <eleventyBuild name="eleventy-build">
+    <sourceDir><collect>2-intermediate/eleventy-site</collect></sourceDir>
+    <passthroughCopy>
+      <param name="2-intermediate/eleventy-site/search-data">search-data</param>
+      <param name="2-intermediate/eleventy-site/assets">assets</param>
+    </passthroughCopy>
+    <output to="3-output"/>
+  </eleventyBuild>
+
+</pipeline>

@@ -1,24 +1,30 @@
-import {from, type Input, type PipelineNodeConfig, type OutputConfig} from "../../core/pipeline";
+import {from, type PipelineNodeConfig, type OutputConfig} from "../../core/pipeline";
 import {CompositeNode} from "../../core/compositeNode";
 import {CompileStylesheetNode} from "./compileStylesheetNode";
 import {SefTransformNode} from "./sefTransformNode";
+import type {NodeConfigSchema, ConfigFromSchema} from "../../core/nodeConfigSchema";
+
+const configSchema = {
+    sourceFiles:         { type: 'input', optional: true },
+    stylesheet:          { type: 'input' },
+    initialTemplate:     { type: 'scalar', optional: true },
+    stylesheetParams:    { type: 'map', optional: true },
+    tunnelParams:        { type: 'map', optional: true },
+    templateParams:      { type: 'map', optional: true },
+    serializationParams: { type: 'map', optional: true },
+    initialMode:         { type: 'scalar', optional: true },
+    stubLibPath:         { type: 'input', optional: true },
+} as const satisfies NodeConfigSchema;
 
 interface XsltTransformConfig extends PipelineNodeConfig {
-    config: {
-        sourceFiles?: Input;  // sourceXml files (optional for no-source transforms)
-        stylesheet: Input;
-        initialTemplate?: string;
-        stylesheetParams?: Record<string, any | ((inputPath: string) => any)>;
-        tunnelParams?: Record<string, any | ((inputPath: string) => any)>;
-        templateParams?: Record<string, any | ((inputPath: string) => any)>;
-        serializationParams?: Record<string, any>;
-        initialMode?: string;
-        stubLibPath?: Input;  // Optional path to stub library JSON
-    };
+    config: ConfigFromSchema<typeof configSchema>;
     outputConfig?: OutputConfig;
 }
 
 export class XsltTransformNode extends CompositeNode<XsltTransformConfig, "transformed" | "result-documents" | "compiledStylesheet"> {
+    static readonly xmlElement = 'xsltTransform' as const;
+    static readonly configSchema = configSchema;
+
     protected buildInternalNodes(): void {
         const compileName = `${this.name}:compile`;
         const transformName = `${this.name}:transform`;

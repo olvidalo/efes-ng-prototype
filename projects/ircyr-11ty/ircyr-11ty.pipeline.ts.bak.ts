@@ -113,10 +113,10 @@ const eleventyBuild = new EleventyBuildNode({
     name: 'eleventy-build',
     config: {
         sourceDir: collect('2-intermediate/eleventy-site'),
-        passthroughCopy: [
-            {"2-intermediate/eleventy-site/search-data": "search-data"},
-            {"2-intermediate/eleventy-site/assets": "assets"},
-        ],
+        passthroughCopy: {
+            "2-intermediate/eleventy-site/search-data": "search-data",
+            "2-intermediate/eleventy-site/assets": "assets",
+        },
     },
     outputConfig: {
         to: '3-output',

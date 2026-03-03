@@ -189,7 +189,7 @@ const transformEpiDocGreek = new XsltTransformNode({
 const extractEpidocMetadataEl = new XsltTransformNode({
     name: "extract-epidoc-metadata-el",
     config: {
-        sourceFiles: from(pruneEpidocGerman, "transformed"),
+        sourceFiles: from(pruneEpidocGreek, "transformed"),
         stylesheet: files("1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl"),
         stylesheetParams: {
             language: 'el',
@@ -284,10 +284,10 @@ const eleventyBuild = new EleventyBuildNode({
     name: 'eleventy-build',
     config: {
         sourceDir: collect('2-intermediate/eleventy-site'),
-        passthroughCopy: [
-            {"2-intermediate/eleventy-site/search-data": "search-data"},
-            {"2-intermediate/eleventy-site/assets": "assets"},
-        ],
+        passthroughCopy: {
+            "2-intermediate/eleventy-site/search-data": "search-data",
+            "2-intermediate/eleventy-site/assets": "assets",
+        },
     },
     outputConfig: {
         to: '3-output',

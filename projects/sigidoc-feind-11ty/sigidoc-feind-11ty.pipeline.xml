@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline name="SigiDoc Feind">
+
+  <!-- Authority files referenced by XSLT document() calls -->
+  <variable name="geography-file"><files>1-input/authority/geography.xml</files></variable>
+  <variable name="dignities-file"><files>1-input/authority/dignities.xml</files></variable>
+  <variable name="offices-file"><files>1-input/authority/offices.xml</files></variable>
+  <variable name="invocations-file"><files>1-input/authority/invocation.xml</files></variable>
+  <variable name="bibliography-file"><files>1-input/authority/bibliography.xml</files></variable>
+
+  <copyFiles name="copy-eleventy-site">
+    <sourceFiles><files>1-input/eleventy-site/**/*</files></sourceFiles>
+    <output to="2-intermediate/eleventy-site" from="1-input/eleventy-site"/>
+  </copyFiles>
+
+  <!-- ===== ENGLISH ===== -->
+
+  <xsltTransform name="prune-epidoc-english">
+    <sourceFiles><files>1-input/feind-collection/*.xml</files></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/prune-to-language.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">en</param>
+    </stylesheetParams>
+  </xsltTransform>
+
+  <xsltTransform name="transform-epidoc-en">
+    <sourceFiles><from node="prune-epidoc-english" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/epidoc-to-html.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">en</param>
+    </stylesheetParams>
+    <output to="2-intermediate/eleventy-site/en/seals"
+            from="1-input/feind-collection"
+            extension=".html"/>
+  </xsltTransform>
+
+  <xsltTransform name="extract-epidoc-metadata-en">
+    <sourceFiles><from node="prune-epidoc-english" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">en</param>
+      <param name="geography-file"><ref name="geography-file"/></param>
+      <param name="dignities-file"><ref name="dignities-file"/></param>
+      <param name="offices-file"><ref name="offices-file"/></param>
+      <param name="invocations-file"><ref name="invocations-file"/></param>
+      <param name="bibliography-file"><ref name="bibliography-file"/></param>
+    </stylesheetParams>
+    <output to="2-intermediate/metadata/en/seals"
+            from="1-input/feind-collection"
+            extension=".metadata.json"/>
+  </xsltTransform>
+
+  <generateEleventyData name="generate-eleventy-data-en">
+    <metadataFiles><from node="extract-epidoc-metadata-en" output="transformed"/></metadataFiles>
+    <output to="2-intermediate/eleventy-site/en/seals"
+            from="2-intermediate/metadata/en/seals"/>
+  </generateEleventyData>
+
+  <!-- ===== GERMAN ===== -->
+
+  <xsltTransform name="prune-epidoc-german">
+    <sourceFiles><files>1-input/feind-collection/*.xml</files></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/prune-to-language.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">de</param>
+    </stylesheetParams>
+  </xsltTransform>
+
+  <xsltTransform name="transform-epidoc-de">
+    <sourceFiles><from node="prune-epidoc-german" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/epidoc-to-html.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">de</param>
+    </stylesheetParams>
+    <output to="2-intermediate/eleventy-site/de/seals"
+            from="1-input/feind-collection"
+            extension=".html"/>
+  </xsltTransform>
+
+  <xsltTransform name="extract-epidoc-metadata-de">
+    <sourceFiles><from node="prune-epidoc-german" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">de</param>
+      <param name="geography-file"><ref name="geography-file"/></param>
+      <param name="dignities-file"><ref name="dignities-file"/></param>
+      <param name="offices-file"><ref name="offices-file"/></param>
+      <param name="invocations-file"><ref name="invocations-file"/></param>
+      <param name="bibliography-file"><ref name="bibliography-file"/></param>
+    </stylesheetParams>
+    <output to="2-intermediate/metadata/de/seals"
+            from="1-input/feind-collection"
+            extension=".metadata.json"/>
+  </xsltTransform>
+
+  <generateEleventyData name="generate-eleventy-data-de">
+    <metadataFiles><from node="extract-epidoc-metadata-de" output="transformed"/></metadataFiles>
+    <output to="2-intermediate/eleventy-site/de/seals"
+            from="2-intermediate/metadata/de/seals"/>
+  </generateEleventyData>
+
+  <!-- ===== GREEK ===== -->
+
+  <xsltTransform name="prune-epidoc-greek">
+    <sourceFiles><files>1-input/feind-collection/*.xml</files></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/prune-to-language.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">el</param>
+    </stylesheetParams>
+  </xsltTransform>
+
+  <xsltTransform name="transform-epidoc-el">
+    <sourceFiles><from node="prune-epidoc-greek" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/epidoc-to-html.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">el</param>
+    </stylesheetParams>
+    <output to="2-intermediate/eleventy-site/el/seals"
+            from="1-input/feind-collection"
+            extension=".html"/>
+  </xsltTransform>
+
+  <xsltTransform name="extract-epidoc-metadata-el">
+    <sourceFiles><from node="prune-epidoc-greek" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">el</param>
+      <param name="geography-file"><ref name="geography-file"/></param>
+      <param name="dignities-file"><ref name="dignities-file"/></param>
+      <param name="offices-file"><ref name="offices-file"/></param>
+      <param name="invocations-file"><ref name="invocations-file"/></param>
+      <param name="bibliography-file"><ref name="bibliography-file"/></param>
+    </stylesheetParams>
+    <output to="2-intermediate/metadata/el/seals"
+            from="1-input/feind-collection"
+            extension=".metadata.json"/>
+  </xsltTransform>
+
+  <generateEleventyData name="generate-eleventy-data-el">
+    <metadataFiles><from node="extract-epidoc-metadata-el" output="transformed"/></metadataFiles>
+    <output to="2-intermediate/eleventy-site/el/seals"
+            from="2-intermediate/metadata/el/seals"/>
+  </generateEleventyData>
+
+  <!-- ===== INDEX AGGREGATION ===== -->
+
+  <aggregateIndexData name="aggregate-indices">
+    <metadataFiles><from node="extract-epidoc-metadata-en" output="transformed"/></metadataFiles>
+    <indicesConfigFile><files>1-input/indices-config.xsl</files></indicesConfigFile>
+    <output to="2-intermediate/eleventy-site/_data/indices"/>
+  </aggregateIndexData>
+
+  <aggregateBibConcordance name="aggregate-bib-concordance">
+    <metadataFiles><from node="extract-epidoc-metadata-en" output="transformed"/></metadataFiles>
+    <output to="2-intermediate/eleventy-site/_data/concordance"/>
+  </aggregateBibConcordance>
+
+  <!-- ===== SEARCH ===== -->
+
+  <aggregateSearchData name="aggregate-search-data">
+    <metadataFiles><from node="extract-epidoc-metadata-en" output="transformed"/></metadataFiles>
+    <output to="2-intermediate/eleventy-site/_data/search"/>
+  </aggregateSearchData>
+
+  <flexSearchIndex name="build-search-index">
+    <documents><from node="aggregate-search-data" output="searchData"/></documents>
+    <idField>documentId</idField>
+    <textFields>
+      <field>fullText</field>
+      <field>title</field>
+    </textFields>
+    <facetFields>
+      <field>material</field>
+      <field>objectType</field>
+      <field>language</field>
+      <field>personalNames</field>
+      <field>familyNames</field>
+      <field>gender</field>
+      <field>milieu</field>
+      <field>placeNames</field>
+      <field>dignities</field>
+      <field>civilOffices</field>
+      <field>ecclesiasticalOffices</field>
+      <field>militaryOffices</field>
+      <field>collection</field>
+      <field>metrical</field>
+      <field>monogram</field>
+    </facetFields>
+    <output to="2-intermediate/eleventy-site/search-data"/>
+  </flexSearchIndex>
+
+  <!-- ===== FINAL ASSEMBLY ===== -->
+
+  <eleventyBuild name="eleventy-build">
+    <sourceDir><collect>2-intermediate/eleventy-site</collect></sourceDir>
+    <passthroughCopy>
+      <param name="2-intermediate/eleventy-site/search-data">search-data</param>
+      <param name="2-intermediate/eleventy-site/assets">assets</param>
+    </passthroughCopy>
+    <output to="3-output"/>
+  </eleventyBuild>
+
+</pipeline>
