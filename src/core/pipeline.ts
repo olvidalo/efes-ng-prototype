@@ -10,13 +10,13 @@ import {EventEmitter} from "node:events";
 import {WorkerPool} from "../xml/workerPool";
 
 interface NodeOutputReference {
-    node: PipelineNode<any, any>;
-    name: string;
+    node: PipelineNode<any, any> | string;
+    output: string;
     glob?: string;  // Optional glob pattern to filter output files
 }
 
 export function inputIsNodeOutputReference(value: any): value is NodeOutputReference {
-    return typeof value === 'object' && value !== null && 'node' in value && 'name' in value;
+    return typeof value === 'object' && value !== null && 'node' in value && 'output' in value;
 }
 
 // FilesRef: tagged filesystem reference (glob patterns or literal paths)
@@ -62,8 +62,10 @@ export function from<TNode extends PipelineNode<any, TOutput>, TOutput extends s
     node: TNode,
     output: TOutput,
     glob?: string
-): NodeOutputReference {
-    return {node, name: output as string, glob};
+): NodeOutputReference;
+export function from(nodeName: string, output: string, glob?: string): NodeOutputReference;
+export function from(nodeOrName: PipelineNode<any, any> | string, output: string, glob?: string): NodeOutputReference {
+    return { node: nodeOrName, output, glob };
 }
 
 /**
@@ -232,7 +234,8 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         // from() reference - use logical reference
         if (inputIsNodeOutputReference(value)) {
             const globPart = value.glob ? `:${value.glob}` : '';
-            return `from(${value.node.name}:${value.name}${globPart})`;
+            const nodeName = typeof value.node === 'string' ? value.node : value.node.name;
+            return `from(${nodeName}:${value.output}${globPart})`;
         }
 
         // collect() reference - use directory path
@@ -326,9 +329,12 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 // from() reference - resolve to file paths AND track upstream node
                 const resolvedPaths = await context.resolveInput(value);
                 configDependencyPaths.push(...resolvedPaths);
-                upstreamResolved.set(value.node.name, { ref: value, paths: resolvedPaths });
-                for (const p of resolvedPaths) {
-                    pathToProducer.set(p, value.node);
+                const upstreamName = typeof value.node === 'string' ? value.node : value.node.name;
+                upstreamResolved.set(upstreamName, { ref: value, paths: resolvedPaths });
+                if (typeof value.node !== 'string') {
+                    for (const p of resolvedPaths) {
+                        pathToProducer.set(p, value.node);
+                    }
                 }
             } else if (inputIsCollectRef(value)) {
                 // collect() reference - resolve to file paths for cache tracking
@@ -357,7 +363,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         for (const [nodeName, { ref, paths }] of upstreamResolved.entries()) {
             upstreamOutputSignatures[nodeName] = {
                 signature: CacheManager.computeOutputSignature(paths),
-                outputKey: ref.name,
+                outputKey: ref.output,
                 glob: ref.glob
             };
         }
@@ -728,8 +734,11 @@ export class Pipeline extends EventEmitter {
                 const findNodeReferences = (obj: any, path: string = 'config') => {
                     if (inputIsCollectRef(obj) || inputIsFilesRef(obj)) return;  // handled elsewhere
                     if (inputIsNodeOutputReference(obj)) {
+                        // Resolve string refs to node instances
+                        if (typeof obj.node === 'string') {
+                            obj.node = this.graph.getNodeData(obj.node);
+                        }
                         try {
-                            // console.log(`Adding automatic dependency for node ${node.name}: ${obj.node.name} (from ${path})`);
                             this.graph.addDependency(node.name, obj.node.name);
                         } catch (err: any) {
                             throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err.message}`);
@@ -791,8 +800,9 @@ export class Pipeline extends EventEmitter {
         const context: PipelineContext = {
             resolveInput: async (input: Input): Promise<string[]> => {
                 const cacheKey = JSON.stringify(input, (key, value) => {
-                    if (value && typeof value === 'object' && 'node' in value && 'name' in value) {
-                        return `NodeRef:${value.node.name}:${value.name}:${value.glob || ''}`;
+                    if (value && typeof value === 'object' && 'node' in value && 'output' in value) {
+                        const nodeName = typeof value.node === 'string' ? value.node : value.node.name;
+                        return `NodeRef:${nodeName}:${value.output}:${value.glob || ''}`;
                     }
                     return value;
                 });
@@ -1079,9 +1089,10 @@ export class Pipeline extends EventEmitter {
     private async resolveInputImpl(input: Input): Promise<string[]> {
         // Node references
         if (inputIsNodeOutputReference(input)) {
-            let outputs = this.nodeOutputs.get(input.node.name)?.flatMap(output => output[input.name]).filter(x => x !== undefined);
+            const nodeName = typeof input.node === 'string' ? input.node : input.node.name;
+            let outputs = this.nodeOutputs.get(nodeName)?.flatMap(output => output[input.output]).filter(x => x !== undefined);
             if (!outputs || outputs.length === 0) {
-                throw new Error(`Node "${input.node.name}" hasn't run yet or has not produced any outputs.`);
+                throw new Error(`Node "${nodeName}" hasn't run yet or has not produced any outputs.`);
             }
 
             // Apply glob filtering if specified
@@ -1105,7 +1116,7 @@ export class Pipeline extends EventEmitter {
                 const filteredOutputs = outputs.filter(outputPath => matchSet.has(outputPath));
 
                 if (filteredOutputs.length === 0) {
-                    throw new Error(`No files from node "${input.node.name}" output "${input.name}" match pattern: ${input.glob}.\nOutputs: ${JSON.stringify(outputs, null, 2)}`);
+                    throw new Error(`No files from node "${nodeName}" output "${input.output}" match pattern: ${input.glob}.\nOutputs: ${JSON.stringify(outputs, null, 2)}`);
                 }
                 outputs = filteredOutputs;
             }

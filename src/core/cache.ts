@@ -141,9 +141,8 @@ export class CacheManager {
         // Reconstruct the NodeOutputReference from stored metadata
         const nodeRef = {
           node: { name: nodeName },
-          name: upstreamInfo.outputKey,
+          output: upstreamInfo.outputKey,
           glob: upstreamInfo.glob,
-          type: 'node-output-reference' as const
         };
 
         let currentPaths: string[];
