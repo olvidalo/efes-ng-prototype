@@ -42,16 +42,15 @@ export class PipelineWatcher {
             ignoreInitial: true,
             ignored: [
                 '**/node_modules/**',
+                '**/.DS_Store',
                 `**/${this.pipeline.buildDir}/**`,
                 `**/${this.pipeline.cacheDir}/**`,
             ],
         });
 
-        this.watcher.on('all', (event, filePath) => {
-            this.pipeline.emit('watch:change', { event, path: filePath });
-            console.log(`  [watch] ${event}: ${path.relative(this.pipeline.projectDir, filePath)}`);
-            this.scheduleRebuild();
-        });
+        this.watcher.on('change', (filePath) => this.onFileEvent('change', filePath));
+        this.watcher.on('add', (filePath) => this.onFileEvent('add', filePath));
+        this.watcher.on('unlink', (filePath) => this.onFileEvent('unlink', filePath));
 
         // Keep process alive
         await new Promise<void>(() => {});
@@ -61,6 +60,12 @@ export class PipelineWatcher {
         if (this.debounceTimer) clearTimeout(this.debounceTimer);
         if (this.watcher) await this.watcher.close();
         await this.pipeline.shutdown();
+    }
+
+    private onFileEvent(event: string, filePath: string): void {
+        this.pipeline.emit('watch:change', { event, path: filePath });
+        console.log(`  [watch] ${event}: ${path.relative(this.pipeline.projectDir, filePath)}`);
+        this.scheduleRebuild();
     }
 
     private scheduleRebuild(): void {
@@ -123,17 +128,10 @@ export class PipelineWatcher {
         // collect() reference — skip (intermediate directory, not a source input)
         if (inputIsCollectRef(obj)) return;
 
-        // files() reference — extract base directories from patterns
+        // files() reference — pass glob patterns directly to chokidar
         if (inputIsFilesRef(obj)) {
             for (const pattern of obj.patterns) {
-                const firstWild = pattern.search(/[*?{]/);
-                if (firstWild >= 0) {
-                    const baseDir = pattern.substring(0, firstWild).replace(/\/[^/]*$/, '') || '.';
-                    paths.add(baseDir);
-                } else {
-                    // Literal path — watch its directory
-                    paths.add(path.dirname(pattern));
-                }
+                paths.add(pattern);
             }
             return;
         }

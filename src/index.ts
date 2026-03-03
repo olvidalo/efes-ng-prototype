@@ -1,6 +1,7 @@
 // Core
 export { Pipeline, PipelineNode, from, files, collect, absolute, inputIsNodeOutputReference, inputIsFilesRef, inputIsCollectRef, isAbsolutePath } from './core/pipeline';
 export type { Input, NodeOutput, FilesRef, CollectRef, AbsolutePath, OutputConfig, PipelineNodeConfig, PipelineContext } from './core/pipeline';
+export { PipelineWatcher } from './core/watcher';
 export { CompositeNode } from './core/compositeNode';
 export type { OutputMapping } from './core/compositeNode';
 

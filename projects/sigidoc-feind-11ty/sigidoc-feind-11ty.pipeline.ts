@@ -1,8 +1,4 @@
-import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
-import {collect, files, from, Pipeline} from "../../src/core/pipeline";
-import {CopyFilesNode} from "../../src/io/copyFilesNode";
-import {EleventyBuildNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode} from "../../src/eleventy";
-import {FlexSearchIndexNode} from "../../src/search/flexSearchIndexNode";
+import {XsltTransformNode, Pipeline, collect, files, from, CopyFilesNode, EleventyBuildNode, AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode, FlexSearchIndexNode} from "efes-ng-phase-2-poc";
 
 // Authority files referenced by XSLT document() calls
 const geographyFile = files('1-input/authority/geography.xml');

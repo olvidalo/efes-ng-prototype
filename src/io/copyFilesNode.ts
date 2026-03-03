@@ -21,7 +21,8 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, "copied"> {
             throw new Error(`CopyFilesNode "${this.name}" requires outputConfig.to to be specified`);
         }
 
-        for (const sourcePath of paths) {
+        for (let i = 0; i < paths.length; i++) {
+            const sourcePath = paths[i];
             // Use unified path calculation
             const destPath = this.calculateOutputPath(sourcePath, context, this.config.outputConfig, undefined);
 
@@ -35,6 +36,7 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, "copied"> {
                     // Skip only if dest exists AND is newer than source
                     if (destStat.mtimeMs >= sourceStat.mtimeMs) {
                         copiedFiles.push(destPath);
+                        context.progress(this.name, i + 1, paths.length);
                         continue;
                     }
                 } catch (error: any) {
@@ -52,6 +54,7 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, "copied"> {
             }
 
             this.log(context, `Copied: ${sourcePath} → ${destPath}`);
+            context.progress(this.name, i + 1, paths.length);
         }
 
         return [{ copied: copiedFiles }];

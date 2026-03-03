@@ -1,6 +1,4 @@
-import {CopyFilesNode} from "../../src/io/copyFilesNode";
-import {absolute, files, from, Pipeline} from "../../src/core/pipeline";
-import {XsltTransformNode} from "../../src/xml/nodes/xsltTransformNode";
+import {CopyFilesNode, absolute, files, from, Pipeline, XsltTransformNode} from "efes-ng-phase-2-poc";
 
 
 

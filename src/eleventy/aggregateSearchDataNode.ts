@@ -49,7 +49,8 @@ export class AggregateSearchDataNode extends PipelineNode<
 
         const documents: Record<string, any>[] = [];
 
-        for (const file of files) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
             try {
                 const content = JSON.parse(await fs.readFile(file, "utf-8"));
                 const documentId = content.documentId;
@@ -89,6 +90,7 @@ export class AggregateSearchDataNode extends PipelineNode<
             } catch (err) {
                 this.log(context, `Warning: Failed to parse ${file}: ${err}`);
             }
+            context.progress(this.name, i + 1, files.length);
         }
 
         // Sort by documentId for consistent output

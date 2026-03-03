@@ -52,7 +52,8 @@ export class AggregateBibConcordanceNode extends PipelineNode<
         // Collect all bibliography references with their inscription IDs
         const allRefs: (BibRef & { inscriptionId: string })[] = [];
 
-        for (const file of files) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
             try {
                 const content = JSON.parse(await fs.readFile(file, "utf-8"));
                 const inscriptionId = content.documentId;
@@ -69,6 +70,7 @@ export class AggregateBibConcordanceNode extends PipelineNode<
             } catch (err) {
                 this.log(context, `Warning: Failed to parse ${file}: ${err}`);
             }
+            context.progress(this.name, i + 1, files.length);
         }
 
         // Group by bibRef

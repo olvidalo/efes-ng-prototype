@@ -93,6 +93,9 @@ export interface PipelineNodeConfig {
 
 
 export abstract class PipelineNode<TConfig extends PipelineNodeConfig = PipelineNodeConfig, TOutput extends string = string> {
+    /** Set by withCache() after each run — null if node doesn't use caching */
+    cacheStats: { hits: number; total: number } | null = null;
+
     constructor(public readonly config: TConfig) {
     }
 
@@ -399,6 +402,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         // Phase 1: Cache validation (sequential) - identify cache hits and misses
         const results = [];
         const cacheMisses: Array<{item: string, cacheKey: string, index: number}> = [];
+        let completedCount = 0;
         const hashMemo = new Map<string, string>();
 
         for (let i = 0; i < items.length; i++) {
@@ -478,6 +482,8 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
                 context.log(`  - Skipping: ${item} (cached)`);
                 results[i] = {item, outputs: newOutputsByKey, cached: true};
+                completedCount++;
+                context.progress(this.name, completedCount, items.length);
             }
         }
 
@@ -486,6 +492,8 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             context.log(`Processing ${cacheMisses.length} cache misses`);
             const workPromises = cacheMisses.map(async ({item, cacheKey, index}) => {
                 const processed = await performWork(item);
+                completedCount++;
+                context.progress(this.name, completedCount, items.length);
 
                 // Build unified cache entry (using pre-computed shared hashes)
                 const cacheEntry = await context.cache.buildCacheEntry({
@@ -520,7 +528,9 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         // delete orphans) would work for nodes with known output paths, but not for nodes
         // like EleventyBuildNode that delegate to external tools writing unknown file sets.
 
-        return results.filter(r => r !== null);
+        const final = results.filter(r => r !== null);
+        this.cacheStats = { hits: final.filter(r => r.cached).length, total: final.length };
+        return final;
     }
 }
 
@@ -528,6 +538,9 @@ export interface PipelineContext {
     resolveInput(input: Input): Promise<string[]>;
 
     log(message: string): void;
+
+    /** Report item-level progress within a node (e.g. 3 of 50 files processed) */
+    progress(nodeName: string, completed: number, total: number): void;
 
     cache: CacheManager;
     buildDir: string;
@@ -572,8 +585,10 @@ export class Pipeline extends EventEmitter {
         });
         this.on('node:start', ({ name }) =>
             console.log(`  [${this.name}]   ▶ Running: ${name}`));
-        this.on('node:done', ({ name, durationMs }) =>
-            console.log(`  [${this.name}]     ✓ Completed: ${name} (${(durationMs / 1000).toFixed(2)}s)`));
+        this.on('node:done', ({ name, durationMs, cacheStats }) => {
+            const cache = cacheStats?.total > 0 && cacheStats.hits === cacheStats.total ? ' (cached)' : '';
+            console.log(`  [${this.name}]     ✓ Completed: ${name} (${(durationMs / 1000).toFixed(2)}s)${cache}`);
+        });
         this.on('node:error', ({ name, error }) => {
             console.log(`  [${this.name}]     ✗ Failed: ${name}`);
             console.log(`  [${this.name}]       ${error.message}`);
@@ -651,13 +666,19 @@ export class Pipeline extends EventEmitter {
      * every node whose outputDir is equal to or under "X".
      */
     private setupCollectDependencies() {
-        // Build map: normalized outputDir → node name
-        const outputDirToNode = new Map<string, string>();
+        // Build map: normalized outputDir → node names (multiple nodes can share a dir)
+        const outputDirToNodes = new Map<string, string[]>();
         for (const nodeName of this.graph.overallOrder()) {
             const node = this.graph.getNodeData(nodeName);
             const outputDir = (node.config.outputConfig as any)?.to;
             if (outputDir) {
-                outputDirToNode.set(path.normalize(outputDir), nodeName);
+                const key = path.normalize(outputDir);
+                const existing = outputDirToNodes.get(key);
+                if (existing) {
+                    existing.push(nodeName);
+                } else {
+                    outputDirToNodes.set(key, [nodeName]);
+                }
             }
         }
 
@@ -666,10 +687,13 @@ export class Pipeline extends EventEmitter {
             const node = this.graph.getNodeData(nodeName);
             this.findCollectRefs(node.config.config, (collectRef) => {
                 const collectDir = path.normalize(collectRef.dir);
-                for (const [outputDir, writerName] of outputDirToNode) {
-                    if (writerName === nodeName) continue;
+                for (const [outputDir, writerNames] of outputDirToNodes) {
                     if (outputDir.startsWith(collectDir)) {
-                        this.graph.addDependency(nodeName, writerName);
+                        for (const writerName of writerNames) {
+                            if (writerName !== nodeName) {
+                                this.graph.addDependency(nodeName, writerName);
+                            }
+                        }
                     }
                 }
             });
@@ -827,7 +851,10 @@ export class Pipeline extends EventEmitter {
                 // For non-build paths, make them relative to projectDir
                 return path.relative(this.projectDir, inputPath);
             },
-            getNodeOutputs: (nodeName: string) => this.nodeOutputs.get(nodeName)
+            getNodeOutputs: (nodeName: string) => this.nodeOutputs.get(nodeName),
+            progress: (nodeName: string, completed: number, total: number) => {
+                this.emit('node:progress', { name: nodeName, completed, total });
+            }
         }
 
         try {
@@ -909,7 +936,7 @@ export class Pipeline extends EventEmitter {
                 this.nodeOutputs.set(node.name, output);
                 const durationMs = performance.now() - nodeStart;
                 this.nodeTimings.set(node.name, durationMs);
-                this.emit('node:done', { name: node.name, durationMs });
+                this.emit('node:done', { name: node.name, durationMs, cacheStats: node.cacheStats });
             } catch (err: any) {
                 this.emit('node:error', { name: node.name, error: err });
                 throw err;
@@ -945,7 +972,7 @@ export class Pipeline extends EventEmitter {
                     this.nodeOutputs.set(node.name, output);
                     const durationMs = performance.now() - nodeStart;
                     this.nodeTimings.set(node.name, durationMs);
-                    this.emit('node:done', { name: node.name, durationMs });
+                    this.emit('node:done', { name: node.name, durationMs, cacheStats: node.cacheStats });
                 } catch (err: any) {
                     this.emit('node:error', { name: node.name, error: err });
                     throw err;
@@ -991,7 +1018,7 @@ export class Pipeline extends EventEmitter {
                 this.nodeOutputs.set(node.name, output);
                 const durationMs = performance.now() - nodeStart;
                 this.nodeTimings.set(node.name, durationMs);
-                this.emit('node:done', { name: node.name, durationMs });
+                this.emit('node:done', { name: node.name, durationMs, cacheStats: node.cacheStats });
             } catch (err: any) {
                 this.emit('node:error', { name: node.name, error: err });
                 errors.push(err);

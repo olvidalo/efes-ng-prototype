@@ -25,6 +25,9 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, "built"
 
     async run(context: PipelineContext) {
         const sourceDir = path.resolve(context.projectDir, this.config.config.sourceDir.dir);
+        const outputDir = this.config.outputConfig?.to ?
+            path.resolve(context.projectDir, this.config.outputConfig.to) :
+            context.getBuildPath(this.name, sourceDir);
 
         // Check if source directory exists
         try {
@@ -33,32 +36,25 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, "built"
             throw new Error(`Source directory not found: ${sourceDir}`);
         }
 
-        // Determine output directory
-        const outputDir = this.config.outputConfig?.to ?
-            path.resolve(context.projectDir, this.config.outputConfig.to) :
-            context.getBuildPath(this.name, sourceDir);
+        await fs.mkdir(outputDir, { recursive: true });
 
         this.log(context, `Building Eleventy site: ${sourceDir} -> ${outputDir}`);
 
-        // For now, don't use caching since we're dealing with directories
-        // TODO: Implement proper directory-based caching
+        // TODO: Incremental builds — Eleventy supports setIncrementalFile(path) + write()
+        // for rebuilding only affected templates. We have mtime-based change detection
+        // (snapshotMtimes/diffMtimes) ready but need to investigate why reusing the
+        // Eleventy instance across builds doesn't yield speed benefits. Possible issues:
+        // - Eleventy re-initializes internal state on each write()
+        // - Path format mismatch (absolute vs ./relative) for setIncrementalFile
+        // - Need to call elev.init() or similar between builds
 
-        // Ensure output directory exists
-        await fs.mkdir(outputDir, { recursive: true });
-
-        // Initialize Eleventy
         const elev = new Eleventy(sourceDir, outputDir, {
             ...this.config.config.eleventyConfig,
         });
 
-
-        // Run the build
         await elev.write();
 
         this.log(context, `Eleventy build completed: ${outputDir}`);
-
-        const results = [{ item: sourceDir, output: outputDir, cached: false }];
-
-        return [{ built: [results[0].output] }];
+        return [{ built: [outputDir] }];
     }
 }

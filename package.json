@@ -28,6 +28,9 @@
     "saxonjs-he": "^3.0.0-beta2",
     "xslt3-he": "^3.0.0-beta2"
   },
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "author": "Marcel Schaeben",
   "license": "MIT"
 }
