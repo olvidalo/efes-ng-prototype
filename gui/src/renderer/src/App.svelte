@@ -6,6 +6,8 @@
   import LogPanel from './components/LogPanel.svelte'
 
   let cleanup: (() => void) | null = null
+  let refreshTrigger = $state(0)
+  let statusMessage = $state('')
 
   onMount(() => {
     cleanup = window.api.onEvent((event) => {
@@ -41,13 +43,16 @@
     }
   }
 
-  async function handleClean() {
-    try {
-      await window.api.clean()
+  function handleClean() {
+    pipelineState.addLog('Cleaning...')
+    window.api.clean().then(() => {
       pipelineState.addLog('Caches cleared.')
-    } catch (err: any) {
+      refreshTrigger++
+      statusMessage = 'Clean complete'
+      setTimeout(() => { statusMessage = '' }, 3000)
+    }).catch((err: any) => {
       pipelineState.addLog(`Clean failed: ${err.message}`)
-    }
+    })
   }
 
   async function handleStartWatch() {
@@ -89,8 +94,11 @@
     onOpenPreview={handleOpenPreview}
   />
   <div class="content">
-    <NodeList nodes={pipelineState.nodes} />
+    <NodeList nodes={pipelineState.nodes} {refreshTrigger} />
   </div>
+  {#if statusMessage}
+    <div class="status-flash">{statusMessage}</div>
+  {/if}
   <LogPanel logs={pipelineState.logs} />
 </main>
 
@@ -106,5 +114,13 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+
+  .status-flash {
+    padding: 4px 12px;
+    background: #2d4a2d;
+    color: #4caf50;
+    font-size: 12px;
+    text-align: center;
   }
 </style>

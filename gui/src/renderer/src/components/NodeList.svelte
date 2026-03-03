@@ -11,9 +11,31 @@
 
   interface Props {
     nodes: NodeState[]
+    refreshTrigger?: number
   }
 
-  let { nodes }: Props = $props()
+  let { nodes, refreshTrigger = 0 }: Props = $props()
+
+  let outputExists: Record<string, boolean> = $state({})
+
+  async function refreshOutputExists(): Promise<void> {
+    const result: Record<string, boolean> = {}
+    for (const node of nodes) {
+      result[node.name] = await window.api.nodeOutputExists(node.name)
+    }
+    outputExists = result
+  }
+
+  // Refresh when node list changes, any node completes, or refreshTrigger changes
+  $effect(() => {
+    const doneCount = nodes.filter((n) => n.status === 'done' || n.status === 'error').length
+    if (nodes.length > 0) {
+      // use doneCount and refreshTrigger to trigger reactivity
+      void doneCount
+      void refreshTrigger
+      refreshOutputExists()
+    }
+  })
 
   let building = $derived(nodes.some((n) => n.status === 'running'))
   let progressPct = $derived(() => {
@@ -49,6 +71,9 @@
         <span class="name">{node.name}</span>
         {#if node.status === 'running' && node.itemTotal}
           <span class="item-progress">{node.itemCompleted} / {node.itemTotal}</span>
+        {/if}
+        {#if outputExists[node.name]}
+          <button class="open-output" title="Open output directory" onclick={() => window.api.openNodeOutput(node.name)}>&#x1F4C2;</button>
         {/if}
         {#if node.durationMs !== undefined}
           <span class="duration">{(node.durationMs / 1000).toFixed(2)}s</span>
@@ -92,8 +117,15 @@
     display: flex;
     align-items: baseline;
     gap: 8px;
-    padding: 3px 0;
+    padding: 3px 4px;
+    margin: 0 -4px;
+    border-radius: 3px;
     font-size: 13px;
+    transition: background 0.1s;
+  }
+
+  .node:hover {
+    background: var(--color-background-mute, rgba(255, 255, 255, 0.05));
   }
 
   .status {
@@ -110,6 +142,8 @@
 
   .name {
     color: var(--color-text, #eee);
+    user-select: text;
+    cursor: text;
   }
 
   .running .name {
@@ -122,8 +156,22 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .duration {
+  .open-output {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: 12px;
+    opacity: 0.4;
+    transition: opacity 0.15s;
     margin-left: auto;
+  }
+
+  .open-output:hover {
+    opacity: 1;
+  }
+
+  .duration {
     color: var(--color-text-3, #888);
     font-variant-numeric: tabular-nums;
   }
