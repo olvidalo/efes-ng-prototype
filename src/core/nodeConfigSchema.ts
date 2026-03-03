@@ -34,5 +34,6 @@ export type ConfigFromSchema<S extends NodeConfigSchema> = {
 export interface XmlRegistrableNode {
     readonly xmlElement: string;
     readonly configSchema: NodeConfigSchema;
+    readonly outputKeys: readonly string[];
     new (config: any): PipelineNode<any, any>;
 }

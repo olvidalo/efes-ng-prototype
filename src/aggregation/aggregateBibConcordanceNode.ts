@@ -40,12 +40,15 @@ interface BibConcordanceEntry {
  * Aggregates bibliography data from individual frontmatter files into a single
  * concordance JSON file. Groups by bibRef → citedRange → inscriptions.
  */
+const outputKeys = ['concordance'] as const;
+
 export class AggregateBibConcordanceNode extends PipelineNode<
     AggregateBibConcordanceNodeConfig,
-    "concordance"
+    typeof outputKeys[number]
 > {
     static readonly xmlElement = 'aggregateBibConcordance' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     async run(context: PipelineContext): Promise<NodeOutput<"concordance">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);

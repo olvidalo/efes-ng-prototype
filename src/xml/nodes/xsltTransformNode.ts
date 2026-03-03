@@ -21,9 +21,12 @@ interface XsltTransformConfig extends PipelineNodeConfig {
     outputConfig?: OutputConfig;
 }
 
-export class XsltTransformNode extends CompositeNode<XsltTransformConfig, "transformed" | "result-documents" | "compiledStylesheet"> {
+const outputKeys = ['transformed', 'result-documents', 'compiledStylesheet'] as const;
+
+export class XsltTransformNode extends CompositeNode<XsltTransformConfig, typeof outputKeys[number]> {
     static readonly xmlElement = 'xsltTransform' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     protected buildInternalNodes(): void {
         const compileName = `${this.name}:compile`;

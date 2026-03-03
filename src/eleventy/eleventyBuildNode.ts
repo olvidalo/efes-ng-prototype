@@ -16,9 +16,12 @@ interface EleventyBuildConfig extends PipelineNodeConfig {
     outputConfig?: OutputConfig;
 }
 
-export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, "built"> {
+const outputKeys = ['built'] as const;
+
+export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof outputKeys[number]> {
     static readonly xmlElement = 'eleventyBuild' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     constructor(config: EleventyBuildConfig) {
         super(config);

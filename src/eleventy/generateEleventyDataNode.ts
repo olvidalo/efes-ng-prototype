@@ -29,12 +29,15 @@ const DEFAULT_EXCLUDE_FIELDS = ['entities', 'search'];
  * This dramatically reduces the data Eleventy loads into its data cascade,
  * yielding ~37% faster builds.
  */
+const outputKeys = ['eleventyData'] as const;
+
 export class GenerateEleventyDataNode extends PipelineNode<
     GenerateEleventyDataConfig,
-    "eleventyData"
+    typeof outputKeys[number]
 > {
     static readonly xmlElement = 'generateEleventyData' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     async run(context: PipelineContext): Promise<NodeOutput<"eleventyData">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);

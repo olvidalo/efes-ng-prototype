@@ -14,9 +14,12 @@ interface CopyFilesConfig extends PipelineNodeConfig {
     };
 }
 
-export class CopyFilesNode extends PipelineNode<CopyFilesConfig, "copied"> {
+const outputKeys = ['copied'] as const;
+
+export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKeys[number]> {
     static readonly xmlElement = 'copyFiles' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     async run(context: PipelineContext) {
         const paths = await context.resolveInput(this.config.config.sourceFiles);

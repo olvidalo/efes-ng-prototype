@@ -14,9 +14,12 @@ interface ZipCompressConfig extends PipelineNodeConfig {
     outputConfig: OutputConfig;
 }
 
-export class ZipCompressNode extends PipelineNode<ZipCompressConfig, "zip"> {
+const outputKeys = ['zip'] as const;
+
+export class ZipCompressNode extends PipelineNode<ZipCompressConfig, typeof outputKeys[number]> {
     static readonly xmlElement = 'zipCompress' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     async run(context: PipelineContext) {
         const inputPaths = await context.resolveInput(this.config.config.files);

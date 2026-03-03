@@ -82,12 +82,15 @@ const IDX_NS = 'http://efes.info/indices';
  * Index configuration (titles, columns, notes) is parsed from indices-config.xsl,
  * making it the single source of truth.
  */
+const outputKeys = ['indexData'] as const;
+
 export class AggregateIndexDataNode extends PipelineNode<
     AggregateIndexDataNodeConfig,
-    "indexData"
+    typeof outputKeys[number]
 > {
     static readonly xmlElement = 'aggregateIndexData' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     async run(context: PipelineContext): Promise<NodeOutput<"indexData">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);

@@ -15,6 +15,19 @@ export function generateRngSchema(): string {
         .map(name => generateNodeDefinition(name, NodeRegistry.get(name)!.configSchema))
         .join('\n\n');
 
+    const allOutputKeys = [...new Set(NodeRegistry.elementNames().flatMap(name => NodeRegistry.get(name)!.outputKeys))];
+    const outputKeyValues = allOutputKeys.map(k => `            <value>${k}</value>`).join('\n');
+
+    const outputKeyAsserts = NodeRegistry.elementNames()
+        .map(name => {
+            const keys = NodeRegistry.get(name)!.outputKeys;
+            const valueTests = keys.map(k => `@output = '${k}'`).join(' or ');
+            return `      <sch:assert test="not(/pipeline/${name}[@name = $target]) or ${valueTests}">
+        Invalid output "<sch:value-of select="@output"/>" for ${name} node. Valid: ${keys.join(', ')}.
+      </sch:assert>`;
+        })
+        .join('\n');
+
     return `<?xml version="1.0" encoding="UTF-8"?>
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
          xmlns:sch="http://purl.oclc.org/dsdl/schematron"
@@ -54,7 +67,11 @@ ${nodeRefs}
       <element name="files"><text/></element>
       <element name="from">
         <attribute name="node"><data type="IDREF"/></attribute>
-        <attribute name="output"/>
+        <attribute name="output">
+          <choice>
+${outputKeyValues}
+          </choice>
+        </attribute>
         <text/>
       </element>
       <element name="collect"><text/></element>
@@ -122,6 +139,8 @@ ${nodeDefinitions}
       <sch:assert test="/pipeline/*[not(self::variable)][@name = current()/@node]">
         Node "<sch:value-of select="@node"/>" is not defined in this pipeline.
       </sch:assert>
+      <sch:let name="target" value="@node"/>
+${outputKeyAsserts}
     </sch:rule>
   </sch:pattern>
 

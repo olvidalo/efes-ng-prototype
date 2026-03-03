@@ -36,12 +36,15 @@ function parseYear(val: string): number | null {
  * Aggregates search data from individual frontmatter files into a single
  * search-documents.json file for FlexSearch indexing.
  */
+const outputKeys = ['searchData'] as const;
+
 export class AggregateSearchDataNode extends PipelineNode<
     AggregateSearchDataNodeConfig,
-    "searchData"
+    typeof outputKeys[number]
 > {
     static readonly xmlElement = 'aggregateSearchData' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     async run(context: PipelineContext): Promise<NodeOutput<"searchData">[]> {
         const files = await context.resolveInput(this.config.config.metadataFiles);

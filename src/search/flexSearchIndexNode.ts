@@ -17,9 +17,12 @@ interface FlexSearchIndexConfig extends PipelineNodeConfig {
     outputConfig?: OutputConfig;
 }
 
-export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, "searchIndex"> {
+const outputKeys = ['searchIndex'] as const;
+
+export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typeof outputKeys[number]> {
     static readonly xmlElement = 'flexSearchIndex' as const;
     static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
 
     async run(context: PipelineContext) {
         const jsonFiles = await context.resolveInput(this.config.config.documents);
