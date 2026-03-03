@@ -8,6 +8,10 @@ const api = {
   startWatch: (): Promise<void> => ipcRenderer.invoke('pipeline:watch'),
   stopWatch: (): Promise<void> => ipcRenderer.invoke('pipeline:stop-watch'),
   clean: (): Promise<void> => ipcRenderer.invoke('pipeline:clean'),
+  openNodeOutput: (nodeName: string): Promise<void> =>
+    ipcRenderer.invoke('pipeline:open-node-output', nodeName),
+  nodeOutputExists: (nodeName: string): Promise<boolean> =>
+    ipcRenderer.invoke('pipeline:node-output-exists', nodeName),
   onEvent: (callback: (event: any) => void): (() => void) => {
     const handler = (_e: any, data: any): void => callback(data)
     ipcRenderer.on('pipeline:event', handler)

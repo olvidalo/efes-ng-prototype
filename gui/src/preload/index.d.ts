@@ -6,6 +6,8 @@ interface PipelineAPI {
   startWatch(): Promise<void>
   stopWatch(): Promise<void>
   clean(): Promise<void>
+  openNodeOutput(nodeName: string): Promise<void>
+  nodeOutputExists(nodeName: string): Promise<boolean>
   onEvent(callback: (event: PipelineEvent) => void): () => void
 }
 

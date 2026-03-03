@@ -1,5 +1,6 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
+import fs from 'node:fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { PipelineManager } from './pipeline-manager'
@@ -62,6 +63,18 @@ ipcMain.handle('pipeline:stop-watch', async () => {
 
 ipcMain.handle('pipeline:clean', async () => {
   return manager!.clean()
+})
+
+ipcMain.handle('pipeline:open-node-output', async (_e, nodeName: string) => {
+  const dir = manager!.getNodeOutputDir(nodeName)
+  if (dir && fs.existsSync(dir)) {
+    await shell.openPath(dir)
+  }
+})
+
+ipcMain.handle('pipeline:node-output-exists', (_e, nodeName: string) => {
+  const dir = manager!.getNodeOutputDir(nodeName)
+  return dir ? fs.existsSync(dir) : false
 })
 
 // --- App lifecycle ---

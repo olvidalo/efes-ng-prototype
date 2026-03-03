@@ -100,7 +100,16 @@ export class PipelineManager {
         fs.rmSync(dir, { recursive: true })
       }
     }
-    // Clear output contents but keep the directory
+    // Clean all node output directories (covers custom outputConfig.to paths like 2-intermediate/)
+    for (const name of this.pipeline.getNodeNames()) {
+      try {
+        const dir = this.pipeline.getNodeOutputDir(name)
+        if (fs.existsSync(dir)) {
+          fs.rmSync(dir, { recursive: true })
+        }
+      } catch { /* node may not have output dir */ }
+    }
+    // Clear output contents but keep the directory (sirv needs it)
     const outputDir = path.resolve(this.pipeline.projectDir, '3-output')
     if (fs.existsSync(outputDir)) {
       for (const entry of fs.readdirSync(outputDir)) {
@@ -138,6 +147,15 @@ export class PipelineManager {
     if (this.devServer) {
       await this.devServer.stop()
       this.devServer = null
+    }
+  }
+
+  getNodeOutputDir(nodeName: string): string | null {
+    if (!this.pipeline) return null
+    try {
+      return this.pipeline.getNodeOutputDir(nodeName)
+    } catch {
+      return null
     }
   }
 
