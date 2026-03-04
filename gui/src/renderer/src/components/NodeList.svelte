@@ -12,9 +12,11 @@
   interface Props {
     nodes: NodeState[]
     refreshTrigger?: number
+    selectedNode?: string | null
+    onSelectNode?: (name: string | null) => void
   }
 
-  let { nodes, refreshTrigger = 0 }: Props = $props()
+  let { nodes, refreshTrigger = 0, selectedNode = null, onSelectNode }: Props = $props()
 
   let outputExists: Record<string, boolean> = $state({})
 
@@ -66,7 +68,16 @@
       </div>
     {/if}
     {#each nodes as node}
-      <div class="node" class:running={node.status === 'running'} class:done={node.status === 'done'} class:error={node.status === 'error'}>
+      <div
+        class="node"
+        class:running={node.status === 'running'}
+        class:done={node.status === 'done'}
+        class:error={node.status === 'error'}
+        class:selected={selectedNode === node.name}
+        onclick={() => onSelectNode?.(selectedNode === node.name ? null : node.name)}
+        role="button"
+        tabindex="0"
+      >
         <span class="status" class:cached={node.fullyCached} class:status-pending={node.status === 'pending'} class:status-running={node.status === 'running'} class:status-done={node.status === 'done'} class:status-error={node.status === 'error'}>{node.fullyCached ? '-' : statusIcon[node.status]}</span>
         <span class="name">{node.name}</span>
         {#if node.status === 'running' && node.itemTotal}
@@ -89,6 +100,7 @@
 <style>
   .node-list {
     flex: 1;
+    min-width: 0;
     overflow-y: auto;
     padding: 8px 12px;
   }
@@ -122,10 +134,15 @@
     border-radius: 3px;
     font-size: 13px;
     transition: background 0.1s;
+    cursor: pointer;
   }
 
   .node:hover {
     background: var(--color-background-mute, rgba(255, 255, 255, 0.05));
+  }
+
+  .node.selected {
+    background: rgba(59, 130, 246, 0.1);
   }
 
   .status {

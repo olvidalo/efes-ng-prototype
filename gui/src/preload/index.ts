@@ -12,6 +12,8 @@ const api = {
     ipcRenderer.invoke('pipeline:open-node-output', nodeName),
   nodeOutputExists: (nodeName: string): Promise<boolean> =>
     ipcRenderer.invoke('pipeline:node-output-exists', nodeName),
+  getNodeInfo: (nodeName: string): Promise<any> =>
+    ipcRenderer.invoke('pipeline:get-node-info', nodeName),
   onEvent: (callback: (event: any) => void): (() => void) => {
     const handler = (_e: any, data: any): void => callback(data)
     ipcRenderer.on('pipeline:event', handler)

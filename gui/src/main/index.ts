@@ -77,6 +77,10 @@ ipcMain.handle('pipeline:node-output-exists', (_e, nodeName: string) => {
   return dir ? fs.existsSync(dir) : false
 })
 
+ipcMain.handle('pipeline:get-node-info', (_e, nodeName: string) => {
+  return manager!.getNodeInfo(nodeName)
+})
+
 // --- App lifecycle ---
 
 app.whenReady().then(() => {

@@ -3,6 +3,17 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { DevServer } from './dev-server'
 
+export interface NodeInfo {
+  outputKeys: string[]
+  outputs: Record<string, string[]>
+  dependencies: string[]
+  outputDir: string
+  nodeType: string
+  description: string | null
+  cacheStats: { hits: number; total: number } | null
+  config: Record<string, any>
+}
+
 export class PipelineManager {
   private pipeline: any = null
   private watcher: any = null
@@ -146,6 +157,63 @@ export class PipelineManager {
     if (!this.pipeline) return null
     try {
       return this.pipeline.getNodeOutputDir(nodeName)
+    } catch {
+      return null
+    }
+  }
+
+  getNodeInfo(nodeName: string): NodeInfo | null {
+    if (!this.pipeline) return null
+    try {
+      const node = this.pipeline.getNodeData(nodeName)
+      const ctor = node.constructor as any
+
+      // Output keys from static class property
+      const outputKeys: string[] = ctor.outputKeys ? [...ctor.outputKeys] : []
+
+      // Actual output files grouped by key (only available after a run)
+      const rawOutputs = this.pipeline.getNodeOutputs(nodeName)
+      const outputs: Record<string, string[]> = {}
+      if (rawOutputs) {
+        for (const outputObj of rawOutputs) {
+          for (const [key, paths] of Object.entries(outputObj)) {
+            if (!outputs[key]) outputs[key] = []
+            outputs[key].push(...(paths as string[]))
+          }
+        }
+      }
+
+      // Dependencies
+      const dependencies = this.pipeline.getDependenciesOf(nodeName)
+
+      // Output directory
+      const outputDir = this.pipeline.getNodeOutputDir(nodeName)
+
+      // Node type name
+      const nodeType = ctor.xmlElement || ctor.name || 'unknown'
+
+      // Description
+      const description = ctor.description || null
+
+      // Cache stats
+      const cacheStats = node.cacheStats || null
+
+      // Config (sanitized - just the config values, not the full node config)
+      const config: Record<string, any> = {}
+      if (node.config?.config) {
+        for (const [key, value] of Object.entries(node.config.config)) {
+          // Serialize inputs as descriptive strings instead of object refs
+          if (value && typeof value === 'object' && 'tag' in value) {
+            if (value.tag === 'files') config[key] = `files("${value.glob}")`
+            else if (value.tag === 'nodeOutput') config[key] = `from(${value.node?.name ?? value.node}, "${value.output}")`
+            else config[key] = String(value)
+          } else {
+            config[key] = value
+          }
+        }
+      }
+
+      return { outputKeys, outputs, dependencies, outputDir, nodeType, description, cacheStats, config }
     } catch {
       return null
     }

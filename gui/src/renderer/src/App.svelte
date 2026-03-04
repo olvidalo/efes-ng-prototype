@@ -3,15 +3,32 @@
   import { pipelineState } from './lib/pipeline-state.svelte'
   import Toolbar from './components/Toolbar.svelte'
   import NodeList from './components/NodeList.svelte'
+  import NodeInspector from './components/NodeInspector.svelte'
   import LogPanel from './components/LogPanel.svelte'
 
   let cleanup: (() => void) | null = null
   let refreshTrigger = $state(0)
   let statusMessage = $state('')
+  let selectedNode = $state<string | null>(null)
+  let nodeInfo = $state<any>(null)
+
+  async function handleSelectNode(name: string | null) {
+    selectedNode = name
+    if (name) {
+      nodeInfo = null
+      nodeInfo = await window.api.getNodeInfo(name)
+    } else {
+      nodeInfo = null
+    }
+  }
 
   onMount(() => {
     cleanup = window.api.onEvent((event) => {
       pipelineState.handleEvent(event)
+      // Refresh inspector when build completes
+      if ((event.type === 'pipeline:done' || event.type === 'watch:rebuild:done') && selectedNode) {
+        window.api.getNodeInfo(selectedNode).then((info) => { nodeInfo = info })
+      }
     })
   })
 
@@ -23,6 +40,8 @@
     try {
       const result = await window.api.openProject()
       if (result) {
+        selectedNode = null
+        nodeInfo = null
         pipelineState.setPipelineInfo(result.name, result.nodeNames, result.serverUrl)
       }
     } catch (err: any) {
@@ -94,7 +113,15 @@
     onOpenPreview={handleOpenPreview}
   />
   <div class="content">
-    <NodeList nodes={pipelineState.nodes} {refreshTrigger} />
+    <NodeList nodes={pipelineState.nodes} {refreshTrigger} {selectedNode} onSelectNode={handleSelectNode} />
+    {#if selectedNode}
+      <NodeInspector
+        nodeName={selectedNode}
+        info={nodeInfo}
+        onClose={() => handleSelectNode(null)}
+        onSelectNode={handleSelectNode}
+      />
+    {/if}
   </div>
   {#if statusMessage}
     <div class="status-flash">{statusMessage}</div>
@@ -113,7 +140,7 @@
     flex: 1;
     overflow: hidden;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .status-flash {
