@@ -1,4 +1,5 @@
-import {type Input, type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../../core/pipeline";
+import {type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../../core/pipeline";
+import type {NodeConfigSchema, ConfigFromSchema} from "../../core/nodeConfigSchema";
 import path from "node:path";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
@@ -8,16 +9,23 @@ import { fileURLToPath } from "node:url";
 // @ts-ignore
 import {getResource, XPath} from 'saxonjs-he';
 
+const configSchema = {
+    stylesheets: { type: 'input', description: 'XSLT files to compile to SEF format.' },
+    stubLibPath: { type: 'input', optional: true, description: 'Path to a stub XSLT library JSON that provides empty templates for unavailable imports.' },
+} as const satisfies NodeConfigSchema;
 
 interface CompileStylesheetConfig extends PipelineNodeConfig {
-    config: {
-        stylesheets: Input;  // xslt files to compile
-        stubLibPath?: Input;  // Optional path to stub library JSON
-    };
+    config: ConfigFromSchema<typeof configSchema>;
     outputConfig?: OutputConfig;
 }
 
-export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig, "compiledStylesheet"> {
+const outputKeys = ['compiledStylesheet'] as const;
+
+export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig, typeof outputKeys[number]> {
+    static readonly xmlElement = 'compileStylesheet' as const;
+    static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
+    static readonly description = 'Compile XSLT stylesheets to Saxon Executable Format (SEF) for fast runtime execution.';
 
     /**
      * Normalize SEF JSON before hashing by stripping buildDateTime.

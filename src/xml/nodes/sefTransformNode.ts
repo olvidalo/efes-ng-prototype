@@ -1,5 +1,4 @@
 import {
-    type Input,
     inputIsNodeOutputReference,
     inputIsFilesRef,
     isAbsolutePath,
@@ -8,28 +7,35 @@ import {
     type PipelineNodeConfig,
     type OutputConfig
 } from "../../core/pipeline";
+import type {NodeConfigSchema, ConfigFromSchema} from "../../core/nodeConfigSchema";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
+const configSchema = {
+    sourceFiles:         { type: 'input', optional: true, description: 'Source XML files to transform. If omitted, the stylesheet runs in no-source mode (e.g. using document() for input).' },
+    sefStylesheet:       { type: 'input', description: 'Pre-compiled SEF stylesheet to apply.' },
+    initialTemplate:     { type: 'scalar', optional: true, description: 'Named template to invoke instead of applying templates to source files.' },
+    stylesheetParams:    { type: 'map', optional: true, description: 'Parameters passed to the stylesheet via xsl:param.' },
+    tunnelParams:        { type: 'map', optional: true, description: 'Tunnel parameters passed through to descendant templates.' },
+    templateParams:      { type: 'map', optional: true, description: 'Parameters passed to the initial template.' },
+    serializationParams: { type: 'map', optional: true, description: 'Override the stylesheet output serialization settings.' },
+    initialMode:         { type: 'scalar', optional: true, description: 'Initial processing mode to use when applying templates.' },
+} as const satisfies NodeConfigSchema;
+
 interface SefTransformConfig extends PipelineNodeConfig {
-    config: {
-        sourceFiles?: Input;  // sourceXml files (optional for no-source transforms)
-        sefStylesheet: Input;
-        initialTemplate?: string;
-        stylesheetParams?: Record<string, any | ((inputPath: string) => any)>;
-        tunnelParams?: Record<string, any | ((inputPath: string) => any)>;
-        templateParams?: Record<string, any | ((inputPath: string) => any)>;
-        // TODO: passing {indent: false} indents anyway
-        serializationParams?: Record<string, any>;
-        initialMode?: string;
-    };
+    config: ConfigFromSchema<typeof configSchema>;
     outputConfig?: OutputConfig;
 }
 
+const outputKeys = ['transformed', 'result-documents'] as const;
 
-export class SefTransformNode extends PipelineNode<SefTransformConfig, "transformed" | "result-documents"> {
+export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof outputKeys[number]> {
+    static readonly xmlElement = 'sefTransform' as const;
+    static readonly configSchema = configSchema;
+    static readonly outputKeys = outputKeys;
+    static readonly description = 'Apply a pre-compiled SEF stylesheet to XML source files using Saxon-JS. Supports result-documents, stylesheet parameters, and no-source mode.';
 
     // Helper: Calculate transformed output path using unified path handling
     private getTransformedPath(item: string, context: PipelineContext): string {
