@@ -28,7 +28,9 @@
                 <ul class="dropdown">
                     {% if indices and indices._summary and indices._summary.indices %}
                         {% for idx in indices._summary.indices %}
+                        {% if idx.nav == "indices" or not idx.nav %}
                         <li><a href="/en/indices/{{ idx.id }}/">{{ idx.title }}</a></li>
+                        {% endif %}
                         {% endfor %}
                     {% else %}
                         <li><a href="/en/indices/persons/">People</a></li>

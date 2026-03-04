@@ -4,7 +4,7 @@ title: Bibliography Concordance
 permalink: en/concordances/bibliography/index.html
 ---
 
-<p>{{ concordance.bibliography.entries | length }} bibliography entries cited in the inscriptions.</p>
+<p>{{ indices.bibliography.entries | length }} bibliography entries cited in the inscriptions.</p>
 
 <table class="index-table">
     <thead>
@@ -14,10 +14,10 @@ permalink: en/concordances/bibliography/index.html
         </tr>
     </thead>
     <tbody>
-    {% for entry in concordance.bibliography.entries %}
+    {% for entry in indices.bibliography.entries %}
         <tr>
-            <td><a href="/en/concordances/bibliography/{{ entry.bibRef }}/index.html">{{ entry.shortCitation | default(entry.bibRef) }}</a></td>
-            <td>{{ entry.fullCitation | default('-') }}</td>
+            <td><a href="/en/concordances/bibliography/{{ entry.bibRef }}/index.html">{{ entry.shortCitation or entry.bibRef }}</a></td>
+            <td>{{ entry.fullCitation or '-' }}</td>
         </tr>
     {% endfor %}
     </tbody>

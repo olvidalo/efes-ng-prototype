@@ -26,7 +26,9 @@ async function discoverPipeline(dir: string): Promise<Pipeline> {
     const { filePath, format } = discoverPipelineFile(dir);
     const absDir = path.resolve(dir);
 
-    // chdir so relative paths in pipeline files resolve correctly
+    // TODO: Remove this chdir once all path resolution uses projectDir instead of cwd.
+    // Currently needed because Saxon-JS resolves relative stylesheet paths against cwd,
+    // and some stat calls use relative paths. See setUseGitIgnore(false) in eleventyWorkload.ts.
     process.chdir(absDir);
 
     if (format === 'xml') {

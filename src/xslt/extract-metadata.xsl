@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Generic 11ty Frontmatter Generator
+    Generic Metadata Extraction
 
-    Shared boilerplate for creating JSON frontmatter from TEI XML documents.
+    Shared boilerplate for extracting XML metadata from TEI XML documents.
     Project-specific logic is provided via three hook template modes,
     implemented in each project's indices-config.xsl:
 
     - extract-all-entities: dispatches to individual extraction templates
-    - extract-search: returns search facet data as a map
-    - extract-metadata: returns project-specific fields (tags, permalink, etc.)
+    - extract-search: returns search facet data as XML elements
+    - extract-metadata: returns project-specific page display fields
 -->
 <xsl:stylesheet version="3.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns:fn="http://www.w3.org/2005/xpath-functions"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:map="http://www.w3.org/2005/xpath-functions/map"
     xmlns:idx="http://efes.info/indices"
-    exclude-result-prefixes="tei fn xs map idx">
+    exclude-result-prefixes="tei fn xs idx">
 
-    <xsl:output method="text" encoding="UTF-8"/>
+    <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
     <xsl:param name="source-file" select="base-uri()"/>
     <xsl:param name="language" select="'en'"/>
 
@@ -61,52 +60,47 @@
 
     <!-- Default hooks (overridden by indices-config via import precedence) -->
     <xsl:template match="tei:TEI" mode="extract-all-entities"/>
-    <xsl:template match="tei:TEI" mode="extract-search"><xsl:map/></xsl:template>
-    <xsl:template match="tei:TEI" mode="extract-metadata"><xsl:map/></xsl:template>
+    <xsl:template match="tei:TEI" mode="extract-search"/>
+    <xsl:template match="tei:TEI" mode="extract-metadata"/>
 
     <xsl:template match="/">
-        <!-- Collect ALL entity maps via dispatch hook -->
-        <xsl:variable name="all-entities" as="map(*)*">
+        <!-- Collect ALL entity elements via dispatch hook -->
+        <xsl:variable name="all-entities">
             <xsl:apply-templates select="/tei:TEI" mode="extract-all-entities"/>
         </xsl:variable>
 
-        <!-- Group by indexType → build entities map -->
-        <xsl:variable name="entities" as="map(*)">
-            <xsl:map>
-                <xsl:for-each-group select="$all-entities" group-by="?indexType">
-                    <xsl:map-entry key="current-grouping-key()"
-                                   select="array{ current-group() }"/>
-                </xsl:for-each-group>
-            </xsl:map>
+        <!-- Group entities by indexType into named wrapper elements -->
+        <xsl:variable name="grouped-entities">
+            <xsl:for-each-group select="$all-entities/entity" group-by="@indexType">
+                <xsl:element name="{current-grouping-key()}">
+                    <xsl:copy-of select="current-group()"/>
+                </xsl:element>
+            </xsl:for-each-group>
         </xsl:variable>
 
-        <!-- Search hook (entities available via tunnel for derived facets) -->
-        <xsl:variable name="search" as="map(*)">
-            <xsl:apply-templates select="/tei:TEI" mode="extract-search">
-                <xsl:with-param name="entities" select="$entities" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
+        <metadata>
+            <documentId><xsl:value-of select="$filename"/></documentId>
 
-        <!-- Metadata hook (tags, permalink, etc.) -->
-        <xsl:variable name="metadata" as="map(*)">
-            <xsl:apply-templates select="/tei:TEI" mode="extract-metadata"/>
-        </xsl:variable>
+            <page>
+                <language><xsl:value-of select="$language"/></language>
+                <title><xsl:value-of select="$title"/></title>
+                <sourceFile><xsl:value-of select="concat($filename, '.xml')"/></sourceFile>
+                <sortKey><xsl:value-of select="$sortKey"/></sortKey>
+                <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
 
-        <!-- Merge: metadata overrides base keys (use-first on $metadata) -->
-        <xsl:sequence select="fn:serialize(
-            map:merge(($metadata, map{
-                'layout': 'layouts/document.njk',
-                'language': $language,
-                'title': $title,
-                'date': current-dateTime(),
-                'documentId': $filename,
-                'sourceFile': concat($filename, '.xml'),
-                'sortKey': $sortKey,
-                'origDate': string-join(//tei:origDate, ', '),
-                'entities': $entities,
-                'search': $search
-            })),
-            map{'method': 'json', 'indent': true()}
-        )"/>
+                <!-- Project-specific page display fields -->
+                <xsl:apply-templates select="/tei:TEI" mode="extract-metadata"/>
+            </page>
+
+            <entities>
+                <xsl:copy-of select="$grouped-entities"/>
+            </entities>
+
+            <search>
+                <xsl:apply-templates select="/tei:TEI" mode="extract-search">
+                    <xsl:with-param name="entities" select="$grouped-entities" tunnel="yes"/>
+                </xsl:apply-templates>
+            </search>
+        </metadata>
     </xsl:template>
 </xsl:stylesheet>

@@ -18,6 +18,7 @@ eleventyComputed:
 <div class="indices-grid">
 {% if indices._summary and indices._summary.indices %}
     {% for idx in indices._summary.indices %}
+    {% if idx.nav == "indices" or not idx.nav %}
     <a href="/{{ langCode }}/indices/{{ idx.id }}/" class="index-card">
         <h3>{{ idx.title }}</h3>
         {% if idx.description %}
@@ -25,6 +26,7 @@ eleventyComputed:
         {% endif %}
         <span class="entry-count">{{ idx.entryCount }} {{ t.indices.entries }}</span>
     </a>
+    {% endif %}
     {% endfor %}
 {% else %}
     <p>{{ t.indices.noIndices }}</p>

@@ -1,6 +1,6 @@
 ---
 pagination:
-  data: concordance.bibliography.entries
+  data: indices.bibliography.entries
   size: 1
   alias: item
 permalink: "en/concordances/bibliography/{{ item.bibRef }}/index.html"
@@ -21,14 +21,11 @@ eleventyComputed:
         </tr>
     </thead>
     <tbody>
-    {% for range in item.citedRanges %}
+    {% for ref in item.references %}
         <tr>
-            <td>{{ range.citedRange | default('-') }}</td>
+            <td>{{ ref.citedRange | default('-') }}</td>
             <td class="references">
-                {% for inscriptionId in range.inscriptions %}
-                    <a href="/en/inscriptions/{{ inscriptionId }}.html"><strong>{{ inscriptionId }}</strong></a>
-                    {%- if not loop.last %} {% endif %}
-                {% endfor %}
+                <a href="/en/inscriptions/{{ ref.inscriptionId }}.html"><strong>{{ ref.inscriptionId }}</strong></a>
             </td>
         </tr>
     {% endfor %}

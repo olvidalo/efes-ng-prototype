@@ -2,11 +2,12 @@ import {type PipelineContext, PipelineNode, type PipelineNodeConfig, type Output
 import path from "node:path";
 import fs from "node:fs/promises";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
+import { parseMetadataXml, xpathNodes, xpathString, childElementsToJson } from "../xml/metadataXmlParser";
 
 import FlexSearch, {type DocumentData, type IndexOptions} from 'flexsearch';
 
 const configSchema = {
-    documents:   { type: 'input', description: 'Path to a JSON file containing an array of documents to index.' },
+    documents:   { type: 'input', description: 'Per-document metadata XML files to build search index from.' },
     idField:     { type: 'scalar', description: 'The document field to use as a unique identifier (e.g. "documentId").' },
     textFields:  { type: 'array', description: 'Document fields to include in the full-text search index.' },
     facetFields: { type: 'array', description: 'Document fields to use as facet filters in the search interface.' },
@@ -23,22 +24,20 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
     static readonly xmlElement = 'flexSearchIndex' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
-    static readonly description = 'Build a FlexSearch full-text search index from JSON documents. Produces index files that can be loaded client-side for in-browser search.';
+    static readonly description = 'Build a FlexSearch full-text search index from per-document metadata XML files. Produces index files that can be loaded client-side for in-browser search.';
 
     async run(context: PipelineContext) {
-        const jsonFiles = await context.resolveInput(this.config.config.documents);
-        if (jsonFiles.length !== 1) {
-            throw new Error("FlexSearchIndexNode requires exactly one JSON input file");
+        const metadataFiles = await context.resolveInput(this.config.config.documents);
+        if (metadataFiles.length === 0) {
+            throw new Error("FlexSearchIndexNode: no input files");
         }
 
-        const jsonFile = jsonFiles[0];
-        const outputDir = this.config.outputConfig?.to || context.getBuildPath(this.name, jsonFile);
+        const outputDir = this.config.outputConfig?.to || context.getBuildPath(this.name, metadataFiles[0]);
 
-        this.log(context, `Generating FlexSearch index from ${jsonFile}`);
+        this.log(context, `Generating FlexSearch index from ${metadataFiles.length} metadata files`);
 
-        // Load documents
-        const jsonContent = await fs.readFile(jsonFile, 'utf-8');
-        const documents = JSON.parse(jsonContent);
+        // Load documents from individual metadata XMLs
+        const documents = await this.parseMetadataFiles(metadataFiles, context);
 
         this.log(context, `Processing ${documents.length} documents`);
 
@@ -83,6 +82,28 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
 
         this.log(context, `FlexSearch index generated: ${outputDir}`);
         return [{ searchIndex: [...writtenFiles, 'facets.json', 'count.json', 'config.json', 'documents.json', 'index.json' ].map(file => path.join(outputDir, file)) }];
+    }
+
+    private async parseMetadataFiles(files: string[], context: PipelineContext): Promise<Record<string, any>[]> {
+        const documents: Record<string, any>[] = [];
+
+        for (const file of files) {
+            const xmlDoc = await parseMetadataXml(file);
+            const documentId = xpathString(xmlDoc, 'string(/metadata/documentId)');
+            if (!documentId) continue;
+
+            const searchNodes = xpathNodes(xmlDoc, '/metadata/search');
+            if (searchNodes.length === 0) continue;
+
+            const doc: Record<string, any> = {
+                [this.config.config.idField]: documentId,
+                ...childElementsToJson(searchNodes[0]),
+            };
+            documents.push(doc);
+        }
+
+        documents.sort((a, b) => String(a[this.config.config.idField]).localeCompare(String(b[this.config.config.idField])));
+        return documents;
     }
 
     private generateFacets(documents: any[]): Record<string, Record<string, number>> {

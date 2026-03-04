@@ -26,34 +26,33 @@
 
   <xsltTransform name="extract-epidoc-metadata">
     <sourceFiles><files>1-input/inscriptions/*.xml</files></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/create-11ty-frontmatter-for-epidoc.xsl</files></stylesheet>
-    <output extension=".metadata.json"/>
+    <stylesheet><files>1-input/indices-config.xsl</files></stylesheet>
   </xsltTransform>
 
-  <generateEleventyData name="generate-eleventy-data">
-    <metadataFiles><from node="extract-epidoc-metadata" output="transformed"/></metadataFiles>
-    <output from="1-input/inscriptions/**/*.json"
-            to="2-intermediate/eleventy-site/en/inscriptions"/>
-  </generateEleventyData>
+  <xsltTransform name="generate-eleventy-data">
+    <sourceFiles><from node="extract-epidoc-metadata" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="layout">layouts/document.njk</param>
+      <param name="tags">inscriptions</param>
+    </stylesheetParams>
+    <output to="2-intermediate/eleventy-site/en/inscriptions"
+            from="1-input/inscriptions"
+            extension=".11tydata.json"/>
+  </xsltTransform>
 
-  <aggregateIndexData name="aggregate-indices">
-    <metadataFiles><from node="extract-epidoc-metadata" output="transformed"/></metadataFiles>
-    <indicesConfigFile><files>1-input/indices-config.xsl</files></indicesConfigFile>
-    <output to="2-intermediate/eleventy-site/_data/indices"/>
-  </aggregateIndexData>
-
-  <aggregateBibConcordance name="aggregate-bib-concordance">
-    <metadataFiles><from node="extract-epidoc-metadata" output="transformed"/></metadataFiles>
-    <output to="2-intermediate/eleventy-site/_data/concordance"/>
-  </aggregateBibConcordance>
-
-  <aggregateSearchData name="aggregate-search-data">
-    <metadataFiles><from node="extract-epidoc-metadata" output="transformed"/></metadataFiles>
-    <output to="2-intermediate/search-data"/>
-  </aggregateSearchData>
+  <xsltTransform name="aggregate-indices">
+    <stylesheet><files>1-input/lib/aggregate-indices.xsl</files></stylesheet>
+    <initialTemplate>aggregate</initialTemplate>
+    <stylesheetParams>
+      <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
+      <param name="indices-config"><absolute>1-input/indices-config.xsl</absolute></param>
+    </stylesheetParams>
+    <output to="2-intermediate/eleventy-site/_data/indices" filename="_summary.json"/>
+  </xsltTransform>
 
   <flexSearchIndex name="build-search-index">
-    <documents><from node="aggregate-search-data" output="searchData"/></documents>
+    <documents><from node="extract-epidoc-metadata" output="transformed"/></documents>
     <idField>documentId</idField>
     <textFields>
       <field>fullText</field>

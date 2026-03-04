@@ -36,7 +36,7 @@
 
   <xsltTransform name="extract-epidoc-metadata-en">
     <sourceFiles><from node="prune-epidoc-english" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl</files></stylesheet>
+    <stylesheet><files>1-input/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">en</param>
       <param name="geography-file"><ref name="geography-file"/></param>
@@ -45,16 +45,19 @@
       <param name="invocations-file"><ref name="invocations-file"/></param>
       <param name="bibliography-file"><ref name="bibliography-file"/></param>
     </stylesheetParams>
-    <output to="2-intermediate/metadata/en/seals"
-            from="1-input/feind-collection"
-            extension=".metadata.json"/>
   </xsltTransform>
 
-  <generateEleventyData name="generate-eleventy-data-en">
-    <metadataFiles><from node="extract-epidoc-metadata-en" output="transformed"/></metadataFiles>
+  <xsltTransform name="generate-eleventy-data-en">
+    <sourceFiles><from node="extract-epidoc-metadata-en" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="layout">layouts/document.njk</param>
+      <param name="tags">seals</param>
+    </stylesheetParams>
     <output to="2-intermediate/eleventy-site/en/seals"
-            from="2-intermediate/metadata/en/seals"/>
-  </generateEleventyData>
+            from="1-input/feind-collection"
+            extension=".11tydata.json"/>
+  </xsltTransform>
 
   <!-- ===== GERMAN ===== -->
 
@@ -79,7 +82,7 @@
 
   <xsltTransform name="extract-epidoc-metadata-de">
     <sourceFiles><from node="prune-epidoc-german" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl</files></stylesheet>
+    <stylesheet><files>1-input/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">de</param>
       <param name="geography-file"><ref name="geography-file"/></param>
@@ -88,16 +91,19 @@
       <param name="invocations-file"><ref name="invocations-file"/></param>
       <param name="bibliography-file"><ref name="bibliography-file"/></param>
     </stylesheetParams>
-    <output to="2-intermediate/metadata/de/seals"
-            from="1-input/feind-collection"
-            extension=".metadata.json"/>
   </xsltTransform>
 
-  <generateEleventyData name="generate-eleventy-data-de">
-    <metadataFiles><from node="extract-epidoc-metadata-de" output="transformed"/></metadataFiles>
+  <xsltTransform name="generate-eleventy-data-de">
+    <sourceFiles><from node="extract-epidoc-metadata-de" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="layout">layouts/document.njk</param>
+      <param name="tags">seals</param>
+    </stylesheetParams>
     <output to="2-intermediate/eleventy-site/de/seals"
-            from="2-intermediate/metadata/de/seals"/>
-  </generateEleventyData>
+            from="1-input/feind-collection"
+            extension=".11tydata.json"/>
+  </xsltTransform>
 
   <!-- ===== GREEK ===== -->
 
@@ -122,7 +128,7 @@
 
   <xsltTransform name="extract-epidoc-metadata-el">
     <sourceFiles><from node="prune-epidoc-greek" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/create-11ty-frontmatter-for-sigidoc.xsl</files></stylesheet>
+    <stylesheet><files>1-input/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">el</param>
       <param name="geography-file"><ref name="geography-file"/></param>
@@ -131,39 +137,36 @@
       <param name="invocations-file"><ref name="invocations-file"/></param>
       <param name="bibliography-file"><ref name="bibliography-file"/></param>
     </stylesheetParams>
-    <output to="2-intermediate/metadata/el/seals"
-            from="1-input/feind-collection"
-            extension=".metadata.json"/>
   </xsltTransform>
 
-  <generateEleventyData name="generate-eleventy-data-el">
-    <metadataFiles><from node="extract-epidoc-metadata-el" output="transformed"/></metadataFiles>
+  <xsltTransform name="generate-eleventy-data-el">
+    <sourceFiles><from node="extract-epidoc-metadata-el" output="transformed"/></sourceFiles>
+    <stylesheet><files>1-input/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="layout">layouts/document.njk</param>
+      <param name="tags">seals</param>
+    </stylesheetParams>
     <output to="2-intermediate/eleventy-site/el/seals"
-            from="2-intermediate/metadata/el/seals"/>
-  </generateEleventyData>
+            from="1-input/feind-collection"
+            extension=".11tydata.json"/>
+  </xsltTransform>
 
   <!-- ===== INDEX AGGREGATION ===== -->
 
-  <aggregateIndexData name="aggregate-indices">
-    <metadataFiles><from node="extract-epidoc-metadata-en" output="transformed"/></metadataFiles>
-    <indicesConfigFile><files>1-input/indices-config.xsl</files></indicesConfigFile>
-    <output to="2-intermediate/eleventy-site/_data/indices"/>
-  </aggregateIndexData>
-
-  <aggregateBibConcordance name="aggregate-bib-concordance">
-    <metadataFiles><from node="extract-epidoc-metadata-en" output="transformed"/></metadataFiles>
-    <output to="2-intermediate/eleventy-site/_data/concordance"/>
-  </aggregateBibConcordance>
+  <xsltTransform name="aggregate-indices">
+    <stylesheet><files>1-input/lib/aggregate-indices.xsl</files></stylesheet>
+    <initialTemplate>aggregate</initialTemplate>
+    <stylesheetParams>
+      <param name="metadata-files"><from node="extract-epidoc-metadata-en" output="transformed"/></param>
+      <param name="indices-config"><absolute>1-input/indices-config.xsl</absolute></param>
+    </stylesheetParams>
+    <output to="2-intermediate/eleventy-site/_data/indices" filename="_summary.json"/>
+  </xsltTransform>
 
   <!-- ===== SEARCH ===== -->
 
-  <aggregateSearchData name="aggregate-search-data">
-    <metadataFiles><from node="extract-epidoc-metadata-en" output="transformed"/></metadataFiles>
-    <output to="2-intermediate/eleventy-site/_data/search"/>
-  </aggregateSearchData>
-
   <flexSearchIndex name="build-search-index">
-    <documents><from node="aggregate-search-data" output="searchData"/></documents>
+    <documents><from node="extract-epidoc-metadata-en" output="transformed"/></documents>
     <idField>documentId</idField>
     <textFields>
       <field>fullText</field>

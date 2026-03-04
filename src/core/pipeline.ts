@@ -1108,12 +1108,14 @@ export class Pipeline extends EventEmitter {
                     globPattern = input.glob;
                 }
 
-                // Run glob ONCE to get all matches
+                // Run glob ONCE to get all matches (resolve to absolute for comparison)
                 const matches = await glob(globPattern, { cwd: this.projectDir });
-                const matchSet = new Set(matches);
+                const matchSet = new Set(matches.map(m => path.resolve(this.projectDir, m)));
 
-                // Filter outputs to only those that match
-                const filteredOutputs = outputs.filter(outputPath => matchSet.has(outputPath));
+                // Filter outputs to only those that match (resolve both sides)
+                const filteredOutputs = outputs.filter(outputPath =>
+                    matchSet.has(path.resolve(this.projectDir, outputPath))
+                );
 
                 if (filteredOutputs.length === 0) {
                     throw new Error(`No files from node "${nodeName}" output "${input.output}" match pattern: ${input.glob}.\nOutputs: ${JSON.stringify(outputs, null, 2)}`);

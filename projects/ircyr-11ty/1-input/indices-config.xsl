@@ -16,8 +16,9 @@
     xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns:idx="http://efes.info/indices"
     xmlns:efes="http://efes.info/functions"
-    xmlns:map="http://www.w3.org/2005/xpath-functions/map"
-    exclude-result-prefixes="xs efes map">
+    exclude-result-prefixes="xs efes">
+
+    <xsl:import href="lib/extract-metadata.xsl"/>
 
     <!-- ================================================================== -->
     <!-- INDEX: persons                                                      -->
@@ -40,13 +41,12 @@
                 translate(normalize-unicode(@nymRef, 'NFD'), 'Ϲϲ', 'Σσ'),
                 'σ(\p{P}|\s|$)', 'ς$1')"/>
 
-            <xsl:map>
-                <xsl:map-entry key="'indexType'" select="'personal_names'"/>
-                <xsl:map-entry key="'name'" select="$normalizedName"/>
-                <xsl:map-entry key="'sortKey'" select="lower-case($normalizedName)"/>
-                <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-            </xsl:map>
+            <entity indexType="personal_names">
+                <name><xsl:value-of select="$normalizedName"/></name>
+                <sortKey><xsl:value-of select="lower-case($normalizedName)"/></sortKey>
+                <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+            </entity>
         </xsl:for-each>
     </xsl:template>
 
@@ -129,14 +129,13 @@
                 <xsl:value-of select="efes:place-qualifiers(.)"/>
             </xsl:variable>
 
-            <xsl:map>
-                <xsl:map-entry key="'indexType'" select="'persons'"/>
-                <xsl:map-entry key="'name'" select="normalize-space($displayName)"/>
-                <xsl:map-entry key="'sortKey'" select="lower-case(normalize-space($displayName))"/>
-                <xsl:map-entry key="'externalResource'" select="string(@key)"/>
-                <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-            </xsl:map>
+            <entity indexType="persons">
+                <name><xsl:value-of select="normalize-space($displayName)"/></name>
+                <sortKey><xsl:value-of select="lower-case(normalize-space($displayName))"/></sortKey>
+                <externalResource><xsl:value-of select="string(@key)"/></externalResource>
+                <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+            </entity>
         </xsl:for-each>
     </xsl:template>
 
@@ -161,20 +160,19 @@
 
     <xsl:template match="tei:TEI" mode="extract-abbreviations">
         <!-- Select expansions within edition div, not nested in abbr -->
-        <xsl:for-each select=".//tei:expan[ancestor::tei:div/@type='edition'][not(parent::tei:abbr)]">
+        <xsl:for-each select=".//tei:expan[ancestor::tei:div/@type='edition'][not(parent::tei:del or parent::tei:choice)]">
             <xsl:variable name="abbr" select="normalize-space(string-join(.//tei:abbr//text(), ''))"/>
             <xsl:variable name="expansion" select="normalize-space(string-join(.//text()[not(ancestor::tei:am)], ''))"/>
             <xsl:if test="string-length($abbr) > 0">
-                <xsl:map>
-                    <xsl:map-entry key="'indexType'" select="'abbreviations'"/>
-                    <xsl:map-entry key="'abbr'" select="$abbr"/>
-                    <xsl:map-entry key="'expansion'" select="$expansion"/>
+                <entity indexType="abbreviations">
+                    <abbr><xsl:value-of select="$abbr"/></abbr>
+                    <expansion><xsl:value-of select="$expansion"/></expansion>
                     <!-- sortKey includes both abbr and expansion so different expansions are separate entries -->
-                    <xsl:map-entry key="'sortKey'" select="lower-case(concat($abbr, '|', $expansion))"/>
-                    <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                    <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-                    <xsl:map-entry key="'language'" select="string(ancestor-or-self::*[@xml:lang][1]/@xml:lang)"/>
-                </xsl:map>
+                    <sortKey><xsl:value-of select="lower-case(concat($abbr, '|', $expansion))"/></sortKey>
+                    <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                    <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+                    <language><xsl:value-of select="string(ancestor-or-self::*[@xml:lang][1]/@xml:lang)"/></language>
+                </entity>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
@@ -215,14 +213,13 @@
             <xsl:variable name="externalResource" select="string(($monuList[1]/@ref, $intermediate/@ref, @ref)[1])"/>
 
             <xsl:if test="$upperLevel != ''">
-                <xsl:map>
-                    <xsl:map-entry key="'indexType'" select="'findspots'"/>
-                    <xsl:map-entry key="'upperLevel'" select="$upperLevel"/>
-                    <xsl:map-entry key="'intermediateLevel'" select="$intermediateLevel"/>
-                    <xsl:map-entry key="'lowerLevel'" select="$lowerLevel"/>
-                    <xsl:map-entry key="'sortKey'" select="$sortKey"/>
-                    <xsl:map-entry key="'externalResource'" select="$externalResource"/>
-                </xsl:map>
+                <entity indexType="findspots">
+                    <upperLevel><xsl:value-of select="$upperLevel"/></upperLevel>
+                    <intermediateLevel><xsl:value-of select="$intermediateLevel"/></intermediateLevel>
+                    <lowerLevel><xsl:value-of select="$lowerLevel"/></lowerLevel>
+                    <sortKey><xsl:value-of select="$sortKey"/></sortKey>
+                    <externalResource><xsl:value-of select="$externalResource"/></externalResource>
+                </entity>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
@@ -263,13 +260,12 @@
                 format-number($days, '00'), format-number($hours, '00'))"/>
 
             <xsl:if test="$age != ''">
-                <xsl:map>
-                    <xsl:map-entry key="'indexType'" select="'death'"/>
-                    <xsl:map-entry key="'age'" select="$age"/>
-                    <xsl:map-entry key="'sortKey'" select="$sortKey"/>
-                    <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                    <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-                </xsl:map>
+                <entity indexType="death">
+                    <age><xsl:value-of select="$age"/></age>
+                    <sortKey><xsl:value-of select="$sortKey"/></sortKey>
+                    <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                    <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+                </entity>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
@@ -302,14 +298,13 @@
                 $key
             )[1]"/>
 
-            <xsl:map>
-                <xsl:map-entry key="'indexType'" select="'divine_beings'"/>
-                <xsl:map-entry key="'name'" select="$displayName"/>
-                <xsl:map-entry key="'sortKey'" select="lower-case($key)"/>
-                <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-                <xsl:map-entry key="'externalResource'" select="string($auth/tei:idno[@type='wikidata'])"/>
-            </xsl:map>
+            <entity indexType="divine_beings">
+                <name><xsl:value-of select="$displayName"/></name>
+                <sortKey><xsl:value-of select="lower-case($key)"/></sortKey>
+                <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+                <externalResource><xsl:value-of select="string($auth/tei:idno[@type='wikidata'])"/></externalResource>
+            </entity>
         </xsl:for-each>
     </xsl:template>
 
@@ -342,14 +337,13 @@
                     $key
                 )[1]"/>
 
-                <xsl:map>
-                    <xsl:map-entry key="'indexType'" select="'emperors'"/>
-                    <xsl:map-entry key="'name'" select="$displayName"/>
-                    <xsl:map-entry key="'sortKey'" select="format-number(($auth/@n, 999)[1], '000')"/>
-                    <xsl:map-entry key="'isRestored'" select="exists($el//tei:supplied) or exists($el/ancestor::tei:supplied)"/>
-                    <xsl:map-entry key="'line'" select="string($el/preceding::tei:lb[1]/@n)"/>
-                    <xsl:map-entry key="'externalResource'" select="string($auth/tei:idno[@type='wikidata'])"/>
-                </xsl:map>
+                <entity indexType="emperors">
+                    <name><xsl:value-of select="$displayName"/></name>
+                    <sortKey><xsl:value-of select="format-number(($auth/@n, 999)[1], '000')"/></sortKey>
+                    <isRestored><xsl:value-of select="exists($el//tei:supplied) or exists($el/ancestor::tei:supplied)"/></isRestored>
+                    <line><xsl:value-of select="string($el/preceding::tei:lb[1]/@n)"/></line>
+                    <externalResource><xsl:value-of select="string($auth/tei:idno[@type='wikidata'])"/></externalResource>
+                </entity>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
@@ -377,13 +371,12 @@
             <xsl:variable name="fragment" select="translate($rawText, 'Ϲϲ', 'Σσ')"/>
 
             <xsl:if test="string-length($fragment) > 0">
-                <xsl:map>
-                    <xsl:map-entry key="'indexType'" select="'fragments'"/>
-                    <xsl:map-entry key="'fragment'" select="$fragment"/>
-                    <xsl:map-entry key="'sortKey'" select="lower-case($fragment)"/>
-                    <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                    <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-                </xsl:map>
+                <entity indexType="fragments">
+                    <fragment><xsl:value-of select="$fragment"/></fragment>
+                    <sortKey><xsl:value-of select="lower-case($fragment)"/></sortKey>
+                    <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                    <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+                </entity>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
@@ -409,15 +402,14 @@
             <xsl:variable name="value" select="string(@value)"/>
 
             <xsl:if test="$numeral != ''">
-                <xsl:map>
-                    <xsl:map-entry key="'indexType'" select="'numerals'"/>
-                    <xsl:map-entry key="'numeral'" select="$numeral"/>
-                    <xsl:map-entry key="'value'" select="$value"/>
+                <entity indexType="numerals">
+                    <numeral><xsl:value-of select="$numeral"/></numeral>
+                    <value><xsl:value-of select="$value"/></value>
                     <!-- sortKey groups by numeral+value (matching EFES), with numeric prefix for ordering -->
-                    <xsl:map-entry key="'sortKey'" select="concat(format-number(xs:integer($value), '000000000'), '##', $numeral)"/>
-                    <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                    <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-                </xsl:map>
+                    <sortKey><xsl:value-of select="concat(format-number(xs:integer($value), '000000000'), '##', $numeral)"/></sortKey>
+                    <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                    <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+                </entity>
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
@@ -467,15 +459,14 @@
                 </xsl:if>
             </xsl:variable>
 
-            <xsl:map>
-                <xsl:map-entry key="'indexType'" select="'months'"/>
-                <xsl:map-entry key="'name'" select="$name"/>
-                <xsl:map-entry key="'language'" select="string($lang)"/>
-                <xsl:map-entry key="'sortKey'" select="string($authority-entry/@n)"/>
-                <xsl:map-entry key="'externalResource'" select="string($authority-entry/tei:idno[@type='wikidata'])"/>
-                <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-            </xsl:map>
+            <entity indexType="months">
+                <name><xsl:value-of select="$name"/></name>
+                <language><xsl:value-of select="string($lang)"/></language>
+                <sortKey><xsl:value-of select="string($authority-entry/@n)"/></sortKey>
+                <externalResource><xsl:value-of select="string($authority-entry/tei:idno[@type='wikidata'])"/></externalResource>
+                <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+            </entity>
         </xsl:for-each>
     </xsl:template>
 
@@ -529,16 +520,15 @@
             <!-- Group key matches original: ref + nymRef + type -->
             <xsl:variable name="sortKey" select="lower-case(concat($ref-id, '-', $nymRef-id, '-', @type))"/>
 
-            <xsl:map>
-                <xsl:map-entry key="'indexType'" select="'mentioned_places'"/>
-                <xsl:map-entry key="'name'" select="string($displayName)"/>
-                <xsl:map-entry key="'attestedForm'" select="$attestedForm"/>
-                <xsl:map-entry key="'placeType'" select="$placeType"/>
-                <xsl:map-entry key="'externalResource'" select="$externalResource"/>
-                <xsl:map-entry key="'sortKey'" select="$sortKey"/>
-                <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-            </xsl:map>
+            <entity indexType="mentioned_places">
+                <name><xsl:value-of select="string($displayName)"/></name>
+                <attestedForm><xsl:value-of select="$attestedForm"/></attestedForm>
+                <placeType><xsl:value-of select="$placeType"/></placeType>
+                <externalResource><xsl:value-of select="$externalResource"/></externalResource>
+                <sortKey><xsl:value-of select="$sortKey"/></sortKey>
+                <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+            </entity>
         </xsl:for-each>
     </xsl:template>
 
@@ -569,19 +559,29 @@
                 if (normalize-space($glyphDisplay)) then concat(' (', $glyphDisplay, ')') else ''
             )"/>
 
-            <xsl:map>
-                <xsl:map-entry key="'indexType'" select="'symbols'"/>
-                <xsl:map-entry key="'name'" select="$displayName"/>
-                <xsl:map-entry key="'sortKey'" select="lower-case(($textDisplay, $ref-id)[1])"/>
-                <xsl:map-entry key="'isRestored'" select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/>
-                <xsl:map-entry key="'line'" select="string(preceding::tei:lb[1]/@n)"/>
-            </xsl:map>
+            <entity indexType="symbols">
+                <name><xsl:value-of select="$displayName"/></name>
+                <sortKey><xsl:value-of select="lower-case(($textDisplay, $ref-id)[1])"/></sortKey>
+                <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
+                <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
+            </entity>
         </xsl:for-each>
     </xsl:template>
 
     <!-- ================================================================== -->
-    <!-- BIBLIOGRAPHY CONCORDANCE                                            -->
+    <!-- INDEX: bibliography (Bibliography)                                  -->
     <!-- ================================================================== -->
+    <idx:index id="bibliography" title="Bibliography" order="20" nav="bibliography">
+        <idx:description>Bibliographic references cited in the inscriptions.</idx:description>
+        <idx:columns>
+            <idx:column key="shortCitation">Citation</idx:column>
+            <idx:column key="fullCitation">Full Citation</idx:column>
+            <idx:column key="references" type="references">Inscriptions</idx:column>
+        </idx:columns>
+        <idx:sort>
+            <idx:key field="shortCitation"/>
+        </idx:sort>
+    </idx:index>
 
     <!-- Load bibliography authority file -->
     <xsl:variable name="bibliography-authority" select="document('authority/bibliography.xml')"/>
@@ -596,23 +596,23 @@
             <xsl:choose>
                 <xsl:when test="tei:citedRange">
                     <xsl:for-each select="tei:citedRange">
-                        <xsl:map>
-                            <xsl:map-entry key="'indexType'" select="'bibliography'"/>
-                            <xsl:map-entry key="'bibRef'" select="$target"/>
-                            <xsl:map-entry key="'shortCitation'" select="$shortCitation"/>
-                            <xsl:map-entry key="'fullCitation'" select="$fullCitation"/>
-                            <xsl:map-entry key="'citedRange'" select="normalize-space(.)"/>
-                        </xsl:map>
+                        <entity indexType="bibliography">
+                            <bibRef><xsl:value-of select="$target"/></bibRef>
+                            <sortKey><xsl:value-of select="lower-case(if ($shortCitation != '') then $shortCitation else $target)"/></sortKey>
+                            <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
+                            <fullCitation><xsl:value-of select="$fullCitation"/></fullCitation>
+                            <citedRange><xsl:value-of select="normalize-space(.)"/></citedRange>
+                        </entity>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:map>
-                        <xsl:map-entry key="'indexType'" select="'bibliography'"/>
-                        <xsl:map-entry key="'bibRef'" select="$target"/>
-                        <xsl:map-entry key="'shortCitation'" select="$shortCitation"/>
-                        <xsl:map-entry key="'fullCitation'" select="$fullCitation"/>
-                        <xsl:map-entry key="'citedRange'" select="''"/>
-                    </xsl:map>
+                    <entity indexType="bibliography">
+                        <bibRef><xsl:value-of select="$target"/></bibRef>
+                        <sortKey><xsl:value-of select="lower-case(if ($shortCitation != '') then $shortCitation else $target)"/></sortKey>
+                        <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
+                        <fullCitation><xsl:value-of select="$fullCitation"/></fullCitation>
+                        <citedRange/>
+                    </entity>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -640,17 +640,23 @@
             <!-- Tokenize @lemma: a single w element may carry multiple lemmata -->
             <xsl:for-each select="tokenize(normalize-space(@lemma), '\s+')[. != '']">
                 <xsl:variable name="lemma" select="normalize-unicode(., 'NFD')"/>
-                <xsl:map>
-                    <xsl:map-entry key="'indexType'" select="'words'"/>
-                    <xsl:map-entry key="'name'" select="$lemma"/>
-                    <xsl:map-entry key="'language'" select="$lang"/>
-                    <xsl:map-entry key="'sortKey'" select="lower-case($lemma)"/>
-                    <xsl:map-entry key="'isRestored'" select="$isRestored"/>
-                    <xsl:map-entry key="'line'" select="$line"/>
-                </xsl:map>
+                <entity indexType="words">
+                    <name><xsl:value-of select="$lemma"/></name>
+                    <language><xsl:value-of select="$lang"/></language>
+                    <sortKey><xsl:value-of select="lower-case($lemma)"/></sortKey>
+                    <isRestored><xsl:value-of select="$isRestored"/></isRestored>
+                    <line><xsl:value-of select="$line"/></line>
+                </entity>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
+
+    <!-- Language code → display label mapping (used by extract-search) -->
+    <xsl:variable name="language-labels" as="element()*">
+        <label code="grc">Ancient Greek</label>
+        <label code="la">Latin</label>
+        <label code="he">Hebrew</label>
+    </xsl:variable>
 
     <!-- ================================================================== -->
     <!-- HOOKS for generic frontmatter XSL                                  -->
@@ -676,25 +682,31 @@
 
     <!-- Search facets -->
     <xsl:template match="tei:TEI" mode="extract-search">
-        <xsl:map>
-            <xsl:map-entry key="'material'" select="normalize-space(string-join(.//tei:support//tei:material, ', '))"/>
-            <xsl:map-entry key="'objectType'" select="normalize-space(string-join(.//tei:support//tei:objectType, ', '))"/>
-            <xsl:map-entry key="'textType'" select="array{ .//tei:titleStmt//tei:rs[@type='textType']/normalize-space(.) }"/>
-            <xsl:map-entry key="'repository'" select="normalize-space(.//tei:msIdentifier/tei:repository)"/>
-            <xsl:map-entry key="'dateNotBefore'" select="string(.//tei:origDate/@notBefore)"/>
-            <xsl:map-entry key="'dateNotAfter'" select="string(.//tei:origDate/@notAfter)"/>
-            <xsl:map-entry key="'language'" select="string(.//tei:div[@type='edition']/@xml:lang)"/>
-            <xsl:map-entry key="'fullText'" select="normalize-space(string-join(.//tei:div[@type='edition']//text(), ' '))"/>
-        </xsl:map>
+        <!-- Document-level fields (needed for search result display) -->
+        <title><xsl:value-of select="$title"/></title>
+        <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
+        <findspot><xsl:value-of select="string-join(.//tei:placeName[@type='ancientFindspot'], ', ')"/></findspot>
+
+        <material><xsl:value-of select="normalize-space(string-join(.//tei:support//tei:material, ', '))"/></material>
+        <objectType><xsl:value-of select="normalize-space(string-join(.//tei:support//tei:objectType, ', '))"/></objectType>
+        <textType>
+            <xsl:for-each select=".//tei:titleStmt//tei:rs[@type='textType']/normalize-space(.)">
+                <item><xsl:value-of select="."/></item>
+            </xsl:for-each>
+        </textType>
+        <repository><xsl:value-of select="normalize-space(.//tei:msIdentifier/tei:repository)"/></repository>
+        <xsl:variable name="notBefore" select="string(.//tei:origDate/@notBefore)"/>
+        <xsl:variable name="notAfter" select="string(.//tei:origDate/@notAfter)"/>
+        <dateNotBefore><xsl:value-of select="if ($notBefore castable as xs:integer) then xs:integer($notBefore) else $notBefore"/></dateNotBefore>
+        <dateNotAfter><xsl:value-of select="if ($notAfter castable as xs:integer) then xs:integer($notAfter) else $notAfter"/></dateNotAfter>
+        <xsl:variable name="lang-code" select="string(.//tei:div[@type='edition']/@xml:lang)"/>
+        <language><xsl:value-of select="($language-labels[@code = $lang-code], $lang-code)[1]"/></language>
+        <fullText><xsl:value-of select="normalize-space(string-join(.//tei:div[@type='edition']//text(), ' '))"/></fullText>
     </xsl:template>
 
-    <!-- Project-specific metadata -->
+    <!-- Project-specific page display fields -->
     <xsl:template match="tei:TEI" mode="extract-metadata">
-        <xsl:map>
-            <xsl:map-entry key="'tags'" select="'inscriptions'"/>
-            <xsl:map-entry key="'permalink'" select="concat($language, '/inscriptions/', $filename, '.html')"/>
-            <xsl:map-entry key="'findspot'" select="string-join(.//tei:placeName[@type='ancientFindspot'], ', ')"/>
-        </xsl:map>
+        <findspot><xsl:value-of select="string-join(.//tei:placeName[@type='ancientFindspot'], ', ')"/></findspot>
     </xsl:template>
 
 </xsl:stylesheet>

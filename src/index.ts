@@ -17,11 +17,8 @@ export { ZipCompressNode } from './io/zipCompressNode';
 // Search
 export { FlexSearchIndexNode } from './search/flexSearchIndexNode';
 
-// Aggregation
-export { AggregateIndexDataNode, AggregateBibConcordanceNode, AggregateSearchDataNode } from './aggregation';
-
 // Eleventy integration
-export { EleventyBuildNode, GenerateEleventyDataNode } from './eleventy';
+export { EleventyBuildNode } from './eleventy';
 
 // XML pipeline configuration
 export { loadPipelineFromXml } from './core/xmlPipelineLoader';

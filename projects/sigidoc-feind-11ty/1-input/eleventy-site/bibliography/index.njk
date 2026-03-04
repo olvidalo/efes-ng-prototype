@@ -13,7 +13,7 @@ eleventyComputed:
 
 {% set t = translations[langCode] %}
 
-<p>{{ concordance.bibliography.entries | length }} bibliography entries cited in the seals.</p>
+<p>{{ indices.bibliography.entries | length }} bibliography entries cited in the seals.</p>
 
 <table class="index-table">
     <thead>
@@ -23,10 +23,10 @@ eleventyComputed:
         </tr>
     </thead>
     <tbody>
-    {% for entry in concordance.bibliography.entries %}
+    {% for entry in indices.bibliography.entries %}
         <tr>
-            <td><a href="/en/bibliography/{{ entry.bibRef }}/">{{ entry.shortCitation | default(entry.bibRef) }}</a></td>
-            <td>{{ entry.fullCitation | default('-') }}</td>
+            <td><a href="/en/bibliography/{{ entry.bibRef }}/">{{ entry.shortCitation or entry.bibRef }}</a></td>
+            <td>{{ entry.fullCitation or '-' }}</td>
         </tr>
     {% endfor %}
     </tbody>

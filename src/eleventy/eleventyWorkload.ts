@@ -8,6 +8,10 @@ export async function performWork(job: {
 }): Promise<{ outputDir: string }> {
   const elev = new Eleventy(job.sourceDir, job.outputDir, {
     config: (eleventyConfig: any) => {
+      // Eleventy respects .gitignore by default, but our input is in
+      // a build directory that git rightly ignores. Disable so Eleventy
+      // processes the files regardless of cwd.
+      eleventyConfig.setUseGitIgnore(false)
       for (const [from, to] of Object.entries(job.passthroughCopy ?? {})) {
         eleventyConfig.addPassthroughCopy({ [from]: to })
       }
