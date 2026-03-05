@@ -129,14 +129,11 @@ export class CacheManager {
    */
   async isValid(
     entry: CacheEntry,
-    context?: {
-      getNodeOutputs: (nodeName: string) => any[] | undefined;
-      resolveInput?: (input: any) => Promise<string[]>;
-      hashFile?: (filePath: string) => Promise<string>;
-    },
+    resolveInput?: (input: any) => Promise<string[]>,
+    hashFile?: (filePath: string) => Promise<string>,
   ): Promise<boolean> {
     // 1. Check upstream output signatures (cheapest - string comparison)
-    if (entry.upstreamOutputSignatures && context?.resolveInput) {
+    if (entry.upstreamOutputSignatures && resolveInput) {
       for (const [nodeName, upstreamInfo] of Object.entries(entry.upstreamOutputSignatures)) {
         // Reconstruct the NodeOutputReference from stored metadata
         const nodeRef = {
@@ -148,7 +145,7 @@ export class CacheManager {
         let currentPaths: string[];
         try {
           // Use resolveInput to get the correctly filtered paths (same as during storage)
-          currentPaths = await context.resolveInput(nodeRef);
+          currentPaths = await resolveInput(nodeRef);
         } catch (error) {
           return false; // Upstream node hasn't run yet or error occurred
         }
@@ -171,8 +168,8 @@ export class CacheManager {
         }
 
         // Slow path: verify content (use custom hasher if provided)
-        const currentHash = context?.hashFile
-          ? await context.hashFile(filePath)
+        const currentHash = hashFile
+          ? await hashFile(filePath)
           : await this.computeFileHash(filePath);
         if (currentHash !== fileInfo.hash) {
           return false; // Content changed

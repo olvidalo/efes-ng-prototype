@@ -271,7 +271,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         return `${key}:${serializedValue}`;
     }
 
-    protected async getContentSignature(context: PipelineContext): Promise<string> {
+    protected async getContentSignature(): Promise<string> {
         const configParts: string[] = [];
 
         // Serialize all config values
@@ -300,7 +300,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             discoveredDependencies?: string[];
         }>
     ): Promise<Array<{ item: string, outputs: NodeOutput<TOutput>, cached: boolean }>> {
-        const contentSignature = await this.getContentSignature(context);
+        const contentSignature = await this.getContentSignature();
         const outputDir = context.getNodeOutputDir(this.name);
 
         // Resolve all Input values in config for cache dependency tracking
@@ -452,7 +452,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 hashMemo.set(fp, result);
                 return result;
             };
-            const dependenciesValid = await context.cache.isValid(cached, { ...context, hashFile });
+            const dependenciesValid = await context.cache.isValid(cached, context.resolveInput.bind(context), hashFile);
 
             if (!dependenciesValid) {
                 // context.log(`  - Cache miss for ${item}: dependencies changed`);
@@ -544,14 +544,15 @@ export interface PipelineContext {
     getNodeInstance(nodeName: string): PipelineNode;
 }
 
-export class Pipeline extends EventEmitter {
+export class Pipeline extends EventEmitter implements PipelineContext {
     private graph = new DepGraph<PipelineNode>();
     private nodeOutputs = new Map<string, NodeOutput<any>[]>;
     private nodeTimings = new Map<string, number>();
     private _cache: CacheManager | null = null;
-    private workerPool: WorkerPool | null = null;
+    private _workerPool: WorkerPool | null = null;
     private needsWiring = false;
     private abortController: AbortController | null = null;
+    private resolveInputCache = new Map<string, Promise<string[]>>();
 
     constructor(
         public readonly name: string,
@@ -570,6 +571,73 @@ export class Pipeline extends EventEmitter {
             this._cache = new CacheManager(path.resolve(this.projectDir, this.cacheDir));
         }
         return this._cache;
+    }
+
+    get workerPool(): WorkerPool {
+        return this.getOrCreateWorkerPool();
+    }
+
+    get signal(): AbortSignal {
+        return this.abortController!.signal;
+    }
+
+    async resolveInput(input: Input): Promise<string[]> {
+        const cacheKey = JSON.stringify(input, (key, value) => {
+            if (value && typeof value === 'object' && 'node' in value && 'output' in value) {
+                const nodeName = typeof value.node === 'string' ? value.node : value.node.name;
+                return `NodeRef:${nodeName}:${value.output}:${value.glob || ''}`;
+            }
+            return value;
+        });
+
+        const cached = this.resolveInputCache.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
+        const resultPromise = this.resolveInputImpl(input);
+        this.resolveInputCache.set(cacheKey, resultPromise);
+        return resultPromise;
+    }
+
+    log(message: string): void {
+        console.log(`  [${this.name}] ${message}`);
+    }
+
+    progress(nodeName: string, completed: number, total: number): void {
+        this.emit('node:progress', { name: nodeName, completed, total });
+    }
+
+    getBuildPath(nodeName: string, inputPath: string, newExtension?: string): string {
+        let relativePath = inputPath;
+
+        // Check if this is a build artifact path and strip build dir + source node name
+        const resolvedBuildDir = path.resolve(this.projectDir, this.buildDir);
+        const resolvedInputPath = path.resolve(this.projectDir, inputPath);
+
+        if (resolvedInputPath.startsWith(resolvedBuildDir)) {
+            // Strip build dir: .efes-build/upstream:transform/some/path/file.html
+            const afterBuildDir = path.relative(resolvedBuildDir, resolvedInputPath);
+
+            // Strip source node name: upstream:transform/some/path/file.html -> some/path/file.html
+            const pathParts = afterBuildDir.split(path.sep);
+            if (pathParts.length > 1) {
+                relativePath = path.join(...pathParts.slice(1));
+            }
+        } else {
+            // For non-build paths, make them relative to projectDir
+            relativePath = path.relative(this.projectDir, inputPath);
+        }
+
+        // Now build the new path
+        const buildPath = path.join(this.buildDir, nodeName, relativePath);
+        return newExtension ?
+            buildPath.replace(path.extname(buildPath), newExtension) :
+            buildPath;
+    }
+
+    getNodeInstance(nodeName: string): PipelineNode {
+        return this.graph.getNodeData(nodeName);
     }
 
     private installDefaultListeners(): void {
@@ -595,14 +663,14 @@ export class Pipeline extends EventEmitter {
     }
 
     private getOrCreateWorkerPool(): WorkerPool {
-        if (!this.workerPool) {
+        if (!this._workerPool) {
             const currentDir = path.dirname(fileURLToPath(import.meta.url));
             const devPath = path.resolve(currentDir, '../xml/genericWorker.ts');
             const prodPath = path.resolve(currentDir, 'genericWorker.js');
             const workerPath = fsSync.existsSync(prodPath) ? prodPath : devPath;
-            this.workerPool = new WorkerPool(this.workerThreads, workerPath);
+            this._workerPool = new WorkerPool(this.workerThreads, workerPath);
         }
-        return this.workerPool;
+        return this._workerPool;
     }
 
     /**
@@ -773,9 +841,9 @@ export class Pipeline extends EventEmitter {
         // Clear state from previous runs (for re-entrant watch mode)
         this.nodeOutputs.clear();
         this.nodeTimings.clear();
+        this.resolveInputCache.clear();
         this.abortController = new AbortController();
 
-        const workerPool = this.getOrCreateWorkerPool();
         const pipelineStart = performance.now();
 
         this.emit('pipeline:start', { name: this.name, nodeCount: this.graph.size() });
@@ -788,7 +856,7 @@ export class Pipeline extends EventEmitter {
         // Start supervisor that logs running nodes every 5 seconds
         const supervisorInterval = setInterval(() => {
             if (runningNodes.size > 0) {
-                const activeWorkers = workerPool.getActiveWorkers();
+                const activeWorkers = this.workerPool.getActiveWorkers();
                 console.log(`\n[Supervisor] Currently running ${runningNodes.size} node(s), ${activeWorkers.size} worker(s) busy:`);
                 for (const nodeName of runningNodes) {
                     console.log(`  ⏳ ${nodeName}`);
@@ -806,80 +874,16 @@ export class Pipeline extends EventEmitter {
             }
         }, 5000);
 
-        // Cache for resolveInput to avoid redundant glob operations during cache validation
-        const resolveInputCache = new Map<string, Promise<string[]>>();
-
-        const context: PipelineContext = {
-            resolveInput: async (input: Input): Promise<string[]> => {
-                const cacheKey = JSON.stringify(input, (key, value) => {
-                    if (value && typeof value === 'object' && 'node' in value && 'output' in value) {
-                        const nodeName = typeof value.node === 'string' ? value.node : value.node.name;
-                        return `NodeRef:${nodeName}:${value.output}:${value.glob || ''}`;
-                    }
-                    return value;
-                });
-
-                const cached = resolveInputCache.get(cacheKey);
-                if (cached) {
-                    return cached;
-                }
-
-                const resultPromise = this.resolveInputImpl(input);
-                resolveInputCache.set(cacheKey, resultPromise);
-                return resultPromise;
-            },
-            log: (message: string) => console.log(`  [${this.name}] ${message}`),
-            signal: this.abortController!.signal,
-            cache: this.cache,
-            buildDir: this.buildDir,
-            projectDir: this.projectDir,
-            workerPool,
-            getBuildPath: (nodeName: string, inputPath: string, newExtension?: string): string => {
-                let relativePath = inputPath;
-
-                // Check if this is a build artifact path and strip build dir + source node name
-                const resolvedBuildDir = path.resolve(this.projectDir, this.buildDir);
-                const resolvedInputPath = path.resolve(this.projectDir, inputPath);
-
-                if (resolvedInputPath.startsWith(resolvedBuildDir)) {
-                    // Strip build dir: .efes-build/upstream:transform/some/path/file.html
-                    const afterBuildDir = path.relative(resolvedBuildDir, resolvedInputPath);
-
-                    // Strip source node name: upstream:transform/some/path/file.html -> some/path/file.html
-                    const pathParts = afterBuildDir.split(path.sep);
-                    if (pathParts.length > 1) {
-                        relativePath = path.join(...pathParts.slice(1));
-                    }
-                } else {
-                    // For non-build paths, make them relative to projectDir
-                    relativePath = path.relative(this.projectDir, inputPath);
-                }
-
-                // Now build the new path
-                const buildPath = path.join(this.buildDir, nodeName, relativePath);
-                return newExtension ?
-                    buildPath.replace(path.extname(buildPath), newExtension) :
-                    buildPath;
-            },
-            stripBuildPrefix: (inputPath: string): string => this.stripBuildPrefix(inputPath),
-            getNodeOutputDir: (nodeName: string): string => this.getNodeOutputDir(nodeName),
-            getNodeOutputs: (nodeName: string) => this.nodeOutputs.get(nodeName),
-            getNodeInstance: (nodeName: string) => this.graph.getNodeData(nodeName),
-            progress: (nodeName: string, completed: number, total: number) => {
-                this.emit('node:progress', { name: nodeName, completed, total });
-            }
-        }
-
         try {
             // Execute nodes based on chosen execution mode
             if (this.executionMode === 'sequential') {
-                await this.executeSequential(executionOrder, context, runningNodes);
+                await this.executeSequential(executionOrder, runningNodes);
             } else if (this.executionMode === 'parallel') {
                 const waves = this.calculateWaves(executionOrder);
-                await this.executeParallel(waves, context, runningNodes);
+                await this.executeParallel(waves, runningNodes);
             } else {
                 // dynamic mode
-                await this.executeDynamic(executionOrder, context, runningNodes);
+                await this.executeDynamic(executionOrder, runningNodes);
             }
 
             const durationMs = performance.now() - pipelineStart;
@@ -907,9 +911,9 @@ export class Pipeline extends EventEmitter {
     async cancel(): Promise<void> {
         if (!this.abortController) return;
         this.abortController.abort();
-        if (this.workerPool) {
-            await this.workerPool.terminate();
-            this.workerPool = null;
+        if (this._workerPool) {
+            await this._workerPool.terminate();
+            this._workerPool = null;
         }
     }
 
@@ -918,9 +922,9 @@ export class Pipeline extends EventEmitter {
      * (after all run() calls, e.g. when exiting watch mode).
      */
     async shutdown(): Promise<void> {
-        if (this.workerPool) {
-            await this.workerPool.terminate();
-            this.workerPool = null;
+        if (this._workerPool) {
+            await this._workerPool.terminate();
+            this._workerPool = null;
         }
     }
 
@@ -955,11 +959,10 @@ export class Pipeline extends EventEmitter {
      */
     private async executeSequential(
         executionOrder: string[],
-        context: PipelineContext,
         runningNodes: Set<string>
     ): Promise<void> {
         for (const nodeName of executionOrder) {
-            context.signal.throwIfAborted();
+            this.signal.throwIfAborted();
 
             const node = this.graph.getNodeData(nodeName);
             const nodeStart = performance.now();
@@ -968,7 +971,7 @@ export class Pipeline extends EventEmitter {
             runningNodes.add(node.name);
 
             try {
-                const output = await node.run(context);
+                const output = await node.run(this);
                 this.nodeOutputs.set(node.name, output);
                 const durationMs = performance.now() - nodeStart;
                 this.nodeTimings.set(node.name, durationMs);
@@ -988,14 +991,13 @@ export class Pipeline extends EventEmitter {
      */
     private async executeParallel(
         waves: Map<number, string[]>,
-        context: PipelineContext,
         runningNodes: Set<string>
     ): Promise<void> {
         const sortedWaves = Array.from(waves.entries()).sort((a, b) => a[0] - b[0]);
 
         for (const [waveNum, nodeNames] of sortedWaves) {
-            context.signal.throwIfAborted();
-            context.log(`\n▶▶▶ Wave ${waveNum}: ${nodeNames.length} node(s) - ${nodeNames.join(', ')}`);
+            this.signal.throwIfAborted();
+            this.log(`\n▶▶▶ Wave ${waveNum}: ${nodeNames.length} node(s) - ${nodeNames.join(', ')}`);
 
             await Promise.all(nodeNames.map(async (nodeName) => {
                 const node = this.graph.getNodeData(nodeName);
@@ -1005,7 +1007,7 @@ export class Pipeline extends EventEmitter {
                 runningNodes.add(node.name);
 
                 try {
-                    const output = await node.run(context);
+                    const output = await node.run(this);
                     this.nodeOutputs.set(node.name, output);
                     const durationMs = performance.now() - nodeStart;
                     this.nodeTimings.set(node.name, durationMs);
@@ -1018,7 +1020,7 @@ export class Pipeline extends EventEmitter {
                 }
             }));
 
-            context.log(`  ✓ Wave ${waveNum} complete`);
+            this.log(`  ✓ Wave ${waveNum} complete`);
         }
     }
 
@@ -1028,7 +1030,6 @@ export class Pipeline extends EventEmitter {
      */
     private async executeDynamic(
         executionOrder: string[],
-        context: PipelineContext,
         runningNodes: Set<string>
     ): Promise<void> {
         const completed = new Set<string>();
@@ -1051,7 +1052,7 @@ export class Pipeline extends EventEmitter {
             runningNodes.add(node.name);
 
             try {
-                const output = await node.run(context);
+                const output = await node.run(this);
                 this.nodeOutputs.set(node.name, output);
                 const durationMs = performance.now() - nodeStart;
                 this.nodeTimings.set(node.name, durationMs);
@@ -1069,7 +1070,7 @@ export class Pipeline extends EventEmitter {
 
         // Start all ready nodes (non-blocking)
         const startReadyNodes = (): void => {
-            if (context.signal.aborted) return;
+            if (this.signal.aborted) return;
             for (const nodeName of pending) {
                 if (!inProgress.has(nodeName) && isReady(nodeName)) {
                     pending.delete(nodeName);
@@ -1093,12 +1094,12 @@ export class Pipeline extends EventEmitter {
         startReadyNodes();
 
         // Wait for all nodes to complete, error, or cancel
-        while (inProgress.size > 0 || (pending.size > 0 && errors.length === 0 && !context.signal.aborted)) {
+        while (inProgress.size > 0 || (pending.size > 0 && errors.length === 0 && !this.signal.aborted)) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        if (context.signal.aborted) {
-            context.signal.throwIfAborted();
+        if (this.signal.aborted) {
+            this.signal.throwIfAborted();
         }
 
         // If there were errors, throw the first one
