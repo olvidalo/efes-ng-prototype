@@ -83,12 +83,13 @@ export async function performWork(job: TransformJob): Promise<TransformResult> {
             if (collectionPath.startsWith('file:')) {
                 collectionPath = collectionPath.substring(5);
             }
-            const files = fsSync.globSync(collectionPath);
+            const files = fsSync.globSync(collectionPath, { cwd: job.baseDir });
             return files.map(file => {
-                const content = fsSync.readFileSync(file, 'utf-8');
+                const absFile = path.resolve(job.baseDir, file);
+                const content = fsSync.readFileSync(absFile, 'utf-8');
                 const doc = platform.parseXmlFromString(content);
                 // Set the document URI property that SaxonJS uses for document-uri()
-                (doc as any)._saxonDocUri = `file://${path.resolve(file)}`;
+                (doc as any)._saxonDocUri = `file://${absFile}`;
                 return doc;
             });
         },
