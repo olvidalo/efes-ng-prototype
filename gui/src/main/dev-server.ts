@@ -5,11 +5,71 @@ import path from 'node:path'
 import sirv from 'sirv'
 import { WebSocketServer, WebSocket } from 'ws'
 
+// language=CSS
+const OVERLAY_CSS = `
+  #__efes-overlay { z-index: 99999 }
+
+  /* Banner overlays (building, stopped) */
+  .efes-banner { position: fixed; top: 0; left: 0; right: 0 }
+  .efes-bar { height: 3px }
+  .efes-bar--blue {
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+    background-size: 200% 100%;
+    animation: efes-slide 1.5s linear infinite;
+  }
+  .efes-bar--amber { background: #f59e0b }
+  @keyframes efes-slide {
+    0%   { background-position: 200% 0 }
+    100% { background-position: -200% 0 }
+  }
+  .efes-label {
+    display: inline-block; margin: 8px 12px; padding: 4px 12px;
+    background: #1e1e1e; font: 600 13px/1 system-ui, sans-serif; border-radius: 4px;
+  }
+  .efes-label--blue  { color: #93c5fd; border: 1px solid #3b82f6 }
+  .efes-label--amber { color: #fbbf24; border: 1px solid #f59e0b }
+
+  /* Error toast */
+  .efes-error {
+    position: fixed; bottom: 16px; right: 16px; max-width: 480px;
+    padding: 14px 18px; background: #1e1e1e; border: 1px solid #ef4444;
+    border-radius: 8px; color: #fca5a5; font: 13px/1.5 system-ui, sans-serif;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .efes-error-title {
+    font-weight: 600; color: #ef4444; margin-bottom: 6px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .efes-error-close {
+    background: none; border: none; color: #ef4444;
+    font-size: 18px; cursor: pointer; padding: 0 0 0 12px;
+  }
+  .efes-error-body {
+    margin: 0; white-space: pre-wrap; word-break: break-word;
+    max-height: 200px; overflow: auto; font-size: 12px;
+  }
+
+  /* Full-screen overlays (empty) */
+  .efes-fullscreen {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.85); color: #aaa; font: 16px/1.6 system-ui, sans-serif; text-align: center;
+  }
+  .efes-fullscreen-icon  { font-size: 48px; margin-bottom: 16px }
+  .efes-fullscreen-title { font-size: 20px; color: #eee; margin-bottom: 8px }
+`
+
+// language=JS
 const OVERLAY_SCRIPT = `(function() {
   var overlay = null;
   var port = location.port;
   var ws;
   var retryDelay = 500;
+
+  // Inject styles once
+  var s = document.createElement('style');
+  s.textContent = ${JSON.stringify(OVERLAY_CSS)};
+  document.head.appendChild(s);
+
   function connect() {
     ws = new WebSocket('ws://localhost:' + port + '/__ws');
 
@@ -20,25 +80,12 @@ const OVERLAY_SCRIPT = `(function() {
     ws.onmessage = function(e) {
       var msg = JSON.parse(e.data);
       switch (msg.type) {
-        case 'building':
-          showOverlay('building');
-          break;
-        case 'done':
-          removeOverlay();
-          location.reload();
-          break;
-        case 'error':
-          showOverlay('error', msg.error);
-          break;
-        case 'empty':
-          showOverlay('empty');
-          break;
-        case 'stopped':
-          showOverlay('stopped');
-          break;
-        case 'reload':
-          location.href = '/';
-          break;
+        case 'building':  showOverlay('building'); break;
+        case 'stopped':   showOverlay('stopped'); break;
+        case 'empty':     showOverlay('empty'); break;
+        case 'error':     showOverlay('error', msg.error); break;
+        case 'done':      removeOverlay(); location.reload(); break;
+        case 'reload':    location.href = '/'; break;
       }
     };
 
@@ -54,44 +101,33 @@ const OVERLAY_SCRIPT = `(function() {
     overlay.id = '__efes-overlay';
 
     if (type === 'building') {
-      overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;';
-      var bar = document.createElement('div');
-      bar.style.cssText = 'height:3px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#3b82f6);background-size:200% 100%;animation:efes-slide 1.5s linear infinite;';
-      var label = document.createElement('div');
-      label.textContent = 'Building\u2026';
-      label.style.cssText = 'display:inline-block;margin:8px 12px;padding:4px 12px;background:#1e1e1e;color:#93c5fd;font:600 13px/1 system-ui,sans-serif;border-radius:4px;border:1px solid #3b82f6;';
-      var style = document.createElement('style');
-      style.textContent = '@keyframes efes-slide{0%{background-position:200% 0}100%{background-position:-200% 0}}';
-      overlay.appendChild(style);
-      overlay.appendChild(bar);
-      overlay.appendChild(label);
-    } else if (type === 'error') {
-      overlay.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:99999;max-width:480px;padding:14px 18px;background:#1e1e1e;border:1px solid #ef4444;border-radius:8px;color:#fca5a5;font:13px/1.5 system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.4);';
-      var title = document.createElement('div');
-      title.style.cssText = 'font-weight:600;color:#ef4444;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;';
-      title.textContent = 'Build Error';
-      var close = document.createElement('button');
-      close.textContent = '\\u00d7';
-      close.style.cssText = 'background:none;border:none;color:#ef4444;font-size:18px;cursor:pointer;padding:0 0 0 12px;';
-      close.onclick = removeOverlay;
-      title.appendChild(close);
-      overlay.appendChild(title);
-      var body = document.createElement('pre');
-      body.style.cssText = 'margin:0;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow:auto;font-size:12px;';
-      body.textContent = errorMsg || 'Unknown error';
-      overlay.appendChild(body);
+      overlay.className = 'efes-banner';
+      overlay.innerHTML =
+        '<div class="efes-bar efes-bar--blue"></div>' +
+        '<div class="efes-label efes-label--blue">Building\\u2026</div>';
+
     } else if (type === 'stopped') {
-      overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;';
-      var bar = document.createElement('div');
-      bar.style.cssText = 'height:3px;background:#f59e0b;';
-      var label = document.createElement('div');
-      label.textContent = 'Pipeline stopped \\u2014 output may be stale';
-      label.style.cssText = 'display:inline-block;margin:8px 12px;padding:4px 12px;background:#1e1e1e;color:#fbbf24;font:600 13px/1 system-ui,sans-serif;border-radius:4px;border:1px solid #f59e0b;';
-      overlay.appendChild(bar);
-      overlay.appendChild(label);
+      overlay.className = 'efes-banner';
+      overlay.innerHTML =
+        '<div class="efes-bar efes-bar--amber"></div>' +
+        '<div class="efes-label efes-label--amber">Pipeline stopped \\u2014 output may be stale</div>';
+
+    } else if (type === 'error') {
+      overlay.className = 'efes-error';
+      overlay.innerHTML =
+        '<div class="efes-error-title">Build Error<button class="efes-error-close">\\u00d7</button></div>' +
+        '<pre class="efes-error-body"></pre>';
+      overlay.querySelector('.efes-error-body').textContent = errorMsg || 'Unknown error';
+      overlay.querySelector('.efes-error-close').onclick = removeOverlay;
+
     } else if (type === 'empty') {
-      overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);color:#aaa;font:16px/1.6 system-ui,sans-serif;text-align:center;';
-      overlay.innerHTML = '<div><div style="font-size:48px;margin-bottom:16px;">\\ud83d\\udee0</div><div style="font-size:20px;color:#eee;margin-bottom:8px;">No build output yet</div><div>Click <strong>Start</strong> in EFES to get started</div></div>';
+      overlay.className = 'efes-fullscreen';
+      overlay.innerHTML =
+        '<div>' +
+          '<div class="efes-fullscreen-icon">\\ud83d\\udee0</div>' +
+          '<div class="efes-fullscreen-title">No build output yet</div>' +
+          '<div>Click <strong>Start</strong> in EFES to get started</div>' +
+        '</div>';
     }
 
     document.body.appendChild(overlay);
@@ -135,8 +171,9 @@ async function findFreePort(start: number): Promise<number> {
 
 const NOT_FOUND_HTML =
   '<!DOCTYPE html><html><head><meta charset="utf-8"><title>404 - Not Found</title></head><body>' +
-  '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#1e1e1e;color:#aaa;font:16px/1.6 system-ui,sans-serif;text-align:center;">' +
-  '<div><div style="font-size:48px;margin-bottom:16px;">404</div><div style="font-size:20px;color:#eee;margin-bottom:8px;">Page not found</div>' +
+  '<div class="efes-fullscreen">' +
+  '<div><div class="efes-fullscreen-icon">404</div>' +
+  '<div class="efes-fullscreen-title">Page not found</div>' +
   '<div><a href="/" style="color:#93c5fd;">Go to homepage</a></div></div></div>' +
   '<script src="/__overlay.js"></script></body></html>'
 
