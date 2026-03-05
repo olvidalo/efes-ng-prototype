@@ -25,7 +25,7 @@
   const MIN_WIDTH = 220
   const MAX_WIDTH = 600
 
-  let collapsed: Record<string, boolean> = $state({})
+  let collapsed: Record<string, boolean> = $state({ deps: true })
   let expandedKeys: Record<string, boolean> = $state({})
   let expandedValues: Record<string, boolean> = $state({})
   let panelWidth = $state(320)
@@ -92,12 +92,77 @@
     return paths.length === 1 ? '1 file' : `${paths.length} files`
   }
 
-  function formatConfigValue(value: any): string {
+  function isTagged(value: any): boolean {
+    return value && typeof value === 'object' && 'tag' in value
+  }
+
+  function isPlainObject(value: any): boolean {
+    return value && typeof value === 'object' && !Array.isArray(value) && !isTagged(value)
+  }
+
+  function formatPlain(value: any): string {
     if (value === null || value === undefined) return '\u2014'
-    if (typeof value === 'object') return JSON.stringify(value)
     return String(value)
   }
 </script>
+
+{#snippet configValue(value: any, key: string)}
+  {#if isTagged(value) && value.tag === 'from'}
+    <span class="config-ref">
+      <span class="config-ref-label">from</span>
+      <button class="config-node-link" onclick={() => onSelectNode?.(value.node)}>{value.node}</button>
+      <span class="config-ref-sep">&rarr;</span>
+      <span class="config-ref-detail">{value.output}</span>
+      {#if value.glob}
+        <span class="config-ref-sep">(</span><span class="config-ref-detail">{value.glob}</span><span class="config-ref-sep">)</span>
+      {/if}
+    </span>
+  {:else if isTagged(value) && value.tag === 'files'}
+    <span class="config-ref">
+      <span class="config-ref-label">files</span>
+      {#each value.patterns as pat, i}
+        {#if i > 0}<span class="config-ref-sep">,</span>{/if}
+        <span class="config-ref-detail">{pat}</span>
+      {/each}
+    </span>
+  {:else if isTagged(value) && value.tag === 'collect'}
+    <span class="config-ref">
+      <span class="config-ref-label">collect</span>
+      <span class="config-ref-detail">{value.dir}</span>
+    </span>
+  {:else if isTagged(value) && value.tag === 'absolute'}
+    <span class="config-ref">
+      <span class="config-ref-label">path</span>
+      <span class="config-ref-detail">{value.path}</span>
+    </span>
+  {:else if isPlainObject(value)}
+    <dl class="config-nested">
+      {#each Object.entries(value) as [k, v]}
+        <div class="config-nested-row">
+          <dt>{k}</dt>
+          <dd>
+            {#if Array.isArray(v)}
+              <ul class="config-list">
+                {#each v as item}
+                  <li>{@render configValue(item, `${key}.${k}`)}</li>
+                {/each}
+              </ul>
+            {:else}
+              {@render configValue(v, `${key}.${k}`)}
+            {/if}
+          </dd>
+        </div>
+      {/each}
+    </dl>
+  {:else}
+    <button
+      class="expand-btn"
+      class:expanded={expandedValues[`cfg:${key}`]}
+      title={formatPlain(value)}
+      onclick={() => expandedValues[`cfg:${key}`] = !expandedValues[`cfg:${key}`]}
+    >{formatPlain(value)}</button>
+  {/if}
+{/snippet}
 
 <aside class="inspector" class:dragging style:width="{panelWidth}px" style:min-width="{panelWidth}px" aria-label="Node inspector">
   <button class="resize-handle" aria-label="Resize panel" onmousedown={onResizeStart}></button>
@@ -155,9 +220,10 @@
                       <ul class="file-list">
                         {#each visibleFiles(key, info.outputs[key]) as filePath, i}
                           {@const expandId = `file:${key}:${i}`}
-                          <li class="file-entry" class:expanded={expandedValues[expandId]}>
+                          <li class="file-entry">
                             <button
                               class="expand-btn"
+                              class:expanded={expandedValues[expandId]}
                               title={filePath}
                               onclick={() => expandedValues[expandId] = !expandedValues[expandId]}
                             >{filePath}</button>
@@ -233,12 +299,15 @@
                     <div class="config-row">
                       <dt>{key}</dt>
                       <dd>
-                        <button
-                          class="expand-btn"
-                          class:expanded={expandedValues[`cfg:${key}`]}
-                          title={formatConfigValue(value)}
-                          onclick={() => expandedValues[`cfg:${key}`] = !expandedValues[`cfg:${key}`]}
-                        >{formatConfigValue(value)}</button>
+                        {#if Array.isArray(value)}
+                          <ul class="config-list">
+                            {#each value as item}
+                              <li>{@render configValue(item, key)}</li>
+                            {/each}
+                          </ul>
+                        {:else}
+                          {@render configValue(value, key)}
+                        {/if}
                       </dd>
                     </div>
                   {/each}
@@ -600,28 +669,100 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 6px;
   }
 
   .config-row {
     display: flex;
-    gap: 8px;
-    padding: 3px 0;
-    border-bottom: 1px solid var(--color-border-subtler);
-  }
-
-  .config-row:last-child {
-    border-bottom: none;
+    flex-direction: column;
+    gap: 1px;
   }
 
   .config-row dt {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--color-text-3);
-    flex-shrink: 0;
-    min-width: 80px;
   }
 
   .config-row dd {
+    margin: 0;
+    min-width: 0;
+  }
+
+  /* ── Config: tagged values ── */
+
+  .config-ref {
+    font-size: 11px;
+    font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .config-node-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--ev-c-accent-text);
+    cursor: pointer;
+    transition: color 0.1s;
+  }
+
+  .config-node-link:hover {
+    color: var(--color-text);
+  }
+
+  .config-ref-sep {
+    color: var(--color-text-3);
+  }
+
+  .config-ref-detail {
+    color: var(--color-text-2);
+  }
+
+  .config-ref-label {
+    font-size: 9px;
+    font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
+    color: var(--color-text-3);
+    background: var(--color-background-mute);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 3px;
+    padding: 0 4px;
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+  }
+
+  .config-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .config-nested {
+    margin: 0;
+    padding-left: 10px;
+    border-left: 1px solid var(--color-border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .config-nested-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .config-nested-row dt {
+    font-size: 10px;
+    color: var(--color-text-3);
+  }
+
+  .config-nested-row dd {
     margin: 0;
     min-width: 0;
   }

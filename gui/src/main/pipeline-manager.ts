@@ -194,18 +194,35 @@ export class PipelineManager {
       // Cache stats
       const cacheStats = node.cacheStats || null
 
-      // Config (sanitized - just the config values, not the full node config)
+      // Config (sanitized - serialize tagged input refs for structured rendering)
+      const serializeValue = (value: any): any => {
+        if (value == null) return value
+        if (Array.isArray(value)) return value.map(serializeValue)
+        if (typeof value !== 'object') return value
+        // NodeOutputReference: has node + output, no type field
+        if ('node' in value && 'output' in value) {
+          const ref: any = { tag: 'from', node: value.node?.name ?? value.node, output: value.output }
+          if (value.glob) ref.glob = value.glob
+          return ref
+        }
+        // FilesRef, CollectRef, AbsolutePath: discriminated by type field
+        if (value.type === 'files') return { tag: 'files', patterns: value.patterns }
+        if (value.type === 'collect') return { tag: 'collect', dir: value.dir }
+        if (value.type === 'absolute') return { tag: 'absolute', path: value.path }
+        // Only recurse into plain objects — skip class instances (e.g. PipelineNode)
+        if (Object.getPrototypeOf(value) !== Object.prototype) {
+          return String(value)
+        }
+        const result: Record<string, any> = {}
+        for (const [k, v] of Object.entries(value)) {
+          result[k] = serializeValue(v)
+        }
+        return result
+      }
       const config: Record<string, any> = {}
       if (node.config?.config) {
         for (const [key, value] of Object.entries(node.config.config)) {
-          // Serialize inputs as descriptive strings instead of object refs
-          if (value && typeof value === 'object' && 'tag' in value) {
-            if (value.tag === 'files') config[key] = `files("${value.glob}")`
-            else if (value.tag === 'nodeOutput') config[key] = `from(${value.node?.name ?? value.node}, "${value.output}")`
-            else config[key] = String(value)
-          } else {
-            config[key] = value
-          }
+          config[key] = serializeValue(value)
         }
       }
 
