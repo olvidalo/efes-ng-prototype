@@ -167,7 +167,7 @@
         {/if}
         <span class="spacer"></span>
         {#if outputExists[node.name]}
-          <button class="open-output" title="Open output directory" onclick={(e) => { e.stopPropagation(); window.api.openNodeOutput(node.name) }}>
+          <button class="open-output" title={`Open output directory: ${node.name}`} onclick={(e) => { e.stopPropagation(); window.api.openNodeOutput(node.name) }}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H6L7.5 4H13.5C14.05 4 14.5 4.45 14.5 5V12.5C14.5 13.05 14.05 13.5 13.5 13.5H2.5C1.95 13.5 1.5 13.05 1.5 12.5V3.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
             </svg>

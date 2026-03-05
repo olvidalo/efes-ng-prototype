@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte'
+
   interface NodeInfo {
     outputKeys: string[]
     outputs: Record<string, string[]>
@@ -20,9 +22,46 @@
   let { nodeName, info, onClose, onSelectNode }: Props = $props()
 
   const FILE_PREVIEW_LIMIT = 10
+  const MIN_WIDTH = 220
+  const MAX_WIDTH = 600
 
   let collapsed: Record<string, boolean> = $state({})
   let expandedKeys: Record<string, boolean> = $state({})
+  let expandedValues: Record<string, boolean> = $state({})
+  let panelWidth = $state(320)
+
+  // ── Drag resize ──
+
+  let dragging = $state(false)
+  let dragStartX = 0
+  let dragStartWidth = 0
+
+  function onResizeStart(e: MouseEvent) {
+    e.preventDefault()
+    dragging = true
+    dragStartX = e.clientX
+    dragStartWidth = panelWidth
+    document.addEventListener('mousemove', onResizeMove)
+    document.addEventListener('mouseup', onResizeEnd)
+  }
+
+  function onResizeMove(e: MouseEvent) {
+    const delta = dragStartX - e.clientX
+    panelWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragStartWidth + delta))
+  }
+
+  function onResizeEnd() {
+    dragging = false
+    document.removeEventListener('mousemove', onResizeMove)
+    document.removeEventListener('mouseup', onResizeEnd)
+  }
+
+  onDestroy(() => {
+    document.removeEventListener('mousemove', onResizeMove)
+    document.removeEventListener('mouseup', onResizeEnd)
+  })
+
+  // ── Section collapse ──
 
   function toggle(section: string) {
     collapsed[section] = !collapsed[section]
@@ -49,11 +88,6 @@
     return paths.slice(0, FILE_PREVIEW_LIMIT)
   }
 
-  function shortPath(fullPath: string): string {
-    const parts = fullPath.split('/')
-    return parts.length > 2 ? parts.slice(-2).join('/') : fullPath
-  }
-
   function fileCount(paths: string[]): string {
     return paths.length === 1 ? '1 file' : `${paths.length} files`
   }
@@ -65,148 +99,202 @@
   }
 </script>
 
-<aside class="inspector" aria-label="Node inspector">
-  <header>
-    <div class="header-top">
-      <h2 class="node-name">{nodeName}</h2>
-      <button class="close-btn" onclick={onClose} title="Close inspector" aria-label="Close">&times;</button>
-    </div>
-    {#if info}
-      <div class="meta-row">
-        <span class="type-badge">{info.nodeType}</span>
-        {#if info.cacheStats}
-          <span class="cache-stat">
-            {info.cacheStats.hits}/{info.cacheStats.total} cached
-          </span>
+<aside class="inspector" class:dragging style:width="{panelWidth}px" style:min-width="{panelWidth}px" aria-label="Node inspector">
+  <div class="resize-handle" onmousedown={onResizeStart}></div>
+  <div class="inspector-content">
+    <header>
+      <div class="header-top">
+        <h2 class="node-name">{nodeName}</h2>
+        <button class="close-btn" onclick={onClose} title="Close inspector" aria-label="Close">&times;</button>
+      </div>
+      {#if info}
+        <div class="meta-row">
+          <span class="type-badge">{info.nodeType}</span>
+          {#if info.cacheStats}
+            <span class="cache-stat">
+              {info.cacheStats.hits}/{info.cacheStats.total} cached
+            </span>
+          {/if}
+        </div>
+        {#if info.description}
+          <p class="description">{info.description}</p>
+        {/if}
+      {/if}
+    </header>
+
+    {#if !info}
+      <div class="loading">
+        <div class="loading-line"></div>
+        <div class="loading-line short"></div>
+        <div class="loading-line"></div>
+      </div>
+    {:else}
+      <div class="sections">
+        <!-- Output Keys -->
+        <section>
+          <button class="section-header" onclick={() => toggle('outputs')}>
+            <span class="disclosure" class:open={isOpen('outputs')}></span>
+            <span class="section-title">Outputs</span>
+            <span class="section-count">{info.outputKeys.length}</span>
+          </button>
+          {#if isOpen('outputs')}
+            <div class="section-body output-keys-body">
+              {#each info.outputKeys as key}
+                <div class="output-key-group">
+                  <button class="output-key-header" onclick={() => toggleKey(key)}>
+                    <span class="disclosure small" class:open={isKeyOpen(key)}></span>
+                    <span class="output-key-name">{key}</span>
+                    {#if info.outputs[key]}
+                      <span class="file-count">{fileCount(info.outputs[key])}</span>
+                    {:else}
+                      <span class="no-output">no output yet</span>
+                    {/if}
+                  </button>
+                  {#if isKeyOpen(key)}
+                    {#if info.outputs[key] && info.outputs[key].length > 0}
+                      <ul class="file-list">
+                        {#each visibleFiles(key, info.outputs[key]) as filePath, i}
+                          {@const expandId = `file:${key}:${i}`}
+                          <li
+                            class="file-entry expandable"
+                            class:expanded={expandedValues[expandId]}
+                            title={filePath}
+                            onclick={() => expandedValues[expandId] = !expandedValues[expandId]}
+                          >{filePath}</li>
+                        {/each}
+                      </ul>
+                      {#if info.outputs[key].length > FILE_PREVIEW_LIMIT}
+                        <button class="show-all-btn" onclick={() => toggleShowAll(key)}>
+                          {expandedKeys[key] ? 'show less' : `show all ${info.outputs[key].length} files`}
+                        </button>
+                      {/if}
+                    {/if}
+                  {/if}
+                </div>
+              {/each}
+              {#if info.outputKeys.length === 0}
+                <span class="no-output">no output keys declared</span>
+              {/if}
+            </div>
+          {/if}
+        </section>
+
+        <!-- Output Directory -->
+        <section>
+          <div class="output-dir-row">
+            <span class="output-dir-label">Output dir</span>
+            <span
+              class="output-dir-path expandable"
+              class:expanded={expandedValues['outputDir']}
+              title={info.outputDir}
+              onclick={() => expandedValues['outputDir'] = !expandedValues['outputDir']}
+            >{info.outputDir}</span>
+          </div>
+        </section>
+
+        <!-- Dependencies -->
+        {#if info.dependencies.length > 0}
+          <section>
+            <button class="section-header" onclick={() => toggle('deps')}>
+              <span class="disclosure" class:open={isOpen('deps')}></span>
+              <span class="section-title">Dependencies</span>
+              <span class="section-count">{info.dependencies.length}</span>
+            </button>
+            {#if isOpen('deps')}
+              <div class="section-body">
+                <ul class="dep-list">
+                  {#each info.dependencies as dep}
+                    <li>
+                      {#if onSelectNode}
+                        <button class="dep-link" onclick={() => onSelectNode?.(dep)}>{dep}</button>
+                      {:else}
+                        <span class="dep-name">{dep}</span>
+                      {/if}
+                    </li>
+                  {/each}
+                </ul>
+              </div>
+            {/if}
+          </section>
+        {/if}
+
+        <!-- Configuration -->
+        {#if Object.keys(info.config).length > 0}
+          <section>
+            <button class="section-header" onclick={() => toggle('config')}>
+              <span class="disclosure" class:open={isOpen('config')}></span>
+              <span class="section-title">Configuration</span>
+            </button>
+            {#if isOpen('config')}
+              <div class="section-body">
+                <dl class="config-table">
+                  {#each Object.entries(info.config) as [key, value]}
+                    <div class="config-row">
+                      <dt>{key}</dt>
+                      <dd
+                        class="expandable"
+                        class:expanded={expandedValues[`cfg:${key}`]}
+                        title={formatConfigValue(value)}
+                        onclick={() => expandedValues[`cfg:${key}`] = !expandedValues[`cfg:${key}`]}
+                      >{formatConfigValue(value)}</dd>
+                    </div>
+                  {/each}
+                </dl>
+              </div>
+            {/if}
+          </section>
         {/if}
       </div>
-      {#if info.description}
-        <p class="description">{info.description}</p>
-      {/if}
     {/if}
-  </header>
-
-  {#if !info}
-    <div class="loading">
-      <div class="loading-line"></div>
-      <div class="loading-line short"></div>
-      <div class="loading-line"></div>
-    </div>
-  {:else}
-    <div class="sections">
-      <!-- Output Keys -->
-      <section>
-        <button class="section-header" onclick={() => toggle('outputs')}>
-          <span class="disclosure" class:open={isOpen('outputs')}></span>
-          <span class="section-title">Outputs</span>
-          <span class="section-count">{info.outputKeys.length}</span>
-        </button>
-        {#if isOpen('outputs')}
-          <div class="section-body output-keys-body">
-            {#each info.outputKeys as key}
-              <div class="output-key-group">
-                <button class="output-key-header" onclick={() => toggleKey(key)}>
-                  <span class="disclosure small" class:open={isKeyOpen(key)}></span>
-                  <span class="output-key-name">{key}</span>
-                  {#if info.outputs[key]}
-                    <span class="file-count">{fileCount(info.outputs[key])}</span>
-                  {:else}
-                    <span class="no-output">no output yet</span>
-                  {/if}
-                </button>
-                {#if isKeyOpen(key)}
-                  {#if info.outputs[key] && info.outputs[key].length > 0}
-                    <ul class="file-list">
-                      {#each visibleFiles(key, info.outputs[key]) as filePath}
-                        <li class="file-entry" title={filePath}>{shortPath(filePath)}</li>
-                      {/each}
-                    </ul>
-                    {#if info.outputs[key].length > FILE_PREVIEW_LIMIT}
-                      <button class="show-all-btn" onclick={() => toggleShowAll(key)}>
-                        {expandedKeys[key] ? 'show less' : `show all ${info.outputs[key].length} files`}
-                      </button>
-                    {/if}
-                  {/if}
-                {/if}
-              </div>
-            {/each}
-            {#if info.outputKeys.length === 0}
-              <span class="no-output">no output keys declared</span>
-            {/if}
-          </div>
-        {/if}
-      </section>
-
-      <!-- Output Directory -->
-      <section>
-        <div class="output-dir-row">
-          <span class="output-dir-label">Output dir</span>
-          <span class="output-dir-path" title={info.outputDir}>{shortPath(info.outputDir)}</span>
-        </div>
-      </section>
-
-      <!-- Dependencies -->
-      {#if info.dependencies.length > 0}
-        <section>
-          <button class="section-header" onclick={() => toggle('deps')}>
-            <span class="disclosure" class:open={isOpen('deps')}></span>
-            <span class="section-title">Dependencies</span>
-            <span class="section-count">{info.dependencies.length}</span>
-          </button>
-          {#if isOpen('deps')}
-            <div class="section-body">
-              <ul class="dep-list">
-                {#each info.dependencies as dep}
-                  <li>
-                    {#if onSelectNode}
-                      <button class="dep-link" onclick={() => onSelectNode?.(dep)}>{dep}</button>
-                    {:else}
-                      <span class="dep-name">{dep}</span>
-                    {/if}
-                  </li>
-                {/each}
-              </ul>
-            </div>
-          {/if}
-        </section>
-      {/if}
-
-      <!-- Configuration -->
-      {#if Object.keys(info.config).length > 0}
-        <section>
-          <button class="section-header" onclick={() => toggle('config')}>
-            <span class="disclosure" class:open={isOpen('config')}></span>
-            <span class="section-title">Configuration</span>
-          </button>
-          {#if isOpen('config')}
-            <div class="section-body">
-              <dl class="config-table">
-                {#each Object.entries(info.config) as [key, value]}
-                  <div class="config-row">
-                    <dt>{key}</dt>
-                    <dd title={formatConfigValue(value)}>{formatConfigValue(value)}</dd>
-                  </div>
-                {/each}
-              </dl>
-            </div>
-          {/if}
-        </section>
-      {/if}
-    </div>
-  {/if}
+  </div>
 </aside>
 
 <style>
   .inspector {
-    width: 320px;
-    min-width: 320px;
     height: 100%;
     border-left: 1px solid var(--color-border, #333);
     background: var(--color-background-soft, #222);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     overflow: hidden;
     animation: slide-in 0.18s ease-out;
+    position: relative;
+  }
+
+  .inspector.dragging {
+    user-select: none;
+  }
+
+  .inspector-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Resize handle ── */
+
+  .resize-handle {
+    width: 5px;
+    cursor: col-resize;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: background 0.15s;
+  }
+
+  .resize-handle:hover::after,
+  .dragging .resize-handle::after {
+    background: rgba(59, 130, 246, 0.3);
   }
 
   @keyframes slide-in {
@@ -426,7 +514,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    cursor: default;
     transition: color 0.1s;
   }
 
@@ -476,7 +563,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: default;
   }
 
   /* ── Dependencies ── */
@@ -548,11 +634,28 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: default;
   }
 
   .config-row dd:hover {
     color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+  }
+
+  /* ── Click-to-expand ── */
+
+  .expandable {
+    cursor: pointer;
+    transition: color 0.1s;
+  }
+
+  .expandable:hover {
+    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+  }
+
+  .expandable.expanded {
+    white-space: normal;
+    word-break: break-all;
+    overflow: visible;
+    text-overflow: unset;
   }
 
   /* ── Loading state ── */

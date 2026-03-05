@@ -172,13 +172,14 @@ export class PipelineManager {
       const outputKeys: string[] = ctor.outputKeys ? [...ctor.outputKeys] : []
 
       // Actual output files grouped by key (only available after a run)
+      // stripBuildPrefix removes .efes-build/node-name/ but preserves input structure (e.g. 1-input/)
       const rawOutputs = this.pipeline.getNodeOutputs(nodeName)
       const outputs: Record<string, string[]> = {}
       if (rawOutputs) {
         for (const outputObj of rawOutputs) {
           for (const [key, paths] of Object.entries(outputObj)) {
             if (!outputs[key]) outputs[key] = []
-            outputs[key].push(...(paths as string[]))
+            outputs[key].push(...(paths as string[]).map((p: string) => this.pipeline.stripBuildPrefix(p)))
           }
         }
       }
@@ -186,8 +187,9 @@ export class PipelineManager {
       // Dependencies
       const dependencies = this.pipeline.getDependenciesOf(nodeName)
 
-      // Output directory
-      const outputDir = this.pipeline.getNodeOutputDir(nodeName)
+      // Output directory (relative to project)
+      const absOutputDir = this.pipeline.getNodeOutputDir(nodeName)
+      const outputDir = path.relative(this.pipeline.projectDir, absOutputDir)
 
       // Node type name
       const nodeType = ctor.xmlElement || ctor.name || 'unknown'
