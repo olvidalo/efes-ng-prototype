@@ -31,6 +31,8 @@ export class PipelineManager {
   }
 
   async openProject(projectDir: string): Promise<{ name: string; nodeNames: string[]; serverUrl: string }> {
+    // Tell any open preview tabs to navigate to root before tearing down
+    this.devServer?.broadcast({ type: 'reload' })
     await this.dispose()
 
     const absDir = path.resolve(projectDir)
@@ -80,6 +82,7 @@ export class PipelineManager {
       await this.watcher.stop()
       this.watcher = null
     }
+    this.devServer?.broadcast({ type: 'stopped' })
   }
 
   async clean(): Promise<void> {
@@ -125,16 +128,14 @@ export class PipelineManager {
     const port = await this.devServer.start(outputDir)
     const url = `http://localhost:${port}`
 
-    // Check if output dir is empty
+    // Set initial overlay state — pipeline isn't running yet
     const files = fs.readdirSync(outputDir)
-    if (files.length === 0) {
-      this.devServer.broadcast({ type: 'empty' })
-    }
+    this.devServer.broadcast({ type: files.length === 0 ? 'empty' : 'stopped' })
 
     return { port, url }
   }
 
-  async stopDevServer(): Promise<void> {
+  private async stopDevServer(): Promise<void> {
     if (this.devServer) {
       await this.devServer.stop()
       this.devServer = null

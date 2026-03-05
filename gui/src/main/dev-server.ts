@@ -10,7 +10,6 @@ const OVERLAY_SCRIPT = `(function() {
   var port = location.port;
   var ws;
   var retryDelay = 500;
-
   function connect() {
     ws = new WebSocket('ws://localhost:' + port + '/__ws');
 
@@ -33,6 +32,12 @@ const OVERLAY_SCRIPT = `(function() {
           break;
         case 'empty':
           showOverlay('empty');
+          break;
+        case 'stopped':
+          showOverlay('stopped');
+          break;
+        case 'reload':
+          location.href = '/';
           break;
       }
     };
@@ -75,9 +80,18 @@ const OVERLAY_SCRIPT = `(function() {
       body.style.cssText = 'margin:0;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow:auto;font-size:12px;';
       body.textContent = errorMsg || 'Unknown error';
       overlay.appendChild(body);
+    } else if (type === 'stopped') {
+      overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;';
+      var bar = document.createElement('div');
+      bar.style.cssText = 'height:3px;background:#f59e0b;';
+      var label = document.createElement('div');
+      label.textContent = 'Pipeline stopped \\u2014 output may be stale';
+      label.style.cssText = 'display:inline-block;margin:8px 12px;padding:4px 12px;background:#1e1e1e;color:#fbbf24;font:600 13px/1 system-ui,sans-serif;border-radius:4px;border:1px solid #f59e0b;';
+      overlay.appendChild(bar);
+      overlay.appendChild(label);
     } else if (type === 'empty') {
       overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);color:#aaa;font:16px/1.6 system-ui,sans-serif;text-align:center;';
-      overlay.innerHTML = '<div><div style="font-size:48px;margin-bottom:16px;">\\ud83d\\udee0</div><div style="font-size:20px;color:#eee;margin-bottom:8px;">No build output yet</div><div>Click <strong>Build</strong> in EFES to get started</div></div>';
+      overlay.innerHTML = '<div><div style="font-size:48px;margin-bottom:16px;">\\ud83d\\udee0</div><div style="font-size:20px;color:#eee;margin-bottom:8px;">No build output yet</div><div>Click <strong>Start</strong> in EFES to get started</div></div>';
     }
 
     document.body.appendChild(overlay);
@@ -119,8 +133,12 @@ async function findFreePort(start: number): Promise<number> {
   throw new Error(`No free port found in range ${start}-${start + 99}`)
 }
 
-const FALLBACK_HTML =
-  '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><script src="/__overlay.js"></script></body></html>'
+const NOT_FOUND_HTML =
+  '<!DOCTYPE html><html><head><meta charset="utf-8"><title>404 - Not Found</title></head><body>' +
+  '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#1e1e1e;color:#aaa;font:16px/1.6 system-ui,sans-serif;text-align:center;">' +
+  '<div><div style="font-size:48px;margin-bottom:16px;">404</div><div style="font-size:20px;color:#eee;margin-bottom:8px;">Page not found</div>' +
+  '<div><a href="/" style="color:#93c5fd;">Go to homepage</a></div></div></div>' +
+  '<script src="/__overlay.js"></script></body></html>'
 
 export class DevServer {
   private server: http.Server | null = null
@@ -156,9 +174,8 @@ export class DevServer {
 
       // Everything else (CSS, JS, images, etc.): let sirv handle it
       serve(req, res, () => {
-        // Fallback: serve minimal HTML with overlay script so WS status is visible
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
-        res.end(FALLBACK_HTML)
+        res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' })
+        res.end(NOT_FOUND_HTML)
       })
     })
 
