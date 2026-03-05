@@ -64,12 +64,19 @@ ${nodeRefs}
     </element>
   </define>
 
+  <!-- Non-empty string (at least one non-whitespace character, no normalization) -->
+  <define name="nonEmptyString">
+    <data type="string">
+      <param name="pattern">.*\\S.*</param>
+    </data>
+  </define>
+
   <!-- Input: files, from, collect, absolute, or variable ref -->
   <define name="inputContent">
     <choice>
       <element name="files">
         <a:documentation>File path or glob pattern (e.g. "*.xml", "stylesheets/**/*.xsl"), resolved relative to the project directory.</a:documentation>
-        <text/>
+        <ref name="nonEmptyString"/>
       </element>
       <element name="from">
         <a:documentation>Use the output of another pipeline node as input. Output directory structure is preserved by default.</a:documentation>
@@ -83,11 +90,11 @@ ${outputKeyValues}
       </element>
       <element name="collect">
         <a:documentation>A shared directory that multiple nodes write into. The node waits for all writers to finish before reading.</a:documentation>
-        <text/>
+        <ref name="nonEmptyString"/>
       </element>
       <element name="absolute">
         <a:documentation>Resolve a project-relative path to an absolute filesystem path. Useful for passing directory locations as XSLT parameters, e.g. for document() calls.</a:documentation>
-        <text/>
+        <ref name="nonEmptyString"/>
       </element>
       <element name="ref">
         <a:documentation>Reference a reusable value defined in a &lt;variable&gt; element.</a:documentation>
@@ -125,7 +132,7 @@ ${outputKeyValues}
   <!-- Array of string values -->
   <define name="arrayContent">
     <zeroOrMore>
-      <element name="field"><text/></element>
+      <element name="field"><ref name="nonEmptyString"/></element>
     </zeroOrMore>
   </define>
 
@@ -199,8 +206,8 @@ function fieldToRng(fieldName: string, field: SchemaField, isOptional: boolean):
 function fieldContentRng(type: SchemaField['type']): string {
     switch (type) {
         case 'input':   return '<ref name="inputContent"/>';
-        case 'scalar':  return '<text/>';
-        case 'number':  return '<text/>';
+        case 'scalar':  return '<ref name="nonEmptyString"/>';
+        case 'number':  return '<ref name="nonEmptyString"/>';
         case 'boolean': return '<choice><value>true</value><value>false</value></choice>';
         case 'map':     return '<ref name="mapContent"/>';
         case 'array':   return '<ref name="arrayContent"/>';

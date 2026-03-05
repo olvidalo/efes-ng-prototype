@@ -129,17 +129,17 @@ function parseInput(el: Element, variables: Map<string, any>): any {
 function parseInputChild(child: Element, variables: Map<string, any>): any {
     switch (child.localName) {
         case 'files':
-            return files(child.textContent!.trim());
+            return files(requiredText(child));
         case 'from': {
             const node = requiredAttr(child, 'node');
             const output = requiredAttr(child, 'output');
-            const glob = child.textContent!.trim() || undefined;
+            const glob = (child.textContent ?? '').trim() || undefined;
             return from(node, output, glob);
         }
         case 'collect':
-            return collect(child.textContent!.trim());
+            return collect(requiredText(child));
         case 'absolute':
-            return absolute(child.textContent!.trim());
+            return absolute(requiredText(child));
         case 'ref':
             return resolveRef(child, variables);
         default:
@@ -148,18 +148,18 @@ function parseInputChild(child: Element, variables: Map<string, any>): any {
 }
 
 function parseScalar(el: Element): string {
-    return el.textContent!.trim();
+    return requiredText(el);
 }
 
 function parseBoolean(el: Element, elementName: string, nodeName: string): boolean {
-    const text = el.textContent!.trim();
+    const text = requiredText(el);
     if (text === 'true') return true;
     if (text === 'false') return false;
     throw new Error(`Error parsing <${elementName} name="${nodeName}">: <${el.localName}> must be "true" or "false", got "${text}"`);
 }
 
 function parseNumber(el: Element, elementName: string, nodeName: string): number {
-    const text = el.textContent!.trim();
+    const text = requiredText(el);
     const n = Number(text);
     if (isNaN(n)) {
         throw new Error(`Error parsing <${elementName} name="${nodeName}">: <${el.localName}> must be a number, got "${text}"`);
@@ -170,7 +170,7 @@ function parseNumber(el: Element, elementName: string, nodeName: string): number
 function parseArray(el: Element): string[] {
     return Array.from(el.children)
         .filter(child => child.localName === 'field')
-        .map(child => child.textContent!.trim());
+        .map(child => requiredText(child));
 }
 
 /**
@@ -198,7 +198,7 @@ function parseMap(el: Element, variables: Map<string, any>): Record<string, any>
             }
         } else {
             // Plain text value
-            result[paramName] = child.textContent!.trim();
+            result[paramName] = (child.textContent ?? '').trim();
         }
     }
 
@@ -227,7 +227,7 @@ function parseOutputConfig(el: Element): Record<string, any> {
  */
 function parseVariableContent(el: Element, variables: Map<string, any>): any {
     if (el.children.length === 0) {
-        return el.textContent!.trim();
+        return requiredText(el);
     }
 
     const child = el.children[0];
@@ -238,7 +238,7 @@ function parseVariableContent(el: Element, variables: Map<string, any>): any {
         return parseMap(el, variables);
     }
 
-    return el.textContent!.trim();
+    return requiredText(el);
 }
 
 function resolveRef(el: Element, variables: Map<string, any>): any {
@@ -257,4 +257,13 @@ function requiredAttr(el: Element, attr: string): string {
         throw new Error(`<${el.localName}> requires a "${attr}" attribute`);
     }
     return value;
+}
+
+/** Get trimmed text content, throwing if empty. */
+function requiredText(el: Element): string {
+    const text = (el.textContent ?? '').trim();
+    if (!text) {
+        throw new Error(`<${el.localName}> must not be empty`);
+    }
+    return text;
 }
