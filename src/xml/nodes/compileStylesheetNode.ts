@@ -52,14 +52,9 @@ export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig,
     }
 
     async run(context: PipelineContext) {
-        const xsltPaths = await context.resolveInput(this.config.config.stylesheets);
-
-        // Resolve stubLibPath if provided
-        let resolvedStubLibPath: string | undefined;
-        if (this.config.config.stubLibPath) {
-            const resolved = await context.resolveInput(this.config.config.stubLibPath);
-            resolvedStubLibPath = resolved.length > 0 ? resolved[0] : undefined;
-        }
+        const cfg = await this.resolvedConfig(context);
+        const xsltPaths = cfg.stylesheets;
+        const resolvedStubLibPath = cfg.stubLibPath?.[0];
 
         const results = await this.withCache<"compiledStylesheet">(
             context,

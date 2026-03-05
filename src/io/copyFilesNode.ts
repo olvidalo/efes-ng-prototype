@@ -23,7 +23,8 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKe
     static readonly description = 'Copy files from source to destination, preserving directory structure. Requires an output element with a "to" attribute.';
 
     async run(context: PipelineContext) {
-        const paths = await context.resolveInput(this.config.config.sourceFiles);
+        const cfg = await this.resolvedConfig(context);
+        const paths = cfg.sourceFiles;
         const copiedFiles: string[] = [];
 
         // Validate that output directory is specified

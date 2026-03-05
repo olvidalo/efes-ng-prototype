@@ -32,6 +32,8 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
     }
 
     async run(context: PipelineContext) {
+        const cfg = await this.resolvedConfig(context);
+        // EleventyBuildNode needs the directory path, not the resolved file list
         const sourceDir = path.resolve(context.projectDir, (this.config.config.sourceDir as CollectRef).dir);
         const outputDir = this.config.outputConfig?.to ?
             path.resolve(context.projectDir, this.config.outputConfig.to) :
@@ -56,7 +58,7 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
             sourcePath: sourceDir,
             sourceDir,
             outputDir,
-            passthroughCopy: this.config.config.passthroughCopy
+            passthroughCopy: cfg.passthroughCopy ?? {}
         });
 
         this.log(context, `Eleventy build completed: ${result.outputDir}`);

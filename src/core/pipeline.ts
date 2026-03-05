@@ -93,11 +93,24 @@ export interface PipelineNodeConfig {
 }
 
 
+/** Config type with all Input fields resolved to string[]. */
+type ResolveField<F> = F extends Input ? string[] : F;
+type ResolvedConfig<T> = { [K in keyof T]: ResolveField<T[K]> };
+
 export abstract class PipelineNode<TConfig extends PipelineNodeConfig = PipelineNodeConfig, TOutput extends string = string> {
     /** Set by withCache() after each run — null if node doesn't use caching */
     cacheStats: { hits: number; total: number } | null = null;
 
+    /** Lazily resolved config — all Input refs replaced with resolved paths.
+     *  Cleared between runs (watch mode). */
+    private _resolvedConfig: Record<string, any> | null = null;
+
     constructor(public readonly config: TConfig) {
+    }
+
+    /** Clear resolved config cache (called between runs for watch mode). */
+    clearResolvedConfig(): void {
+        this._resolvedConfig = null;
     }
 
     get name() {
@@ -121,6 +134,44 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     async hashOutputFile(filePath: string): Promise<string> {
         const content = await fs.readFile(filePath);
         return crypto.createHash('sha256').update(content).digest('hex');
+    }
+
+    /**
+     * Lazily resolve all Input references in this node's config.
+     * Cached per run — subsequent calls return the same result.
+     * Input fields → string[], map fields → deep-resolved, scalars → pass through.
+     */
+    protected async resolvedConfig(context: PipelineContext): Promise<ResolvedConfig<TConfig['config']>> {
+        if (this._resolvedConfig) return this._resolvedConfig as ResolvedConfig<TConfig['config']>;
+
+        const resolved: Record<string, any> = {};
+        for (const [key, value] of Object.entries(this.config.config || {})) {
+            resolved[key] = await this.resolveConfigValue(context, value);
+        }
+        this._resolvedConfig = resolved;
+        return resolved as ResolvedConfig<TConfig['config']>;
+    }
+
+    private async resolveConfigValue(context: PipelineContext, value: any): Promise<any> {
+        if (value == null) return value;
+        if (inputIsFilesRef(value) || inputIsNodeOutputReference(value) || inputIsCollectRef(value)) {
+            return context.resolveInput(value);
+        }
+        if (isAbsolutePath(value)) {
+            return [path.resolve(context.projectDir, value.path)];
+        }
+        // Plain objects (maps) — resolve nested Input refs, unwrap single-element arrays
+        if (typeof value === 'object' && !Array.isArray(value)
+            && Object.getPrototypeOf(value) === Object.prototype) {
+            const resolved: Record<string, any> = {};
+            for (const [k, v] of Object.entries(value)) {
+                const r = await this.resolveConfigValue(context, v);
+                // Inside maps, unwrap single-element arrays for ergonomic use as params
+                resolved[k] = Array.isArray(r) && r.length === 1 ? r[0] : r;
+            }
+            return resolved;
+        }
+        return value;
     }
 
     /**
@@ -345,42 +396,46 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     }
 
     /**
-     * Walk node config, resolve all Input references, compute upstream signatures
-     * and pre-hash shared dependencies for cache validation.
+     * Build cache dependency metadata from already-resolved config.
+     * Walks raw config to categorize inputs by type, using resolved paths
+     * from this.resolvedConfig() — no re-resolution.
      */
     private async resolveCacheDeps(context: PipelineContext, items: string[]): Promise<ResolvedDeps> {
         const contentSignature = await this.getContentSignature();
         const outputDir = context.getNodeOutputDir(this.name);
 
+        const resolvedCfg = await this.resolvedConfig(context);
+
         const configDependencyPaths: string[] = [];
         const upstreamResolved = new Map<string, { ref: NodeOutputReference, paths: string[] }>();
         const pathToProducer = new Map<string, PipelineNode<any, any>>();
 
-        const processConfigValue = async (value: any) => {
-            if (inputIsFilesRef(value)) {
-                const resolvedPaths = await context.resolveInput(value);
-                configDependencyPaths.push(...resolvedPaths);
-            } else if (inputIsNodeOutputReference(value)) {
-                const resolvedPaths = await context.resolveInput(value);
-                configDependencyPaths.push(...resolvedPaths);
-                const upstreamName = typeof value.node === 'string' ? value.node : value.node.name;
-                upstreamResolved.set(upstreamName, { ref: value, paths: resolvedPaths });
+        // Walk raw config + resolved config in parallel to categorize inputs
+        const categorize = (rawValue: any, resolvedValue: any) => {
+            if (inputIsFilesRef(rawValue) || inputIsCollectRef(rawValue)) {
+                const paths = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
+                configDependencyPaths.push(...paths);
+            } else if (inputIsNodeOutputReference(rawValue)) {
+                const paths = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
+                configDependencyPaths.push(...paths);
+                const upstreamName = typeof rawValue.node === 'string' ? rawValue.node : rawValue.node.name;
+                upstreamResolved.set(upstreamName, { ref: rawValue, paths });
                 const upstreamNode = context.getNodeInstance(upstreamName);
-                for (const p of resolvedPaths) {
+                for (const p of paths) {
                     pathToProducer.set(p, upstreamNode);
                 }
-            } else if (inputIsCollectRef(value)) {
-                const resolvedPaths = await context.resolveInput(value);
-                configDependencyPaths.push(...resolvedPaths);
-            } else if (typeof value === 'object' && value !== null) {
-                for (const v of Object.values(value)) {
-                    await processConfigValue(v);
+            } else if (isAbsolutePath(rawValue)) {
+                // Static config path — not a tracked dependency
+            } else if (rawValue != null && typeof rawValue === 'object') {
+                const resolvedObj = resolvedValue ?? {};
+                for (const [k, v] of Object.entries(rawValue)) {
+                    categorize(v, resolvedObj[k]);
                 }
             }
         };
 
-        for (const value of Object.values(this.config.config || {})) {
-            await processConfigValue(value);
+        for (const [key, rawValue] of Object.entries(this.config.config || {})) {
+            categorize(rawValue, resolvedCfg[key]);
         }
 
         // Compute upstream output signatures from already-resolved paths
@@ -519,6 +574,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         });
         await context.cache.setCache(deps.contentSignature, cacheKey, cacheEntry);
     }
+
 }
 
 /** Resolved dependency information for cache validation, built once per withCache() call. */
@@ -944,6 +1000,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
      */
     private async executeNode(nodeName: string, runningNodes: Set<string>): Promise<void> {
         const node = this.graph.getNodeData(nodeName);
+        node.clearResolvedConfig();
         const nodeStart = performance.now();
         this.emit('node:start', { name: node.name });
         runningNodes.add(node.name);

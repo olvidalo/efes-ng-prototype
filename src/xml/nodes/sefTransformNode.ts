@@ -1,7 +1,4 @@
 import {
-    inputIsNodeOutputReference,
-    inputIsFilesRef,
-    isAbsolutePath,
     type PipelineContext,
     PipelineNode,
     type PipelineNodeConfig,
@@ -45,26 +42,16 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
     }
 
     async run(context: PipelineContext) {
-        // const startTime = Date.now();
+        const cfg = await this.resolvedConfig(context);
 
-        const sefStylesheetPath = (await context.resolveInput(this.config.config.sefStylesheet))[0];
-        // this.log(context, `[DEBUG] SEF stylesheet resolved in ${Date.now() - resolveStartTime}ms: ${sefStylesheetPath}`);
-
-        // this.log(context, `[DEBUG] Loading SEF stylesheet JSON...`);
-        // const loadStartTime = Date.now();
+        const sefStylesheetPath = cfg.sefStylesheet[0];
         const sefStylesheetJson = await readFile(sefStylesheetPath, 'utf-8')
         const sefStylesheet = JSON.parse(sefStylesheetJson)
-        // this.log(context, `[DEBUG] SEF stylesheet loaded in ${Date.now() - loadStartTime}ms`);
-
-        // Handle no-source mode (stylesheet uses document() for input)
-        // this.log(context, `[DEBUG] Resolving input items...`);
-        // const itemsStartTime = Date.now();
-        const sourcePaths = this.config.config.sourceFiles ?
-            await context.resolveInput(this.config.config.sourceFiles) :
-            [sefStylesheetPath];
-        // this.log(context, `[DEBUG] Input items resolved in ${Date.now() - itemsStartTime}ms: ${sourcePaths.length} file(s)`);
 
         const isNoSourceMode = !this.config.config.sourceFiles;
+        const sourcePaths = isNoSourceMode
+            ? [sefStylesheetPath]
+            : cfg.sourceFiles!;
         // this.log(context, `${isNoSourceMode ? 'Running stylesheet' : `Transforming ${sourcePaths.length} file(s)`} with ${sefStylesheetPath}`);
 
         // this.log(context, `[DEBUG] Starting withCache processing...`);
@@ -106,17 +93,17 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
 
                 // this.log(context, `[DEBUG] Resolving stylesheet params...`);
                 // const paramsStartTime = Date.now();
-                const stylesheetParams = await this.resolveStylesheetParams(context, sourcePath);
-                // this.log(context, `[DEBUG] Stylesheet params resolved in ${Date.now() - paramsStartTime}ms`);
+                const stylesheetParams = this.applyItemSubstitutions(
+                    cfg.stylesheetParams ?? {}, sourcePath
+                );
 
-                // Prepare transform options for worker (no callbacks - they're in the worker)
                 const transformOptions = {
-                    initialTemplate: this.config.config.initialTemplate,
+                    initialTemplate: cfg.initialTemplate,
                     stylesheetParams,
-                    tunnelParams: this.config.config.tunnelParams,
-                    templateParams: this.config.config.templateParams,
-                    initialMode: this.config.config.initialMode,
-                    outputProperties: this.config.config.serializationParams
+                    tunnelParams: cfg.tunnelParams ?? {},
+                    templateParams: cfg.templateParams ?? {},
+                    initialMode: cfg.initialMode,
+                    outputProperties: cfg.serializationParams ?? {}
                 };
 
                 // Execute transform in worker thread
@@ -160,24 +147,17 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
         return results.map(r => r.outputs);
     }
 
-    private async resolveStylesheetParams(context: PipelineContext, sourcePath: string): Promise<Record<string, any>> {
-        if (!this.config.config.stylesheetParams) return {};
-
-        const resolved: Record<string, any> = {};
-        for (const [key, value] of Object.entries(this.config.config.stylesheetParams)) {
+    /** Apply per-item template substitutions to already-resolved stylesheet params. */
+    private applyItemSubstitutions(params: Record<string, any>, sourcePath: string): Record<string, any> {
+        const result = { ...params };
+        const basename = path.basename(sourcePath, path.extname(sourcePath));
+        for (const [key, value] of Object.entries(result)) {
             if (typeof value === 'function') {
-                resolved[key] = value(sourcePath);
-            } else if (inputIsNodeOutputReference(value) || inputIsFilesRef(value)) {
-                const resolvedPaths = await context.resolveInput(value);
-                resolved[key] = resolvedPaths.length === 1 ? resolvedPaths[0] : resolvedPaths;
-            } else if (isAbsolutePath(value)) {
-                resolved[key] = path.resolve(context.projectDir, value.path);
-            } else {
-                resolved[key] = typeof value === 'string'
-                    ? value.replaceAll('{basename}', path.basename(sourcePath, path.extname(sourcePath)))
-                    : value;
+                result[key] = value(sourcePath);
+            } else if (typeof value === 'string') {
+                result[key] = value.replaceAll('{basename}', basename);
             }
         }
-        return resolved;
+        return result;
     }
 }

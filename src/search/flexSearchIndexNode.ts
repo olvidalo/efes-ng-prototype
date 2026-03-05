@@ -27,7 +27,8 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
     static readonly description = 'Build a FlexSearch full-text search index from per-document metadata XML files. Produces index files that can be loaded client-side for in-browser search.';
 
     async run(context: PipelineContext) {
-        const metadataFiles = await context.resolveInput(this.config.config.documents);
+        const cfg = await this.resolvedConfig(context);
+        const metadataFiles = cfg.documents;
         if (metadataFiles.length === 0) {
             throw new Error("FlexSearchIndexNode: no input files");
         }
@@ -42,10 +43,10 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
         this.log(context, `Processing ${documents.length} documents`);
 
         const indexConfig = {
-            id: this.config.config.idField,
+            id: cfg.idField,
             store: true,
-            index: this.config.config.textFields,
-            tag: this.config.config.facetFields,
+            index: cfg.textFields,
+            tag: cfg.facetFields,
         }
         const searchIndex = new FlexSearch.Document(indexConfig);
 
@@ -53,7 +54,7 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
         documents.forEach((doc: any) => {
             const indexDoc = { ...doc };
             // Flatten array values in text fields (FlexSearch expects strings)
-            for (const field of this.config.config.textFields) {
+            for (const field of cfg.textFields) {
                 if (Array.isArray(indexDoc[field])) {
                     indexDoc[field] = indexDoc[field].join(' ');
                 }

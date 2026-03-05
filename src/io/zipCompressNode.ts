@@ -23,7 +23,8 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, typeof outp
     static readonly description = 'Compress files into a single ZIP archive. Requires an output element with a "filename" attribute.';
 
     async run(context: PipelineContext) {
-        const inputPaths = await context.resolveInput(this.config.config.files);
+        const cfg = await this.resolvedConfig(context);
+        const inputPaths = cfg.files;
 
         // Validate that outputFilename is specified
         if (!this.config.outputConfig?.outputFilename) {
