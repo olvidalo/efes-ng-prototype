@@ -52,7 +52,6 @@ export function generateRngSchema(): string {
           <choice>
             <value>sequential</value>
             <value>parallel</value>
-            <value>dynamic</value>
           </choice>
         </attribute>
       </optional>

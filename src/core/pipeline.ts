@@ -558,7 +558,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         public readonly name: string,
         public readonly buildDir: string = '.efes-build',
         public readonly cacheDir: string = '.efes-cache',
-        public readonly executionMode: 'sequential' | 'parallel' | 'dynamic' = 'sequential',
+        public readonly executionMode: 'sequential' | 'parallel' = 'sequential',
         public projectDir: string = process.cwd(),
         public workerThreads: number = 8
     ) {
@@ -878,12 +878,8 @@ export class Pipeline extends EventEmitter implements PipelineContext {
             // Execute nodes based on chosen execution mode
             if (this.executionMode === 'sequential') {
                 await this.executeSequential(executionOrder, runningNodes);
-            } else if (this.executionMode === 'parallel') {
-                const waves = this.calculateWaves(executionOrder);
-                await this.executeParallel(waves, runningNodes);
             } else {
-                // dynamic mode
-                await this.executeDynamic(executionOrder, runningNodes);
+                await this.executeParallel(executionOrder, runningNodes);
             }
 
             const durationMs = performance.now() - pipelineStart;
@@ -929,29 +925,25 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     }
 
     /**
-     * Calculate dependency waves for parallel execution.
-     * Nodes in the same wave have no dependencies on each other.
+     * Run a single node: emit lifecycle events, execute, store outputs and timing.
      */
-    private calculateWaves(executionOrder: string[]): Map<number, string[]> {
-        const depths = new Map<string, number>();
-        const getDepth = (nodeName: string): number => {
-            if (depths.has(nodeName)) return depths.get(nodeName)!;
-
-            const deps = this.graph.dependenciesOf(nodeName);
-            const depth = deps.length === 0 ? 0 : Math.max(...deps.map(getDepth)) + 1;
-            depths.set(nodeName, depth);
-            return depth;
-        };
-
-        // Group nodes into waves by depth
-        const waveMap = new Map<number, string[]>();
-        for (const nodeName of executionOrder) {
-            const depth = getDepth(nodeName);
-            if (!waveMap.has(depth)) waveMap.set(depth, []);
-            waveMap.get(depth)!.push(nodeName);
+    private async executeNode(nodeName: string, runningNodes: Set<string>): Promise<void> {
+        const node = this.graph.getNodeData(nodeName);
+        const nodeStart = performance.now();
+        this.emit('node:start', { name: node.name });
+        runningNodes.add(node.name);
+        try {
+            const output = await node.run(this);
+            this.nodeOutputs.set(node.name, output);
+            const durationMs = performance.now() - nodeStart;
+            this.nodeTimings.set(node.name, durationMs);
+            this.emit('node:done', { name: node.name, durationMs, cacheStats: node.cacheStats });
+        } catch (err: any) {
+            this.emit('node:error', { name: node.name, error: err });
+            throw err;
+        } finally {
+            runningNodes.delete(node.name);
         }
-
-        return waveMap;
     }
 
     /**
@@ -963,72 +955,15 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     ): Promise<void> {
         for (const nodeName of executionOrder) {
             this.signal.throwIfAborted();
-
-            const node = this.graph.getNodeData(nodeName);
-            const nodeStart = performance.now();
-            this.emit('node:start', { name: node.name });
-
-            runningNodes.add(node.name);
-
-            try {
-                const output = await node.run(this);
-                this.nodeOutputs.set(node.name, output);
-                const durationMs = performance.now() - nodeStart;
-                this.nodeTimings.set(node.name, durationMs);
-                this.emit('node:done', { name: node.name, durationMs, cacheStats: node.cacheStats });
-            } catch (err: any) {
-                this.emit('node:error', { name: node.name, error: err });
-                throw err;
-            } finally {
-                runningNodes.delete(node.name);
-            }
+            await this.executeNode(nodeName, runningNodes);
         }
     }
 
     /**
-     * Execute nodes in parallel waves.
-     * Nodes within each wave run in parallel, waves run sequentially.
-     */
-    private async executeParallel(
-        waves: Map<number, string[]>,
-        runningNodes: Set<string>
-    ): Promise<void> {
-        const sortedWaves = Array.from(waves.entries()).sort((a, b) => a[0] - b[0]);
-
-        for (const [waveNum, nodeNames] of sortedWaves) {
-            this.signal.throwIfAborted();
-            this.log(`\n▶▶▶ Wave ${waveNum}: ${nodeNames.length} node(s) - ${nodeNames.join(', ')}`);
-
-            await Promise.all(nodeNames.map(async (nodeName) => {
-                const node = this.graph.getNodeData(nodeName);
-                const nodeStart = performance.now();
-                this.emit('node:start', { name: node.name });
-
-                runningNodes.add(node.name);
-
-                try {
-                    const output = await node.run(this);
-                    this.nodeOutputs.set(node.name, output);
-                    const durationMs = performance.now() - nodeStart;
-                    this.nodeTimings.set(node.name, durationMs);
-                    this.emit('node:done', { name: node.name, durationMs, cacheStats: node.cacheStats });
-                } catch (err: any) {
-                    this.emit('node:error', { name: node.name, error: err });
-                    throw err;
-                } finally {
-                    runningNodes.delete(node.name);
-                }
-            }));
-
-            this.log(`  ✓ Wave ${waveNum} complete`);
-        }
-    }
-
-    /**
-     * Execute nodes dynamically based on dependency readiness.
+     * Execute nodes in parallel based on dependency readiness.
      * Nodes start as soon as all their dependencies complete, maximizing parallelism.
      */
-    private async executeDynamic(
+    private async executeParallel(
         executionOrder: string[],
         runningNodes: Set<string>
     ): Promise<void> {
@@ -1037,38 +972,23 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         const pending = new Set(executionOrder);
         const errors: Error[] = [];
 
-        // Helper: Check if node's dependencies are all complete
         const isReady = (nodeName: string): boolean => {
             const deps = this.graph.dependenciesOf(nodeName);
             return deps.every(dep => completed.has(dep));
         };
 
-        // Helper: Run a single node
         const runNode = async (nodeName: string): Promise<void> => {
-            const node = this.graph.getNodeData(nodeName);
-            const nodeStart = performance.now();
-            this.emit('node:start', { name: node.name });
-
-            runningNodes.add(node.name);
-
             try {
-                const output = await node.run(this);
-                this.nodeOutputs.set(node.name, output);
-                const durationMs = performance.now() - nodeStart;
-                this.nodeTimings.set(node.name, durationMs);
-                this.emit('node:done', { name: node.name, durationMs, cacheStats: node.cacheStats });
+                await this.executeNode(nodeName, runningNodes);
             } catch (err: any) {
-                this.emit('node:error', { name: node.name, error: err });
                 errors.push(err);
                 throw err;
             } finally {
-                runningNodes.delete(node.name);
                 inProgress.delete(nodeName);
                 completed.add(nodeName);
             }
         };
 
-        // Start all ready nodes (non-blocking)
         const startReadyNodes = (): void => {
             if (this.signal.aborted) return;
             for (const nodeName of pending) {
@@ -1076,7 +996,6 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                     pending.delete(nodeName);
                     inProgress.add(nodeName);
 
-                    // Run node and check for newly ready nodes when complete
                     runNode(nodeName)
                         .then(() => {
                             if (errors.length === 0) {
@@ -1084,13 +1003,12 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                             }
                         })
                         .catch(() => {
-                            // Error already logged in runNode, don't start new nodes
+                            // Error already handled in runNode
                         });
                 }
             }
         };
 
-        // Initial kick-off
         startReadyNodes();
 
         // Wait for all nodes to complete, error, or cancel
@@ -1102,7 +1020,6 @@ export class Pipeline extends EventEmitter implements PipelineContext {
             this.signal.throwIfAborted();
         }
 
-        // If there were errors, throw the first one
         if (errors.length > 0) {
             throw errors[0];
         }

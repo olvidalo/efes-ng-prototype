@@ -31,7 +31,7 @@ export function parsePipelineXml(xml: string): Pipeline {
     const name = requiredAttr(root, 'name');
     const buildDir = root.getAttribute('buildDir') ?? '.efes-build';
     const cacheDir = root.getAttribute('cacheDir') ?? '.efes-cache';
-    const executionMode = (root.getAttribute('executionMode') ?? 'dynamic') as 'sequential' | 'parallel' | 'dynamic';
+    const executionMode = (root.getAttribute('executionMode') ?? 'parallel') as 'sequential' | 'parallel';
 
     const pipeline = new Pipeline(name, buildDir, cacheDir, executionMode);
 
