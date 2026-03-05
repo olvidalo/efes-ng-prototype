@@ -320,10 +320,9 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 configDependencyPaths.push(...resolvedPaths);
                 const upstreamName = typeof value.node === 'string' ? value.node : value.node.name;
                 upstreamResolved.set(upstreamName, { ref: value, paths: resolvedPaths });
-                if (typeof value.node !== 'string') {
-                    for (const p of resolvedPaths) {
-                        pathToProducer.set(p, value.node);
-                    }
+                const upstreamNode = context.getNodeInstance(upstreamName);
+                for (const p of resolvedPaths) {
+                    pathToProducer.set(p, upstreamNode);
                 }
             } else if (inputIsCollectRef(value)) {
                 // collect() reference - resolve to file paths for cache tracking
@@ -542,6 +541,7 @@ export interface PipelineContext {
     getNodeOutputDir(nodeName: string): string;
     stripBuildPrefix(inputPath: string): string;
     getNodeOutputs(nodeName: string): NodeOutput<any>[] | undefined;
+    getNodeInstance(nodeName: string): PipelineNode;
 }
 
 export class Pipeline extends EventEmitter {
@@ -748,12 +748,9 @@ export class Pipeline extends EventEmitter {
                 const findNodeReferences = (obj: any, path: string = 'config') => {
                     if (inputIsCollectRef(obj) || inputIsFilesRef(obj)) return;  // handled elsewhere
                     if (inputIsNodeOutputReference(obj)) {
-                        // Resolve string refs to node instances
-                        if (typeof obj.node === 'string') {
-                            obj.node = this.graph.getNodeData(obj.node);
-                        }
+                        const depName = typeof obj.node === 'string' ? obj.node : obj.node.name;
                         try {
-                            this.graph.addDependency(node.name, obj.node.name);
+                            this.graph.addDependency(node.name, depName);
                         } catch (err: any) {
                             throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err.message}`);
                         }
@@ -867,6 +864,7 @@ export class Pipeline extends EventEmitter {
             stripBuildPrefix: (inputPath: string): string => this.stripBuildPrefix(inputPath),
             getNodeOutputDir: (nodeName: string): string => this.getNodeOutputDir(nodeName),
             getNodeOutputs: (nodeName: string) => this.nodeOutputs.get(nodeName),
+            getNodeInstance: (nodeName: string) => this.graph.getNodeData(nodeName),
             progress: (nodeName: string, completed: number, total: number) => {
                 this.emit('node:progress', { name: nodeName, completed, total });
             }
