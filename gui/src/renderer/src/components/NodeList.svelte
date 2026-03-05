@@ -157,6 +157,7 @@
         class:nested={depth > 0}
         style:padding-left="{4 + depth * 16}px"
         onclick={() => onSelectNode?.(selectedNode === node.name ? null : node.name)}
+        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectNode?.(selectedNode === node.name ? null : node.name) }}}
         role="button"
         tabindex="0"
       >

@@ -54,6 +54,11 @@ function createPipelineState() {
         addLog(`Pipeline completed in ${(event.durationMs / 1000).toFixed(2)}s`)
         break
 
+      case 'pipeline:cancelled':
+        phase = 'watching'
+        addLog('Build cancelled')
+        break
+
       case 'node:start': {
         const node = nodes.find((n) => n.name === event.name)
         if (node) node.status = 'running'

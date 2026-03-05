@@ -100,7 +100,7 @@
 </script>
 
 <aside class="inspector" class:dragging style:width="{panelWidth}px" style:min-width="{panelWidth}px" aria-label="Node inspector">
-  <div class="resize-handle" onmousedown={onResizeStart}></div>
+  <button class="resize-handle" aria-label="Resize panel" onmousedown={onResizeStart}></button>
   <div class="inspector-content">
     <header>
       <div class="header-top">
@@ -155,12 +155,13 @@
                       <ul class="file-list">
                         {#each visibleFiles(key, info.outputs[key]) as filePath, i}
                           {@const expandId = `file:${key}:${i}`}
-                          <li
-                            class="file-entry expandable"
-                            class:expanded={expandedValues[expandId]}
-                            title={filePath}
-                            onclick={() => expandedValues[expandId] = !expandedValues[expandId]}
-                          >{filePath}</li>
+                          <li class="file-entry" class:expanded={expandedValues[expandId]}>
+                            <button
+                              class="expand-btn"
+                              title={filePath}
+                              onclick={() => expandedValues[expandId] = !expandedValues[expandId]}
+                            >{filePath}</button>
+                          </li>
                         {/each}
                       </ul>
                       {#if info.outputs[key].length > FILE_PREVIEW_LIMIT}
@@ -183,12 +184,12 @@
         <section>
           <div class="output-dir-row">
             <span class="output-dir-label">Output dir</span>
-            <span
-              class="output-dir-path expandable"
+            <button
+              class="output-dir-path expand-btn"
               class:expanded={expandedValues['outputDir']}
               title={info.outputDir}
               onclick={() => expandedValues['outputDir'] = !expandedValues['outputDir']}
-            >{info.outputDir}</span>
+            >{info.outputDir}</button>
           </div>
         </section>
 
@@ -231,12 +232,14 @@
                   {#each Object.entries(info.config) as [key, value]}
                     <div class="config-row">
                       <dt>{key}</dt>
-                      <dd
-                        class="expandable"
-                        class:expanded={expandedValues[`cfg:${key}`]}
-                        title={formatConfigValue(value)}
-                        onclick={() => expandedValues[`cfg:${key}`] = !expandedValues[`cfg:${key}`]}
-                      >{formatConfigValue(value)}</dd>
+                      <dd>
+                        <button
+                          class="expand-btn"
+                          class:expanded={expandedValues[`cfg:${key}`]}
+                          title={formatConfigValue(value)}
+                          onclick={() => expandedValues[`cfg:${key}`] = !expandedValues[`cfg:${key}`]}
+                        >{formatConfigValue(value)}</button>
+                      </dd>
                     </div>
                   {/each}
                 </dl>
@@ -280,6 +283,9 @@
     cursor: col-resize;
     flex-shrink: 0;
     position: relative;
+    background: none;
+    border: none;
+    padding: 0;
   }
 
   .resize-handle::after {
@@ -507,18 +513,7 @@
   }
 
   .file-entry {
-    font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
-    font-size: 11px;
-    color: var(--color-text-2);
     padding: 1.5px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: color 0.1s;
-  }
-
-  .file-entry:hover {
-    color: var(--color-text);
   }
 
   .show-all-btn {
@@ -627,31 +622,34 @@
   }
 
   .config-row dd {
+    margin: 0;
+    min-width: 0;
+  }
+
+  /* ── Click-to-expand buttons ── */
+
+  .expand-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
     font-size: 11px;
     color: var(--color-text-2);
-    margin: 0;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .config-row dd:hover {
-    color: var(--color-text);
-  }
-
-  /* ── Click-to-expand ── */
-
-  .expandable {
-    cursor: pointer;
     transition: color 0.1s;
   }
 
-  .expandable:hover {
+  .expand-btn:hover {
     color: var(--color-text);
   }
 
-  .expandable.expanded {
+  .expand-btn.expanded {
     white-space: normal;
     word-break: break-all;
     overflow: visible;

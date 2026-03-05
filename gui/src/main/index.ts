@@ -53,6 +53,10 @@ ipcMain.handle('pipeline:watch', async () => {
   return manager!.startWatch()
 })
 
+ipcMain.handle('pipeline:cancel', async () => {
+  return manager!.cancelBuild()
+})
+
 ipcMain.handle('pipeline:stop-watch', async () => {
   return manager!.stopWatch()
 })

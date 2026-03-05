@@ -485,6 +485,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         if (cacheMisses.length > 0) {
             context.log(`Processing ${cacheMisses.length} cache misses`);
             const workPromises = cacheMisses.map(async ({item, cacheKey, index}) => {
+                context.signal.throwIfAborted();
                 const processed = await performWork(item);
                 completedCount++;
                 context.progress(this.name, completedCount, items.length);
@@ -536,6 +537,7 @@ export interface PipelineContext {
     /** Report item-level progress within a node (e.g. 3 of 50 files processed) */
     progress(nodeName: string, completed: number, total: number): void;
 
+    signal: AbortSignal;
     cache: CacheManager;
     buildDir: string;
     projectDir: string;
@@ -554,6 +556,7 @@ export class Pipeline extends EventEmitter {
     private _cache: CacheManager | null = null;
     private workerPool: WorkerPool | null = null;
     private needsWiring = false;
+    private abortController: AbortController | null = null;
 
     constructor(
         public readonly name: string,
@@ -778,6 +781,7 @@ export class Pipeline extends EventEmitter {
         // Clear state from previous runs (for re-entrant watch mode)
         this.nodeOutputs.clear();
         this.nodeTimings.clear();
+        this.abortController = new AbortController();
 
         const workerPool = this.getOrCreateWorkerPool();
         const pipelineStart = performance.now();
@@ -833,6 +837,7 @@ export class Pipeline extends EventEmitter {
                 return resultPromise;
             },
             log: (message: string) => console.log(`  [${this.name}] ${message}`),
+            signal: this.abortController!.signal,
             cache: this.cache,
             buildDir: this.buildDir,
             projectDir: this.projectDir,
@@ -889,8 +894,29 @@ export class Pipeline extends EventEmitter {
                 .sort((a, b) => b[1] - a[1]);
 
             this.emit('pipeline:done', { name: this.name, durationMs, timings });
+        } catch (err: any) {
+            if (err.name === 'AbortError') {
+                this.emit('pipeline:cancelled', { name: this.name });
+                return;
+            }
+            throw err;
         } finally {
+            this.abortController = null;
             clearInterval(supervisorInterval);
+        }
+    }
+
+    /**
+     * Cancel a running pipeline. Stops new nodes/items from starting,
+     * terminates in-flight workers, and makes run() return with a
+     * 'pipeline:cancelled' event instead of 'pipeline:done'.
+     */
+    async cancel(): Promise<void> {
+        if (!this.abortController) return;
+        this.abortController.abort();
+        if (this.workerPool) {
+            await this.workerPool.terminate();
+            this.workerPool = null;
         }
     }
 
@@ -940,6 +966,8 @@ export class Pipeline extends EventEmitter {
         runningNodes: Set<string>
     ): Promise<void> {
         for (const nodeName of executionOrder) {
+            context.signal.throwIfAborted();
+
             const node = this.graph.getNodeData(nodeName);
             const nodeStart = performance.now();
             this.emit('node:start', { name: node.name });
@@ -973,6 +1001,7 @@ export class Pipeline extends EventEmitter {
         const sortedWaves = Array.from(waves.entries()).sort((a, b) => a[0] - b[0]);
 
         for (const [waveNum, nodeNames] of sortedWaves) {
+            context.signal.throwIfAborted();
             context.log(`\n▶▶▶ Wave ${waveNum}: ${nodeNames.length} node(s) - ${nodeNames.join(', ')}`);
 
             await Promise.all(nodeNames.map(async (nodeName) => {
@@ -1047,6 +1076,7 @@ export class Pipeline extends EventEmitter {
 
         // Start all ready nodes (non-blocking)
         const startReadyNodes = (): void => {
+            if (context.signal.aborted) return;
             for (const nodeName of pending) {
                 if (!inProgress.has(nodeName) && isReady(nodeName)) {
                     pending.delete(nodeName);
@@ -1069,9 +1099,13 @@ export class Pipeline extends EventEmitter {
         // Initial kick-off
         startReadyNodes();
 
-        // Wait for all nodes to complete or error
-        while (inProgress.size > 0 || (pending.size > 0 && errors.length === 0)) {
+        // Wait for all nodes to complete, error, or cancel
+        while (inProgress.size > 0 || (pending.size > 0 && errors.length === 0 && !context.signal.aborted)) {
             await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        if (context.signal.aborted) {
+            context.signal.throwIfAborted();
         }
 
         // If there were errors, throw the first one

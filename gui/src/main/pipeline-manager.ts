@@ -77,6 +77,11 @@ export class PipelineManager {
     })
   }
 
+  async cancelBuild(): Promise<void> {
+    if (!this.pipeline) throw new Error('No pipeline loaded')
+    await this.pipeline.cancel()
+  }
+
   async stopWatch(): Promise<void> {
     if (this.watcher) {
       await this.watcher.stop()

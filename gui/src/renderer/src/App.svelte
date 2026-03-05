@@ -59,6 +59,14 @@
     }
   }
 
+  async function handleCancel() {
+    try {
+      await window.api.cancelBuild()
+    } catch (err: any) {
+      pipelineState.addLog(`Cancel failed: ${err.message}`)
+    }
+  }
+
   async function handleStop() {
     try {
       await window.api.stopWatch()
@@ -95,6 +103,7 @@
     onOpenProject={handleOpenProject}
     onStart={handleStart}
     onStop={handleStop}
+    onCancel={handleCancel}
     onClean={handleClean}
     onOpenPreview={handleOpenPreview}
   />

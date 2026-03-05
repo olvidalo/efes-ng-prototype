@@ -5,6 +5,7 @@ const api = {
   openProject: (): Promise<{ name: string; nodeNames: string[]; serverUrl: string } | null> =>
     ipcRenderer.invoke('pipeline:open-project'),
   startWatch: (): Promise<void> => ipcRenderer.invoke('pipeline:watch'),
+  cancelBuild: (): Promise<void> => ipcRenderer.invoke('pipeline:cancel'),
   stopWatch: (): Promise<void> => ipcRenderer.invoke('pipeline:stop-watch'),
   clean: (): Promise<void> => ipcRenderer.invoke('pipeline:clean'),
   openNodeOutput: (nodeName: string): Promise<void> =>

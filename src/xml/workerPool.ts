@@ -96,10 +96,19 @@ export class WorkerPool {
     }
 
     async terminate() {
+        // Reject queued jobs
+        for (const job of this.queue) {
+            job.reject(new Error('Worker pool terminated'));
+        }
+        this.queue = [];
+        // Reject active jobs before killing workers
+        for (const [, job] of this.activeJobs) {
+            job.reject(new Error('Worker pool terminated'));
+        }
+        this.activeJobs.clear();
+        // Kill workers
         await Promise.all(this.workers.map(w => w.terminate()));
         this.workers = [];
         this.workerIds.clear();
-        this.activeJobs.clear();
-        this.queue = [];
     }
 }

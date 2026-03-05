@@ -6,6 +6,7 @@
     onOpenProject: () => void
     onStart: () => void
     onStop: () => void
+    onCancel: () => void
     onClean: () => void
     onOpenPreview: () => void
   }
@@ -17,6 +18,7 @@
     onOpenProject,
     onStart,
     onStop,
+    onCancel,
     onClean,
     onOpenPreview
   }: Props = $props()
@@ -25,8 +27,10 @@
 <div class="toolbar">
   <button onclick={onOpenProject}>Open Project</button>
 
-  {#if phase === 'building' || phase === 'watching'}
-    <button onclick={onStop} disabled={phase === 'building'}>Stop</button>
+  {#if phase === 'building'}
+    <button onclick={onCancel}>Cancel</button>
+  {:else if phase === 'watching'}
+    <button onclick={onStop}>Stop</button>
   {:else}
     <button onclick={onStart} disabled={phase === 'idle'}>Start</button>
   {/if}
