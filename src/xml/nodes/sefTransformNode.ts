@@ -174,10 +174,9 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
                 resolved[key] = value(sourcePath);
             } else if (inputIsNodeOutputReference(value) || inputIsFilesRef(value)) {
                 const resolvedPaths = await context.resolveInput(value);
-                const absolutePaths = resolvedPaths.map(p => path.resolve(p));
-                resolved[key] = absolutePaths.length === 1 ? absolutePaths[0] : absolutePaths;
+                resolved[key] = resolvedPaths.length === 1 ? resolvedPaths[0] : resolvedPaths;
             } else if (isAbsolutePath(value)) {
-                resolved[key] = path.resolve(value.path);
+                resolved[key] = path.resolve(context.projectDir, value.path);
             } else {
                 resolved[key] = typeof value === 'string'
                     ? value.replaceAll('{basename}', path.basename(sourcePath, path.extname(sourcePath)))

@@ -59,7 +59,7 @@ export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig,
         let resolvedStubLibPath: string | undefined;
         if (this.config.config.stubLibPath) {
             const resolved = await context.resolveInput(this.config.config.stubLibPath);
-            resolvedStubLibPath = resolved.length > 0 ? path.resolve(resolved[0]) : undefined;
+            resolvedStubLibPath = resolved.length > 0 ? resolved[0] : undefined;
         }
 
         const results = await this.withCache<"compiledStylesheet">(

@@ -301,7 +301,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         }>
     ): Promise<Array<{ item: string, outputs: NodeOutput<TOutput>, cached: boolean }>> {
         const contentSignature = await this.getContentSignature(context);
-        const outputDir = (this.config.outputConfig as any)?.to ?? path.join(context.buildDir, this.name);
+        const outputDir = context.getNodeOutputDir(this.name);
 
         // Resolve all Input values in config for cache dependency tracking
         const configDependencyPaths: string[] = [];
@@ -551,7 +551,7 @@ export class Pipeline extends EventEmitter {
     private graph = new DepGraph<PipelineNode>();
     private nodeOutputs = new Map<string, NodeOutput<any>[]>;
     private nodeTimings = new Map<string, number>();
-    private cache: CacheManager;
+    private _cache: CacheManager | null = null;
     private workerPool: WorkerPool | null = null;
     private needsWiring = false;
 
@@ -564,8 +564,14 @@ export class Pipeline extends EventEmitter {
         public workerThreads: number = 8
     ) {
         super();
-        this.cache = new CacheManager(path.resolve(this.projectDir, cacheDir));
         this.installDefaultListeners();
+    }
+
+    get cache(): CacheManager {
+        if (!this._cache) {
+            this._cache = new CacheManager(path.resolve(this.projectDir, this.cacheDir));
+        }
+        return this._cache;
     }
 
     private installDefaultListeners(): void {
@@ -1131,14 +1137,15 @@ export class Pipeline extends EventEmitter {
                     }
                     throw new Error(`No files found for pattern: ${pattern}`);
                 }
-                results.push(...matches);
+                results.push(...matches.map(m => path.resolve(this.projectDir, m)));
             }
             return results;
         }
 
         // Collect references (intermediate directory assembled by multiple nodes)
         if (inputIsCollectRef(input)) {
-            return glob(path.join(input.dir, '**/*'), { nodir: true, cwd: this.projectDir });
+            const matches = await glob(path.join(input.dir, '**/*'), { nodir: true, cwd: this.projectDir });
+            return matches.map(m => path.resolve(this.projectDir, m));
         }
 
         throw new Error(`Unknown input type: ${JSON.stringify(input)}`);
