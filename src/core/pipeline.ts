@@ -482,6 +482,8 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         }
 
         // Phase 2: Work execution (parallel) - process all cache misses concurrently
+        // Cache entries are written per-item as they complete (not batched), so cancelled
+        // builds retain progress from already-finished items.
         if (cacheMisses.length > 0) {
             context.log(`Processing ${cacheMisses.length} cache misses`);
             const workPromises = cacheMisses.map(async ({item, cacheKey, index}) => {
@@ -490,7 +492,6 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 completedCount++;
                 context.progress(this.name, completedCount, items.length);
 
-                // Build unified cache entry (using pre-computed shared hashes)
                 const cacheEntry = await context.cache.buildCacheEntry({
                     itemPaths: [item],
                     outputsByKey: processed.outputs,
@@ -501,20 +502,14 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                     upstreamOutputSignatures,
                     precomputedHashes: sharedFileHashes,
                 });
+                await context.cache.setCache(contentSignature, cacheKey, cacheEntry);
 
-                return {index, item, processed, cacheEntry, cacheKey};
+                results[index] = {item, outputs: processed.outputs, cached: false};
             });
 
             context.log(`Awaiting completion of ${workPromises.length} work items`);
-            const processedItems = await Promise.all(workPromises);
-            context.log(`Work completed, storing ${processedItems.length} cache entries`);
-
-            // Phase 3: Cache storage (parallel) - save cache entries
-            await Promise.all(processedItems.map(async ({index, item, processed, cacheEntry, cacheKey}) => {
-                await context.cache.setCache(contentSignature, cacheKey, cacheEntry);
-                results[index] = {item, outputs: processed.outputs, cached: false};
-            }));
-            context.log(`Cache storage complete`);
+            await Promise.all(workPromises);
+            context.log(`Work completed`);
         }
 
         // TODO: Consider adding stale output cleanup here. When source files are deleted,
