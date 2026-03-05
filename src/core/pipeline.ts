@@ -288,7 +288,11 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         return `${this.constructor.name}-${hash.substring(0, 8)}`;
     }
 
-    // Unified caching for single or multiple items
+    /**
+     * Unified caching for single or multiple items.
+     * Phase 1: Sequential cache check for all items.
+     * Phase 2: Parallel work dispatch for all cache misses.
+     */
     protected async withCache<TOutput extends string>(
         context: PipelineContext,
         items: string[],
@@ -299,22 +303,64 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             discoveredDependencies?: string[];
         }>
     ): Promise<Array<{ item: string, outputs: NodeOutput<TOutput>, cached: boolean }>> {
+        const deps = await this.resolveCacheDeps(context, items);
+        const cacheKeys = items.map(getCacheKey);
+        const hashFile = this.buildHashFile(deps, context.cache);
+
+        context.log(`Cache lookup - contentSignature: ${deps.contentSignature}`);
+
+        // Phase 1: Sequential cache validation
+        const results: Array<{ item: string, outputs: NodeOutput<TOutput>, cached: boolean }> = [];
+        const misses: Array<{ index: number, item: string, cacheKey: string }> = [];
+
+        let completed = 0;
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const cached = await this.tryFromCache(context, item, cacheKeys[i], deps, getOutputPath, hashFile);
+            if (cached) {
+                context.log(`  - Skipping: ${item} (cached)`);
+                completed++;
+                context.progress(this.name, completed, items.length);
+                results[i] = { item, outputs: cached as NodeOutput<TOutput>, cached: true };
+            } else {
+                misses.push({ index: i, item, cacheKey: cacheKeys[i] });
+            }
+        }
+
+        // Phase 2: Parallel work dispatch for all misses
+        if (misses.length > 0) {
+            context.log(`Processing ${misses.length} cache misses`);
+            await Promise.all(misses.map(async ({ index, item, cacheKey }) => {
+                context.signal.throwIfAborted();
+                const result = await performWork(item);
+                completed++;
+                context.progress(this.name, completed, items.length);
+                await this.storeCacheEntry(context, cacheKey, item, result, deps);
+                results[index] = { item, outputs: result.outputs as NodeOutput<TOutput>, cached: false };
+            }));
+        }
+
+        this.cacheStats = { hits: results.filter(r => r.cached).length, total: results.length };
+        return results;
+    }
+
+    /**
+     * Walk node config, resolve all Input references, compute upstream signatures
+     * and pre-hash shared dependencies for cache validation.
+     */
+    private async resolveCacheDeps(context: PipelineContext, items: string[]): Promise<ResolvedDeps> {
         const contentSignature = await this.getContentSignature();
         const outputDir = context.getNodeOutputDir(this.name);
 
-        // Resolve all Input values in config for cache dependency tracking
         const configDependencyPaths: string[] = [];
         const upstreamResolved = new Map<string, { ref: NodeOutputReference, paths: string[] }>();
-        // Track which upstream node produced each file path (for custom hash dispatch)
         const pathToProducer = new Map<string, PipelineNode<any, any>>();
 
         const processConfigValue = async (value: any) => {
             if (inputIsFilesRef(value)) {
-                // files() reference - resolve to file paths
                 const resolvedPaths = await context.resolveInput(value);
                 configDependencyPaths.push(...resolvedPaths);
             } else if (inputIsNodeOutputReference(value)) {
-                // from() reference - resolve to file paths AND track upstream node
                 const resolvedPaths = await context.resolveInput(value);
                 configDependencyPaths.push(...resolvedPaths);
                 const upstreamName = typeof value.node === 'string' ? value.node : value.node.name;
@@ -324,11 +370,9 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                     pathToProducer.set(p, upstreamNode);
                 }
             } else if (inputIsCollectRef(value)) {
-                // collect() reference - resolve to file paths for cache tracking
                 const resolvedPaths = await context.resolveInput(value);
                 configDependencyPaths.push(...resolvedPaths);
             } else if (typeof value === 'object' && value !== null) {
-                // Recursively process object values (plain config objects, arrays)
                 for (const v of Object.values(value)) {
                     await processConfigValue(v);
                 }
@@ -340,13 +384,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         }
 
         // Compute upstream output signatures from already-resolved paths
-        const upstreamOutputSignatures: {
-            [nodeName: string]: {
-                signature: string;
-                outputKey: string;
-                glob?: string;
-            };
-        } = {};
+        const upstreamOutputSignatures: ResolvedDeps['upstreamOutputSignatures'] = {};
         for (const [nodeName, { ref, paths }] of upstreamResolved.entries()) {
             upstreamOutputSignatures[nodeName] = {
                 signature: CacheManager.computeOutputSignature(paths),
@@ -355,20 +393,14 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             };
         }
 
-
-        const cacheKeys = items.map(getCacheKey);
-        context.log(`Cache lookup - contentSignature: ${contentSignature}`);
-
-        // Items are already tracked per-entry (source: 'item') by buildCacheEntry.
-        // Tracking them ALSO as shared fileRefs would cause one item's change
-        // to invalidate ALL items. Filter them out.
+        // Items are tracked per-entry by buildCacheEntry. Tracking them ALSO as shared
+        // fileRefs would cause one item's change to invalidate ALL items. Filter them out.
         const itemSet = new Set(items);
         const sharedDependencyPaths = configDependencyPaths.filter(p => !itemSet.has(p));
 
-        // Pre-compute hashes for shared dependencies (fileRefs) - these are the same for all items
-        // Avoids hashing the same stylesheet 2360 times
-        // Uses upstream node's hashOutputFile() when available (e.g., strips SEF timestamps)
-        const sharedFileHashes = new Map<string, {hash: string, timestamp: number}>();
+        // Pre-compute hashes for shared dependencies (e.g. stylesheets) — avoids
+        // hashing the same file N times (once per item)
+        const sharedFileHashes = new Map<string, { hash: string; timestamp: number }>();
         if (sharedDependencyPaths.length > 0) {
             context.log(`Pre-computing hashes for ${sharedDependencyPaths.length} shared dependencies`);
             await Promise.all(sharedDependencyPaths.map(async (filePath) => {
@@ -385,141 +417,128 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             }));
         }
 
-        // NOTE: Cache validation could be parallelized with Promise.all() for potential speedup
-        // on workloads with high cache hit rates (80%+) and slow I/O. However, testing showed
-        // that for typical workloads (low cache hit rate, fast SSD), the Promise coordination
-        // overhead outweighs benefits. Parallelizing the actual work (via worker threads) is
-        // more impactful than parallelizing cache validation.
-
-        // Phase 1: Cache validation (sequential) - identify cache hits and misses
-        const results = [];
-        const cacheMisses: Array<{item: string, cacheKey: string, index: number}> = [];
-        let completedCount = 0;
-        const hashMemo = new Map<string, string>();
-
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const cacheKey = cacheKeys[i];
-
-            const cached = await context.cache.getCache(contentSignature, cacheKey);
-            if (!cached) {
-                cacheMisses.push({item, cacheKey, index: i});
-                results[i] = null; // Placeholder
-                continue;
-            }
-
-            // Recalculate expected paths based on CURRENT config
-            const cachedBaseDir = cached.outputBaseDir;
-            const newBaseDir = outputDir;
-            const newOutputsByKey: Record<TOutput, string[]> = {} as Record<TOutput, string[]>;
-
-            for (const [outputKey, cachedPaths] of Object.entries(cached.outputsByKey)) {
-                // Try to recalculate path using current config
-                const recalculatedPath = getOutputPath(item, outputKey as TOutput);
-
-                if (recalculatedPath !== undefined) {
-                    // Can recalculate (primary outputs) - use current config
-                    newOutputsByKey[outputKey as TOutput] = [recalculatedPath];
-                } else {
-                    // Can't recalculate (secondary outputs) - reconstruct from cached structure
-                    const newPaths: string[] = [];
-                    for (const cachedPath of cachedPaths) {
-                        // Extract relative path from cached base directory
-                        const relativePath = path.relative(cachedBaseDir, cachedPath);
-
-                        // Validate: ensure path doesn't escape (no ../ at start)
-                        if (relativePath.startsWith('..')) {
-                            throw new Error(`Cached output path escapes base directory: ${cachedPath} (base: ${cachedBaseDir})`);
-                        }
-
-                        // Reconstruct path in new base directory
-                        const expectedPath = path.join(newBaseDir, relativePath);
-                        newPaths.push(expectedPath);
-                    }
-                    newOutputsByKey[outputKey as TOutput] = newPaths;
-                }
-            }
-
-            // Validate dependencies (regardless of where outputs currently are)
-            // Build hashFile callback that dispatches to upstream node's hashOutputFile()
-            // Memoized: shared dependencies (e.g. SEF files) are hashed once, not per-item
-            const hashFile = async (fp: string): Promise<string> => {
-                let result = hashMemo.get(fp);
-                if (result) return result;
-                const producer = pathToProducer.get(fp);
-                result = await (producer ? producer.hashOutputFile(fp) : context.cache.computeFileHash(fp));
-                hashMemo.set(fp, result);
-                return result;
-            };
-            const dependenciesValid = await context.cache.isValid(cached, context.resolveInput.bind(context), hashFile);
-
-            if (!dependenciesValid) {
-                // context.log(`  - Cache miss for ${item}: dependencies changed`);
-                cacheMisses.push({item, cacheKey, index: i});
-                results[i] = null; // Placeholder
-            } else {
-                // Copy files if needed (cross-node reuse)
-                // TODO: Could optimize by checking if file already exists at expectedPath with same hash
-                for (const [outputKey, cachedPaths] of Object.entries(cached.outputsByKey)) {
-                    const expectedPaths = newOutputsByKey[outputKey as TOutput];
-                    for (let j = 0; j < cachedPaths.length; j++) {
-                        const cachedPath = cachedPaths[j];
-                        const expectedPath = expectedPaths[j];
-                        if (cachedPath !== expectedPath) {
-                            // Cross-node reuse - copy to expected location
-                            await context.cache.copyToExpectedPath(cachedPath, expectedPath);
-                        }
-                    }
-                }
-
-                context.log(`  - Skipping: ${item} (cached)`);
-                results[i] = {item, outputs: newOutputsByKey, cached: true};
-                completedCount++;
-                context.progress(this.name, completedCount, items.length);
-            }
-        }
-
-        // Phase 2: Work execution (parallel) - process all cache misses concurrently
-        // Cache entries are written per-item as they complete (not batched), so cancelled
-        // builds retain progress from already-finished items.
-        if (cacheMisses.length > 0) {
-            context.log(`Processing ${cacheMisses.length} cache misses`);
-            const workPromises = cacheMisses.map(async ({item, cacheKey, index}) => {
-                context.signal.throwIfAborted();
-                const processed = await performWork(item);
-                completedCount++;
-                context.progress(this.name, completedCount, items.length);
-
-                const cacheEntry = await context.cache.buildCacheEntry({
-                    itemPaths: [item],
-                    outputsByKey: processed.outputs,
-                    outputBaseDir: outputDir,
-                    itemKey: cacheKey,
-                    discoveredDependencies: processed.discoveredDependencies,
-                    fileRefPaths: sharedDependencyPaths,
-                    upstreamOutputSignatures,
-                    precomputedHashes: sharedFileHashes,
-                });
-                await context.cache.setCache(contentSignature, cacheKey, cacheEntry);
-
-                results[index] = {item, outputs: processed.outputs, cached: false};
-            });
-
-            context.log(`Awaiting completion of ${workPromises.length} work items`);
-            await Promise.all(workPromises);
-            context.log(`Work completed`);
-        }
-
-        // TODO: Consider adding stale output cleanup here. When source files are deleted,
-        // their intermediate outputs persist and downstream nodes (e.g. Eleventy) publish
-        // stale content. A manifest-based approach (track outputs per node, diff between runs,
-        // delete orphans) would work for nodes with known output paths, but not for nodes
-        // like EleventyBuildNode that delegate to external tools writing unknown file sets.
-
-        const final = results.filter(r => r !== null);
-        this.cacheStats = { hits: final.filter(r => r.cached).length, total: final.length };
-        return final;
+        return {
+            contentSignature, outputDir, pathToProducer,
+            upstreamOutputSignatures, sharedDependencyPaths, sharedFileHashes,
+        };
     }
+
+    /**
+     * Build a memoized hashFile callback that dispatches to upstream node's
+     * hashOutputFile() when available (e.g. strips non-deterministic SEF fields).
+     */
+    private buildHashFile(
+        deps: ResolvedDeps,
+        cache: CacheManager
+    ): (fp: string) => Promise<string> {
+        const memo = new Map<string, string>();
+        return async (fp: string) => {
+            let result = memo.get(fp);
+            if (result) return result;
+            const producer = deps.pathToProducer.get(fp);
+            result = await (producer ? producer.hashOutputFile(fp) : cache.computeFileHash(fp));
+            memo.set(fp, result);
+            return result;
+        };
+    }
+
+    /**
+     * Check if a single item has a valid cache entry. Returns recalculated outputs
+     * on cache hit (copying cross-node files if needed), or null on miss.
+     */
+    private async tryFromCache<TOutput extends string>(
+        context: PipelineContext,
+        item: string,
+        cacheKey: string,
+        deps: ResolvedDeps,
+        getOutputPath: (item: string, outputKey: TOutput, filename?: string) => string | undefined,
+        hashFile: (fp: string) => Promise<string>,
+    ): Promise<Record<TOutput, string[]> | null> {
+        const cached = await context.cache.getCache(deps.contentSignature, cacheKey);
+        if (!cached) return null;
+
+        // Recalculate expected output paths based on CURRENT config
+        const newOutputsByKey: Record<TOutput, string[]> = {} as Record<TOutput, string[]>;
+
+        for (const [outputKey, cachedPaths] of Object.entries(cached.outputsByKey)) {
+            const recalculatedPath = getOutputPath(item, outputKey as TOutput);
+
+            if (recalculatedPath !== undefined) {
+                // Primary outputs — use current config
+                newOutputsByKey[outputKey as TOutput] = [recalculatedPath];
+            } else {
+                // Secondary outputs — reconstruct from cached directory structure
+                const newPaths: string[] = [];
+                for (const cachedPath of cachedPaths) {
+                    const relativePath = path.relative(cached.outputBaseDir, cachedPath);
+                    if (relativePath.startsWith('..')) {
+                        throw new Error(`Cached output path escapes base directory: ${cachedPath} (base: ${cached.outputBaseDir})`);
+                    }
+                    newPaths.push(path.join(deps.outputDir, relativePath));
+                }
+                newOutputsByKey[outputKey as TOutput] = newPaths;
+            }
+        }
+
+        // Validate dependencies
+        const dependenciesValid = await context.cache.isValid(cached, context.resolveInput.bind(context), hashFile);
+        if (!dependenciesValid) return null;
+
+        // Copy files if needed (cross-node cache reuse)
+        for (const [outputKey, cachedPaths] of Object.entries(cached.outputsByKey)) {
+            const expectedPaths = newOutputsByKey[outputKey as TOutput];
+            for (let j = 0; j < cachedPaths.length; j++) {
+                if (cachedPaths[j] !== expectedPaths[j]) {
+                    await context.cache.copyToExpectedPath(cachedPaths[j], expectedPaths[j]);
+                }
+            }
+        }
+
+        return newOutputsByKey;
+    }
+
+    /**
+     * Build and persist a cache entry for a completed work item.
+     */
+    private async storeCacheEntry<TOutput extends string>(
+        context: PipelineContext,
+        cacheKey: string,
+        item: string,
+        result: { outputs: Record<TOutput, string[]>; discoveredDependencies?: string[] },
+        deps: ResolvedDeps,
+    ): Promise<void> {
+        const cacheEntry = await context.cache.buildCacheEntry({
+            itemPaths: [item],
+            outputsByKey: result.outputs,
+            outputBaseDir: deps.outputDir,
+            itemKey: cacheKey,
+            discoveredDependencies: result.discoveredDependencies,
+            fileRefPaths: deps.sharedDependencyPaths,
+            upstreamOutputSignatures: deps.upstreamOutputSignatures,
+            precomputedHashes: deps.sharedFileHashes,
+        });
+        await context.cache.setCache(deps.contentSignature, cacheKey, cacheEntry);
+    }
+}
+
+/** Resolved dependency information for cache validation, built once per withCache() call. */
+interface ResolvedDeps {
+    /** Hash of node class + config — identifies this node's "shape" for cache slot sharing */
+    contentSignature: string;
+    /** Absolute path to this node's output directory */
+    outputDir: string;
+    /** Maps file paths to the upstream node that produced them — used to dispatch
+     *  custom hash functions (e.g. CompileStylesheetNode strips non-deterministic SEF fields) */
+    pathToProducer: Map<string, PipelineNode<any, any>>;
+    /** Per-upstream-node signature of their output file set — fast invalidation when
+     *  an upstream node's outputs change without checking every file */
+    upstreamOutputSignatures: Record<string, { signature: string; outputKey: string; glob?: string }>;
+    /** Config dependency paths shared across all items (e.g. stylesheets), excluding
+     *  per-item input paths to avoid one item's change invalidating all items */
+    sharedDependencyPaths: string[];
+    /** Pre-computed hashes + timestamps for shared dependencies — avoids hashing the
+     *  same stylesheet N times (once per item) */
+    sharedFileHashes: Map<string, { hash: string; timestamp: number }>;
 }
 
 export interface PipelineContext {
