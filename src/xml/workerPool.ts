@@ -17,48 +17,53 @@ export class WorkerPool {
     private queue: WorkerJob[] = [];
     private activeJobs = new Map<Worker, WorkerJob>();
 
+    private terminated = false;
+
     constructor(
         private poolSize: number,
         private workerPath: string  // Now expects absolute path
     ) {
-
         for (let i = 0; i < poolSize; i++) {
-            // tsx requires --import but that doesn't work for worker threads
-            // Workaround: use tsx CLI to spawn the worker instead of node
-            const worker = new Worker(new URL(workerPath, import.meta.url), {
-                execArgv: ['--experimental-strip-types']
-            });
-
-            this.workerIds.set(worker, i);
-
-            worker.on("message", (message) => {
-                const job = this.activeJobs.get(worker);
-                if (!job) return;
-
-                this.activeJobs.delete(worker);
-
-                if (message.success) {
-                    job.resolve(message.result);
-                } else {
-                    const error = new Error(message.error.message);
-                    error.stack = message.error.stack;
-                    job.reject(error);
-                }
-
-                // Process next queued job if any
-                this.processNext(worker);
-            });
-
-            worker.on("error", (error) => {
-                const job = this.activeJobs.get(worker);
-                if (job) {
-                    this.activeJobs.delete(worker);
-                    job.reject(error);
-                }
-            });
-
-            this.workers.push(worker);
+            this.spawnWorker(i);
         }
+    }
+
+    private spawnWorker(id: number): void {
+        const worker = new Worker(new URL(this.workerPath, import.meta.url), {
+            execArgv: ['--experimental-strip-types']
+        });
+
+        this.workerIds.set(worker, id);
+
+        worker.on("message", (message) => {
+            const job = this.activeJobs.get(worker);
+            if (!job) return;
+
+            this.activeJobs.delete(worker);
+
+            if (message.success) {
+                job.resolve(message.result);
+            } else {
+                const error = new Error(message.error.message);
+                error.stack = message.error.stack;
+                job.reject(error);
+            }
+
+            this.processNext(worker);
+        });
+
+        worker.on("error", (error) => {
+            const id = this.workerIds.get(worker);
+            const job = this.activeJobs.get(worker);
+            if (job) {
+                this.activeJobs.delete(worker);
+                job.reject(error);
+            }
+            console.error(`Worker ${id} crashed, spawning replacement:`, error.message);
+            this.replaceWorker(worker);
+        });
+
+        this.workers.push(worker);
     }
 
     execute<T>(job: any): Promise<T> {
@@ -76,6 +81,16 @@ export class WorkerPool {
                 this.queue.push(workerJob);
             }
         });
+    }
+
+    private replaceWorker(worker: Worker) {
+        const id = this.workerIds.get(worker) ?? this.workers.length;
+        const idx = this.workers.indexOf(worker);
+        if (idx !== -1) this.workers.splice(idx, 1);
+        this.workerIds.delete(worker);
+        if (!this.terminated) {
+            this.spawnWorker(id);
+        }
     }
 
     private processNext(worker: Worker) {
@@ -96,6 +111,7 @@ export class WorkerPool {
     }
 
     async terminate() {
+        this.terminated = true;
         // Reject queued jobs
         for (const job of this.queue) {
             job.reject(new Error('Worker pool terminated'));
