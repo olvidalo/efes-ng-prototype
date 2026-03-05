@@ -1,8 +1,7 @@
 import {type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig, type CollectRef} from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
-import fsSync from "node:fs";
-import {fileURLToPath} from "node:url";
+import {resolveWorkloadPath} from "../core/resolveWorkloadPath";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {
@@ -49,10 +48,7 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
 
         this.log(context, `Building Eleventy site: ${sourceDir} -> ${outputDir}`);
 
-        const currentDir = path.dirname(fileURLToPath(import.meta.url));
-        const devWorkloadPath = path.resolve(currentDir, 'eleventyWorkload.ts');
-        const prodWorkloadPath = path.resolve(currentDir, 'eleventy/eleventyWorkload.js');
-        const workloadScript = fsSync.existsSync(prodWorkloadPath) ? prodWorkloadPath : devWorkloadPath;
+        const workloadScript = resolveWorkloadPath(import.meta.url, 'eleventyWorkload.ts', 'eleventy/eleventyWorkload.js');
 
         const result = await context.workerPool.execute<{ outputDir: string }>({
             workloadScript,

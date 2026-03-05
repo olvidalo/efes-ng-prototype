@@ -10,8 +10,7 @@ import {
 import type {NodeConfigSchema, ConfigFromSchema} from "../../core/nodeConfigSchema";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
-import fs from "node:fs";
-import { fileURLToPath } from "node:url";
+import { resolveWorkloadPath } from "../../core/resolveWorkloadPath";
 
 const configSchema = {
     sourceFiles:         { type: 'input', optional: true, description: 'Source XML files to transform. If omitted, the stylesheet runs in no-source mode (e.g. using document() for input).' },
@@ -121,11 +120,7 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
                 };
 
                 // Execute transform in worker thread
-                // Determine workload script path based on environment
-                const currentDir = path.dirname(fileURLToPath(import.meta.url));
-                const devWorkloadPath = path.resolve(currentDir, '../saxonWorkload.ts');
-                const prodWorkloadPath = path.resolve(currentDir, 'xml/saxonWorkload.js');
-                const workloadScript = fs.existsSync(prodWorkloadPath) ? prodWorkloadPath : devWorkloadPath;
+                const workloadScript = resolveWorkloadPath(import.meta.url, '../saxonWorkload.ts', 'xml/saxonWorkload.js');
 
                 // this.log(context, `[DEBUG] Executing transform in worker thread...`);
                 // const workerStartTime = Date.now();

@@ -4,8 +4,7 @@ import {glob} from "glob";
 import path from "node:path";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
-import fsSync from "node:fs";
-import {fileURLToPath} from "node:url";
+import {resolveWorkloadPath} from "./resolveWorkloadPath";
 import {EventEmitter} from "node:events";
 import {WorkerPool} from "../xml/workerPool";
 
@@ -664,10 +663,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
 
     private getOrCreateWorkerPool(): WorkerPool {
         if (!this._workerPool) {
-            const currentDir = path.dirname(fileURLToPath(import.meta.url));
-            const devPath = path.resolve(currentDir, '../xml/genericWorker.ts');
-            const prodPath = path.resolve(currentDir, 'genericWorker.js');
-            const workerPath = fsSync.existsSync(prodPath) ? prodPath : devPath;
+            const workerPath = resolveWorkloadPath(import.meta.url, '../xml/genericWorker.ts', 'genericWorker.js');
             this._workerPool = new WorkerPool(this.workerThreads, workerPath);
         }
         return this._workerPool;

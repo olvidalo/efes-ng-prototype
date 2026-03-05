@@ -3,8 +3,7 @@ import type {NodeConfigSchema, ConfigFromSchema} from "../../core/nodeConfigSche
 import path from "node:path";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
-import fsSync from "node:fs";
-import { fileURLToPath } from "node:url";
+import { resolveWorkloadPath } from "../../core/resolveWorkloadPath";
 
 // @ts-ignore
 import {getResource, XPath} from 'saxonjs-he';
@@ -82,11 +81,7 @@ export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig,
                 this.log(context, `Found ${discoveredDependencies.length} dependencies: ${JSON.stringify(discoveredDependencies)}`);
 
                 try {
-                    // Determine workload script path based on environment
-                    const currentDir = path.dirname(fileURLToPath(import.meta.url));
-                    const devWorkloadPath = path.resolve(currentDir, '../compileWorkload.ts');
-                    const prodWorkloadPath = path.resolve(currentDir, 'xml/compileWorkload.js');
-                    const workloadScript = fsSync.existsSync(prodWorkloadPath) ? prodWorkloadPath : devWorkloadPath;
+                    const workloadScript = resolveWorkloadPath(import.meta.url, '../compileWorkload.ts', 'xml/compileWorkload.js');
 
                     // Execute compilation in worker thread
                     const result = await context.workerPool.execute<{
