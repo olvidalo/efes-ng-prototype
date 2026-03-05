@@ -47,6 +47,7 @@ async function discoverPipeline(dir: string): Promise<Pipeline> {
 
 async function runCommand(projectDir: string): Promise<void> {
     const pipeline = await discoverPipeline(projectDir);
+    pipeline.verbose = args.includes('--verbose');
 
     if (args.includes('--no-cache')) {
         const cacheDir = path.resolve(pipeline.projectDir, pipeline.cacheDir);
@@ -114,6 +115,7 @@ async function statusCommand(projectDir: string): Promise<void> {
 
 async function watchCommand(projectDir: string): Promise<void> {
     const pipeline = await discoverPipeline(projectDir);
+    pipeline.verbose = args.includes('--verbose');
     const { PipelineWatcher } = await import('./core/watcher');
     const watcher = new PipelineWatcher(pipeline);
     await watcher.start();
@@ -159,6 +161,7 @@ Commands:
 Options:
   --project <path>   Project directory (default: cwd)
   --no-cache         Clear cache before running
+  --verbose          Show debug-level log messages
 `);
                 process.exit(command ? 1 : 0);
         }

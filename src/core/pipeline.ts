@@ -124,6 +124,11 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         context.log(`  [${this.name}] ${message}`);
     }
 
+    /** Log a debug message — only visible when pipeline runs in verbose mode. */
+    protected debug(context: PipelineContext, message: string): void {
+        context.debug(`  [${this.name}] ${message}`);
+    }
+
     /**
      * Hash an output file for cache tracking purposes.
      * Override in subclasses to normalize non-deterministic output before hashing
@@ -601,6 +606,7 @@ export interface PipelineContext {
     resolveInput(input: Input): Promise<string[]>;
 
     log(message: string): void;
+    debug(message: string): void;
 
     /** Report item-level progress within a node (e.g. 3 of 50 files processed) */
     progress(nodeName: string, completed: number, total: number): void;
@@ -634,7 +640,8 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         public readonly cacheDir: string = '.efes-cache',
         public readonly executionMode: 'sequential' | 'parallel' = 'sequential',
         public projectDir: string = process.cwd(),
-        public workerThreads: number = 8
+        public workerThreads: number = 8,
+        public verbose: boolean = false
     ) {
         super();
         this.installDefaultListeners();
@@ -676,6 +683,12 @@ export class Pipeline extends EventEmitter implements PipelineContext {
 
     log(message: string): void {
         console.log(`  [${this.name}] ${message}`);
+    }
+
+    debug(message: string): void {
+        if (this.verbose) {
+            console.log(`  [${this.name}] [DEBUG] ${message}`);
+        }
     }
 
     progress(nodeName: string, completed: number, total: number): void {

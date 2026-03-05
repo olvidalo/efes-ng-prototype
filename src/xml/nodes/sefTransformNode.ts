@@ -42,6 +42,7 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
     }
 
     async run(context: PipelineContext) {
+        const startTime = Date.now();
         const cfg = await this.resolvedConfig(context);
 
         const sefStylesheetPath = cfg.sefStylesheet[0];
@@ -52,10 +53,9 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
         const sourcePaths = isNoSourceMode
             ? [sefStylesheetPath]
             : cfg.sourceFiles!;
-        // this.log(context, `${isNoSourceMode ? 'Running stylesheet' : `Transforming ${sourcePaths.length} file(s)`} with ${sefStylesheetPath}`);
+        this.debug(context, `${isNoSourceMode ? 'Running stylesheet' : `Transforming ${sourcePaths.length} file(s)`} with ${sefStylesheetPath}`);
 
-        // this.log(context, `[DEBUG] Starting withCache processing...`);
-        // const cacheStartTime = Date.now();
+        const cacheStartTime = Date.now();
         const results = await this.withCache<"transformed" | "result-documents">(
             context,
             sourcePaths,
@@ -85,14 +85,11 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
                 throw new Error(`Unknown output key: ${outputKey}`);
             },
             async (sourcePath) => {
-                // this.log(context, `[DEBUG] Transforming item: ${sourcePath}`);
-                // const itemStartTime = Date.now();
+                const itemStartTime = Date.now();
 
                 const outputPath = this.getTransformedPath(sourcePath, context);
                 const baseDir = path.dirname(outputPath);
 
-                // this.log(context, `[DEBUG] Resolving stylesheet params...`);
-                // const paramsStartTime = Date.now();
                 const stylesheetParams = this.applyItemSubstitutions(
                     cfg.stylesheetParams ?? {}, sourcePath
                 );
@@ -109,8 +106,7 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
                 // Execute transform in worker thread
                 const workloadScript = resolveWorkloadPath(import.meta.url, '../saxonWorkload.ts', 'xml/saxonWorkload.js');
 
-                // this.log(context, `[DEBUG] Executing transform in worker thread...`);
-                // const workerStartTime = Date.now();
+                const workerStartTime = Date.now();
                 const result = await context.workerPool.execute<{
                     outputPath: string;
                     resultDocumentPaths: string[];
@@ -124,14 +120,14 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
                     baseDir,
                     transformOptions
                 });
-                // this.log(context, `[DEBUG] Transform completed in ${Date.now() - workerStartTime}ms`);
+                this.debug(context, `Transform completed in ${Date.now() - workerStartTime}ms`);
 
                 this.log(context, `Generated: ${result.outputPath}`);
                 for (const docPath of result.resultDocumentPaths) {
                     this.log(context, `Result document: ${docPath}`);
                 }
 
-                // this.log(context, `[DEBUG] Item transformation total time: ${Date.now() - itemStartTime}ms`);
+                this.debug(context, `Item total: ${Date.now() - itemStartTime}ms`);
 
                 return {
                     outputs: {
@@ -141,8 +137,7 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
                 };
             }
         );
-        // this.log(context, `[DEBUG] withCache processing completed in ${Date.now() - cacheStartTime}ms`);
-        // this.log(context, `[DEBUG] Total run() time: ${Date.now() - startTime}ms`);
+        this.debug(context, `withCache: ${Date.now() - cacheStartTime}ms, total: ${Date.now() - startTime}ms`);
 
         return results.map(r => r.outputs);
     }
