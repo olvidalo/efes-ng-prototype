@@ -49,10 +49,6 @@ ipcMain.handle('pipeline:open-project', async () => {
   return manager!.openProject(result.filePaths[0])
 })
 
-ipcMain.handle('pipeline:build', async () => {
-  return manager!.build()
-})
-
 ipcMain.handle('pipeline:watch', async () => {
   return manager!.startWatch()
 })

@@ -14,7 +14,7 @@ interface LogEntry {
 }
 
 function createPipelineState() {
-  let phase = $state<'idle' | 'loaded' | 'building' | 'watching'>('idle')
+  let phase = $state<'idle' | 'ready' | 'building' | 'watching'>('idle')
   let pipelineName = $state('')
   let nodes = $state<NodeState[]>([])
   let logs = $state<LogEntry[]>([])
@@ -36,7 +36,7 @@ function createPipelineState() {
     pipelineName = name
     nodes = nodeNames.map((n) => ({ name: n, status: 'pending' as const }))
     serverUrl = url
-    phase = 'loaded'
+    phase = 'ready'
     logs = []
     addLog(`Loaded pipeline: ${name} (${nodeNames.length} nodes)`)
     addLog(`Preview server at ${url}`)
@@ -50,7 +50,7 @@ function createPipelineState() {
         break
 
       case 'pipeline:done':
-        phase = phase === 'watching' ? 'watching' : 'loaded'
+        phase = 'watching'
         addLog(`Pipeline completed in ${(event.durationMs / 1000).toFixed(2)}s`)
         break
 

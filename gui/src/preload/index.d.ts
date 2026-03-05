@@ -13,7 +13,6 @@ interface NodeInfo {
 
 interface PipelineAPI {
   openProject(): Promise<{ name: string; nodeNames: string[]; serverUrl: string } | null>
-  build(): Promise<void>
   startWatch(): Promise<void>
   stopWatch(): Promise<void>
   clean(): Promise<void>

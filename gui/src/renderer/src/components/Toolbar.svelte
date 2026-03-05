@@ -1,13 +1,12 @@
 <script lang="ts">
   interface Props {
-    phase: 'idle' | 'loaded' | 'building' | 'watching'
+    phase: 'idle' | 'ready' | 'building' | 'watching'
     pipelineName: string
     serverUrl: string
     onOpenProject: () => void
-    onBuild: () => void
+    onStart: () => void
+    onStop: () => void
     onClean: () => void
-    onStartWatch: () => void
-    onStopWatch: () => void
     onOpenPreview: () => void
   }
 
@@ -16,10 +15,9 @@
     pipelineName,
     serverUrl,
     onOpenProject,
-    onBuild,
+    onStart,
+    onStop,
     onClean,
-    onStartWatch,
-    onStopWatch,
     onOpenPreview
   }: Props = $props()
 </script>
@@ -27,21 +25,13 @@
 <div class="toolbar">
   <button onclick={onOpenProject}>Open Project</button>
 
-  <button onclick={onBuild} disabled={phase === 'idle' || phase === 'building'}>
-    {phase === 'building' ? 'Building...' : 'Build'}
-  </button>
-
-  <button onclick={onClean} disabled={phase === 'idle' || phase === 'building'}>
-    Clean
-  </button>
-
-  {#if phase === 'watching'}
-    <button onclick={onStopWatch}>Stop Watch</button>
+  {#if phase === 'building' || phase === 'watching'}
+    <button onclick={onStop} disabled={phase === 'building'}>Stop</button>
   {:else}
-    <button onclick={onStartWatch} disabled={phase === 'idle' || phase === 'building'}>
-      Watch
-    </button>
+    <button onclick={onStart} disabled={phase === 'idle'}>Start</button>
   {/if}
+
+  <button onclick={onClean} disabled={phase !== 'ready'}>Clean</button>
 
   <button onclick={onOpenPreview} disabled={!serverUrl}>
     Preview
@@ -49,6 +39,10 @@
 
   {#if pipelineName}
     <span class="pipeline-name">{pipelineName}</span>
+  {/if}
+
+  {#if phase === 'watching'}
+    <span class="watching-indicator">● Watching</span>
   {/if}
 </div>
 
@@ -85,5 +79,11 @@
     margin-left: auto;
     color: var(--color-text-2);
     font-size: 13px;
+  }
+
+  .watching-indicator {
+    color: #4caf50;
+    font-size: 13px;
+    font-weight: 500;
   }
 </style>

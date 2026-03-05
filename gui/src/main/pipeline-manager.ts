@@ -17,7 +17,6 @@ export interface NodeInfo {
 export class PipelineManager {
   private pipeline: any = null
   private watcher: any = null
-  private building = false
   private tsxRegistered = false
   private devServer: DevServer | null = null
 
@@ -61,17 +60,6 @@ export class PipelineManager {
 
     const nodeNames = this.pipeline.getNodeNames()
     return { name: this.pipeline.name, nodeNames, serverUrl: url }
-  }
-
-  async build(): Promise<void> {
-    if (!this.pipeline) throw new Error('No pipeline loaded')
-    if (this.building) throw new Error('Build already in progress')
-    this.building = true
-    try {
-      await this.pipeline.run()
-    } finally {
-      this.building = false
-    }
   }
 
   async startWatch(): Promise<void> {

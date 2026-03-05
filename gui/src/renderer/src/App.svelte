@@ -49,17 +49,23 @@
     }
   }
 
-  async function handleBuild() {
+  async function handleStart() {
     pipelineState.phase = 'building'
     try {
-      await window.api.build()
+      await window.api.startWatch()
     } catch (err: any) {
-      pipelineState.addLog(`Build failed: ${err.message}`)
-    } finally {
-      if (pipelineState.phase === 'building') {
-        pipelineState.phase = 'loaded'
-      }
+      pipelineState.addLog(`Start failed: ${err.message}`)
+      pipelineState.phase = 'ready'
     }
+  }
+
+  async function handleStop() {
+    try {
+      await window.api.stopWatch()
+    } catch (err: any) {
+      pipelineState.addLog(`Stop failed: ${err.message}`)
+    }
+    pipelineState.phase = 'ready'
   }
 
   function handleClean() {
@@ -72,25 +78,6 @@
     }).catch((err: any) => {
       pipelineState.addLog(`Clean failed: ${err.message}`)
     })
-  }
-
-  async function handleStartWatch() {
-    pipelineState.phase = 'watching'
-    try {
-      await window.api.startWatch()
-    } catch (err: any) {
-      pipelineState.addLog(`Watch failed: ${err.message}`)
-      pipelineState.phase = 'loaded'
-    }
-  }
-
-  async function handleStopWatch() {
-    try {
-      await window.api.stopWatch()
-    } catch (err: any) {
-      pipelineState.addLog(`Stop watch failed: ${err.message}`)
-    }
-    pipelineState.phase = 'loaded'
   }
 
   function handleOpenPreview() {
@@ -106,10 +93,9 @@
     pipelineName={pipelineState.pipelineName}
     serverUrl={pipelineState.serverUrl}
     onOpenProject={handleOpenProject}
-    onBuild={handleBuild}
+    onStart={handleStart}
+    onStop={handleStop}
     onClean={handleClean}
-    onStartWatch={handleStartWatch}
-    onStopWatch={handleStopWatch}
     onOpenPreview={handleOpenPreview}
   />
   <div class="content">
