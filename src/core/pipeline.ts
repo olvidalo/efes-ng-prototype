@@ -138,17 +138,6 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
      * Uses file paths (stable) instead of content hashes (changing) to prevent cache pollution.
      */
     /**
-     * Helper: Get relative path from item, stripping build prefixes if present.
-     * Used for outputDir-based path calculation.
-     * @deprecated Use calculateOutputPath instead
-     */
-    protected getCleanRelativePath(item: string, context: PipelineContext): string {
-        const itemDir = path.dirname(item);
-        const cleanDir = context.stripBuildPrefix(itemDir);
-        return path.relative(context.projectDir, cleanDir);
-    }
-
-    /**
      * Calculate output path for a given input path using unified config.
      * Handles build prefix stripping, path manipulation, and filename changes.
      *
@@ -649,6 +638,27 @@ export class Pipeline extends EventEmitter {
         return path.resolve(this.projectDir, to ?? path.join(this.buildDir, name));
     }
 
+    /**
+     * Strip the build directory prefix (and node-name segment) from a path.
+     * E.g. `.efes-build/node-name/some/path/file.html` → `some/path/file.html`
+     * Non-build paths are returned relative to projectDir.
+     */
+    stripBuildPrefix(inputPath: string): string {
+        const resolvedBuildDir = path.resolve(this.projectDir, this.buildDir);
+        const resolvedInputPath = path.resolve(this.projectDir, inputPath);
+
+        if (resolvedInputPath.startsWith(resolvedBuildDir)) {
+            const afterBuildDir = path.relative(resolvedBuildDir, resolvedInputPath);
+            const pathParts = afterBuildDir.split(path.sep);
+            if (pathParts.length > 1) {
+                return path.join(...pathParts.slice(1));
+            }
+            return afterBuildDir;
+        }
+
+        return path.relative(this.projectDir, resolvedInputPath);
+    }
+
     /** Total number of nodes (including expanded composite internals). */
     getNodeCount(): number {
         return this.graph.size();
@@ -848,26 +858,7 @@ export class Pipeline extends EventEmitter {
                     buildPath.replace(path.extname(buildPath), newExtension) :
                     buildPath;
             },
-            stripBuildPrefix: (inputPath: string): string => {
-                const resolvedBuildDir = path.resolve(this.projectDir, this.buildDir);
-                const resolvedInputPath = path.resolve(this.projectDir, inputPath);
-
-                if (resolvedInputPath.startsWith(resolvedBuildDir)) {
-                    // Strip build dir: .efes-build/node-name/some/path/file.html
-                    const afterBuildDir = path.relative(resolvedBuildDir, resolvedInputPath);
-
-                    // Strip the first path segment (node directory): node-name/some/path/file.html -> some/path/file.html
-                    const pathParts = afterBuildDir.split(path.sep);
-                    if (pathParts.length > 1) {
-                        return path.join(...pathParts.slice(1));
-                    }
-                    // If only one segment, return as is
-                    return afterBuildDir;
-                }
-
-                // For non-build paths, make them relative to projectDir
-                return path.relative(this.projectDir, inputPath);
-            },
+            stripBuildPrefix: (inputPath: string): string => this.stripBuildPrefix(inputPath),
             getNodeOutputDir: (nodeName: string): string => this.getNodeOutputDir(nodeName),
             getNodeOutputs: (nodeName: string) => this.nodeOutputs.get(nodeName),
             progress: (nodeName: string, completed: number, total: number) => {
