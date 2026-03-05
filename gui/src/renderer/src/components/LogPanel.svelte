@@ -41,8 +41,8 @@
     user-select: text;
     height: 200px;
     overflow-y: auto;
-    border-top: 1px solid var(--color-border, #333);
-    background: var(--color-background, #111);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-background);
     padding: 8px 12px;
     font-family: monospace;
     font-size: 12px;
@@ -55,11 +55,11 @@
   }
 
   .time {
-    color: var(--color-text-3, #666);
+    color: var(--color-text-3);
     flex-shrink: 0;
   }
 
   .msg {
-    color: var(--color-text-2, #bbb);
+    color: var(--color-text-2);
   }
 </style>

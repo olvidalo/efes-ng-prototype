@@ -194,7 +194,7 @@
 
   .progress-bar {
     height: 3px;
-    background: var(--color-background-mute, #2a2a2a);
+    background: var(--color-background-mute);
     border-radius: 2px;
     margin-bottom: 2px;
     overflow: hidden;
@@ -202,12 +202,12 @@
 
   .progress-fill {
     height: 100%;
-    background: #3b82f6;
+    background: var(--ev-c-accent);
     transition: width 0.2s ease;
   }
 
   .empty {
-    color: var(--ev-c-text-3, #666);
+    color: var(--color-text-3);
     padding: 20px;
     text-align: center;
   }
@@ -225,11 +225,11 @@
   }
 
   .node:hover {
-    background: var(--color-background-mute, rgba(255, 255, 255, 0.05));
+    background: var(--color-hover-bg);
   }
 
   .node.selected {
-    background: rgba(59, 130, 246, 0.1);
+    background: var(--ev-c-accent-selection);
   }
 
   /* ── Status dot ── */
@@ -243,26 +243,26 @@
   }
 
   .status-dot.status-pending {
-    background: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    background: var(--color-text-3);
     opacity: 0.4;
   }
 
   .status-dot.status-running {
-    background: #f0c040;
-    box-shadow: 0 0 6px rgba(240, 192, 64, 0.4);
+    background: var(--ev-c-yellow);
+    box-shadow: 0 0 6px var(--ev-c-yellow-glow);
     animation: pulse 1.2s ease-in-out infinite;
   }
 
   .status-dot.status-done {
-    background: #4caf50;
+    background: var(--ev-c-green);
   }
 
   .status-dot.status-error {
-    background: #f44336;
+    background: var(--ev-c-red);
   }
 
   .status-dot.cached {
-    background: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    background: var(--color-text-3);
     opacity: 0.3;
   }
 
@@ -274,7 +274,7 @@
   /* ── Name ── */
 
   .name {
-    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+    color: var(--color-text);
     user-select: text;
     white-space: nowrap;
     overflow: hidden;
@@ -282,16 +282,16 @@
   }
 
   .nested .name {
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
     font-size: 12px;
   }
 
   .running .name {
-    color: #f0c040;
+    color: var(--ev-c-yellow);
   }
 
   .item-progress {
-    color: #f0c040;
+    color: var(--ev-c-yellow);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
   }
@@ -309,7 +309,7 @@
     border: none;
     cursor: pointer;
     padding: 0 2px;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     opacity: 0.5;
     transition: opacity 0.15s, color 0.15s;
     flex-shrink: 0;
@@ -317,18 +317,18 @@
 
   .open-output:hover {
     opacity: 1;
-    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+    color: var(--color-text);
   }
 
   .duration {
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     font-variant-numeric: tabular-nums;
     font-size: 12px;
     flex-shrink: 0;
   }
 
   .error-msg {
-    color: #f44336;
+    color: var(--ev-c-red);
     font-size: 12px;
   }
 </style>

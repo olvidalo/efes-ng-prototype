@@ -145,8 +145,8 @@
 
   .status-flash {
     padding: 4px 12px;
-    background: #2d4a2d;
-    color: #4caf50;
+    background: var(--ev-c-success-bg);
+    color: var(--ev-c-success-text);
     font-size: 12px;
     text-align: center;
   }

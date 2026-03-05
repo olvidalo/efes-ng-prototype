@@ -58,22 +58,22 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    border-bottom: 1px solid var(--color-border, #333);
-    background: var(--color-background-soft, #1a1a1a);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-background-soft);
   }
 
   button {
     padding: 6px 14px;
-    border: 1px solid var(--color-border, #444);
+    border: 1px solid var(--color-border);
     border-radius: 4px;
-    background: var(--color-background-mute, #2a2a2a);
-    color: var(--color-text, #eee);
+    background: var(--color-background-mute);
+    color: var(--color-text);
     cursor: pointer;
     font-size: 13px;
   }
 
   button:hover:not(:disabled) {
-    background: var(--color-border, #444);
+    background: var(--color-hover-bg);
   }
 
   button:disabled {
@@ -83,7 +83,7 @@
 
   .pipeline-name {
     margin-left: auto;
-    color: var(--color-text-2, #aaa);
+    color: var(--color-text-2);
     font-size: 13px;
   }
 </style>

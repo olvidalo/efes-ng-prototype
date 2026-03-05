@@ -252,8 +252,8 @@
 <style>
   .inspector {
     height: 100%;
-    border-left: 1px solid var(--color-border, #333);
-    background: var(--color-background-soft, #222);
+    border-left: 1px solid var(--color-border);
+    background: var(--color-background-soft);
     display: flex;
     flex-direction: row;
     overflow: hidden;
@@ -294,7 +294,7 @@
 
   .resize-handle:hover::after,
   .dragging .resize-handle::after {
-    background: rgba(59, 130, 246, 0.3);
+    background: var(--ev-c-accent-handle);
   }
 
   @keyframes slide-in {
@@ -312,7 +312,7 @@
 
   header {
     padding: 14px 14px 12px;
-    border-bottom: 1px solid var(--color-border, #333);
+    border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
   }
 
@@ -327,7 +327,7 @@
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
     font-size: 14px;
     font-weight: 600;
-    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+    color: var(--color-text);
     line-height: 1.3;
     word-break: break-all;
   }
@@ -342,7 +342,7 @@
     background: none;
     border: 1px solid transparent;
     border-radius: 4px;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     font-size: 18px;
     cursor: pointer;
     transition: color 0.1s, border-color 0.1s, background 0.1s;
@@ -351,9 +351,9 @@
   }
 
   .close-btn:hover {
-    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
-    background: var(--color-background-mute, #282828);
-    border-color: var(--color-border, #333);
+    color: var(--color-text);
+    background: var(--color-background-mute);
+    border-color: var(--color-border);
   }
 
   .meta-row {
@@ -368,15 +368,15 @@
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
     padding: 2px 7px;
     border-radius: 3px;
-    background: rgba(59, 130, 246, 0.12);
-    color: #6b9eff;
-    border: 1px solid rgba(59, 130, 246, 0.18);
+    background: var(--ev-c-accent-bg);
+    color: var(--ev-c-accent-text);
+    border: 1px solid var(--ev-c-accent-border);
     letter-spacing: 0.01em;
   }
 
   .cache-stat {
     font-size: 11px;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     font-variant-numeric: tabular-nums;
   }
 
@@ -384,7 +384,7 @@
     margin-top: 6px;
     font-size: 12px;
     line-height: 1.45;
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
   }
 
   /* ── Sections ── */
@@ -396,7 +396,7 @@
   }
 
   section {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   .section-header {
@@ -409,12 +409,12 @@
     border: none;
     cursor: pointer;
     text-align: left;
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
     transition: background 0.1s;
   }
 
   .section-header:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--color-hover-bg-subtle);
   }
 
   .disclosure {
@@ -423,7 +423,7 @@
     height: 0;
     border-style: solid;
     border-width: 4px 0 4px 6px;
-    border-color: transparent transparent transparent var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    border-color: transparent transparent transparent var(--color-text-3);
     transition: transform 0.12s ease;
     flex-shrink: 0;
   }
@@ -441,7 +441,7 @@
 
   .section-count {
     font-size: 10px;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     margin-left: auto;
     font-variant-numeric: tabular-nums;
   }
@@ -474,12 +474,12 @@
     border: none;
     cursor: pointer;
     text-align: left;
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
     transition: color 0.1s;
   }
 
   .output-key-header:hover {
-    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+    color: var(--color-text);
   }
 
   .disclosure.small {
@@ -489,13 +489,13 @@
   .output-key-name {
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
     font-size: 12px;
-    color: #6b9eff;
+    color: var(--ev-c-accent-text);
     font-weight: 500;
   }
 
   .file-count {
     font-size: 10px;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     font-variant-numeric: tabular-nums;
     margin-left: auto;
   }
@@ -509,7 +509,7 @@
   .file-entry {
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
     font-size: 11px;
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
     padding: 1.5px 0;
     white-space: nowrap;
     overflow: hidden;
@@ -518,7 +518,7 @@
   }
 
   .file-entry:hover {
-    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+    color: var(--color-text);
   }
 
   .show-all-btn {
@@ -526,19 +526,19 @@
     border: none;
     cursor: pointer;
     font-size: 11px;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     padding: 3px 0 3px 11px;
     transition: color 0.1s;
   }
 
   .show-all-btn:hover {
-    color: #6b9eff;
+    color: var(--ev-c-accent-text);
   }
 
   .no-output {
     font-size: 11px;
     font-style: italic;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
   }
 
   /* ── Output directory ── */
@@ -552,14 +552,14 @@
 
   .output-dir-label {
     font-size: 11px;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     flex-shrink: 0;
   }
 
   .output-dir-path {
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
     font-size: 11px;
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -579,7 +579,7 @@
   .dep-link {
     font-size: 12px;
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
     background: none;
     border: none;
     padding: 2px 0;
@@ -590,13 +590,13 @@
   }
 
   .dep-link:hover {
-    color: #6b9eff;
+    color: var(--ev-c-accent-text);
   }
 
   .dep-name {
     font-size: 12px;
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
   }
 
   /* ── Configuration ── */
@@ -612,7 +612,7 @@
     display: flex;
     gap: 8px;
     padding: 3px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--color-border-subtler);
   }
 
   .config-row:last-child {
@@ -621,7 +621,7 @@
 
   .config-row dt {
     font-size: 11px;
-    color: var(--ev-c-text-3, rgba(235, 235, 245, 0.38));
+    color: var(--color-text-3);
     flex-shrink: 0;
     min-width: 80px;
   }
@@ -629,7 +629,7 @@
   .config-row dd {
     font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
     font-size: 11px;
-    color: var(--ev-c-text-2, rgba(235, 235, 245, 0.6));
+    color: var(--color-text-2);
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -637,7 +637,7 @@
   }
 
   .config-row dd:hover {
-    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+    color: var(--color-text);
   }
 
   /* ── Click-to-expand ── */
@@ -648,7 +648,7 @@
   }
 
   .expandable:hover {
-    color: var(--ev-c-text-1, rgba(255, 255, 245, 0.86));
+    color: var(--color-text);
   }
 
   .expandable.expanded {
@@ -672,9 +672,9 @@
     border-radius: 3px;
     background: linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.03) 0%,
-      rgba(255, 255, 255, 0.06) 50%,
-      rgba(255, 255, 255, 0.03) 100%
+      var(--color-hover-bg-subtle) 0%,
+      var(--color-hover-bg) 50%,
+      var(--color-hover-bg-subtle) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 1.4s ease-in-out infinite;
