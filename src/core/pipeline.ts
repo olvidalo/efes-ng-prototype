@@ -637,7 +637,6 @@ export interface PipelineContext {
     projectDir: string;
     workerPool: WorkerPool;
 
-    getBuildPath(nodeName: string, inputPath: string, newExtension?: string): string;
     getNodeOutputDir(nodeName: string): string;
     stripBuildPrefix(inputPath: string): string;
     getNodeOutputs(nodeName: string): NodeOutput<any>[] | undefined;
@@ -713,34 +712,6 @@ export class Pipeline extends EventEmitter implements PipelineContext {
 
     progress(nodeName: string, completed: number, total: number): void {
         this.emit('node:progress', { name: nodeName, completed, total });
-    }
-
-    getBuildPath(nodeName: string, inputPath: string, newExtension?: string): string {
-        let relativePath = inputPath;
-
-        // Check if this is a build artifact path and strip build dir + source node name
-        const resolvedBuildDir = path.resolve(this.projectDir, this.buildDir);
-        const resolvedInputPath = path.resolve(this.projectDir, inputPath);
-
-        if (resolvedInputPath.startsWith(resolvedBuildDir)) {
-            // Strip build dir: .efes-build/upstream:transform/some/path/file.html
-            const afterBuildDir = path.relative(resolvedBuildDir, resolvedInputPath);
-
-            // Strip source node name: upstream:transform/some/path/file.html -> some/path/file.html
-            const pathParts = afterBuildDir.split(path.sep);
-            if (pathParts.length > 1) {
-                relativePath = path.join(...pathParts.slice(1));
-            }
-        } else {
-            // For non-build paths, make them relative to projectDir
-            relativePath = path.relative(this.projectDir, inputPath);
-        }
-
-        // Now build the new path
-        const buildPath = path.join(this.buildDir, nodeName, relativePath);
-        return newExtension ?
-            buildPath.replace(path.extname(buildPath), newExtension) :
-            buildPath;
     }
 
     getNodeInstance(nodeName: string): PipelineNode {
