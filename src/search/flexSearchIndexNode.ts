@@ -33,56 +33,66 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
             throw new Error("FlexSearchIndexNode: no input files");
         }
 
-        const outputDir = this.config.outputConfig?.to || context.getBuildPath(this.name, metadataFiles[0]);
+        const outputDir = this.config.outputConfig?.to
+            ? path.resolve(context.projectDir, this.config.outputConfig.to)
+            : context.getBuildPath(this.name, metadataFiles[0]);
 
-        this.log(context, `Generating FlexSearch index from ${metadataFiles.length} metadata files`);
+        const outputs = await this.withCacheAggregate(
+            context,
+            () => `flexsearch-${metadataFiles.length}-docs`,
+            () => undefined,  // multi-file output — let cache reconstruct paths
+            async () => {
+                this.log(context, `Generating FlexSearch index from ${metadataFiles.length} metadata files`);
 
-        // Load documents from individual metadata XMLs
-        const documents = await this.parseMetadataFiles(metadataFiles, context);
+                const documents = await this.parseMetadataFiles(metadataFiles, context);
+                this.log(context, `Processing ${documents.length} documents`);
 
-        this.log(context, `Processing ${documents.length} documents`);
+                const indexConfig = {
+                    id: cfg.idField,
+                    store: true,
+                    index: cfg.textFields,
+                    tag: cfg.facetFields,
+                };
+                const searchIndex = new FlexSearch.Document(indexConfig);
 
-        const indexConfig = {
-            id: cfg.idField,
-            store: true,
-            index: cfg.textFields,
-            tag: cfg.facetFields,
-        }
-        const searchIndex = new FlexSearch.Document(indexConfig);
-
-        // Add documents to index
-        documents.forEach((doc: any) => {
-            const indexDoc = { ...doc };
-            // Flatten array values in text fields (FlexSearch expects strings)
-            for (const field of cfg.textFields) {
-                if (Array.isArray(indexDoc[field])) {
-                    indexDoc[field] = indexDoc[field].join(' ');
+                // Add documents to index
+                for (const doc of documents) {
+                    const indexDoc = { ...doc };
+                    for (const field of cfg.textFields) {
+                        if (Array.isArray(indexDoc[field])) {
+                            indexDoc[field] = indexDoc[field].join(' ');
+                        }
+                    }
+                    searchIndex.add(indexDoc);
                 }
+
+                // Export and save
+                await fs.mkdir(outputDir, { recursive: true });
+
+                const facets = this.generateFacets(documents);
+
+                await fs.writeFile(path.join(outputDir, 'facets.json'), JSON.stringify(facets, null, 2));
+                await fs.writeFile(path.join(outputDir, 'count.json'), JSON.stringify({ total: documents.length }));
+                await fs.writeFile(path.join(outputDir, 'config.json'), JSON.stringify(indexConfig));
+                await fs.writeFile(path.join(outputDir, 'documents.json'), JSON.stringify(documents));
+
+                const writtenFiles: string[] = [];
+                await searchIndex.export(async (key: string, data: any) => {
+                    await fs.writeFile(path.join(outputDir, key), data, "utf8");
+                    writtenFiles.push(key);
+                });
+                await fs.writeFile(path.join(outputDir, 'index.json'), JSON.stringify(writtenFiles, null, 2));
+
+                this.log(context, `FlexSearch index generated: ${outputDir}`);
+
+                const allFiles = [...writtenFiles, 'facets.json', 'count.json', 'config.json', 'documents.json', 'index.json']
+                    .map(file => path.join(outputDir, file));
+
+                return { outputs: { searchIndex: allFiles } };
             }
-            searchIndex.add(indexDoc);
-        });
+        );
 
-        // Export and save
-        await fs.mkdir(outputDir, { recursive: true });
-
-        // Generate facet counts for JavaScript filtering
-        const facets = this.generateFacets(documents);
-
-        // Write facets, metadata, and documents for client-side filtering
-        await fs.writeFile(path.join(outputDir, 'facets.json'), JSON.stringify(facets, null, 2));
-        await fs.writeFile(path.join(outputDir, 'count.json'), JSON.stringify({ total: documents.length }));
-        await fs.writeFile(path.join(outputDir, 'config.json'), JSON.stringify(indexConfig));
-        await fs.writeFile(path.join(outputDir, 'documents.json'), JSON.stringify(documents));
-
-        const writtenFiles: string[] = []
-        await searchIndex.export(async (key: string, data: any) => {
-            await fs.writeFile(path.join(outputDir, key), data, "utf8");
-            writtenFiles.push(key)
-        });
-        await fs.writeFile(path.join(outputDir, 'index.json'), JSON.stringify(writtenFiles, null, 2));
-
-        this.log(context, `FlexSearch index generated: ${outputDir}`);
-        return [{ searchIndex: [...writtenFiles, 'facets.json', 'count.json', 'config.json', 'documents.json', 'index.json' ].map(file => path.join(outputDir, file)) }];
+        return [outputs];
     }
 
     private async parseMetadataFiles(files: string[], context: PipelineContext): Promise<Record<string, any>[]> {
