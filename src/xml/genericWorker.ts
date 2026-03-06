@@ -14,7 +14,7 @@ parentPort.on("message", async (message) => {
         // Dynamic import based on workload script specified in job
         const workloadModule = await import(message.workloadScript);
 
-        // Generic interface: all workloads must export performWork()
+        // All workloads must satisfy WorkloadModule (see resolveWorkloadPath.ts)
         if (typeof workloadModule.performWork !== 'function') {
             throw new Error(`Workload module ${message.workloadScript} must export a 'performWork' function`);
         }

@@ -1,3 +1,4 @@
+import type { WorkloadModule } from "../core/resolveWorkloadPath";
 // @ts-ignore
 import { Eleventy } from '@11ty/eleventy'
 
@@ -20,3 +21,5 @@ export async function performWork(job: {
   await elev.write()
   return { outputDir: job.outputDir }
 }
+
+({ performWork }) satisfies WorkloadModule;

@@ -1,3 +1,4 @@
+import type { WorkloadModule } from "../core/resolveWorkloadPath";
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
@@ -147,3 +148,5 @@ export async function performWork(job: TransformJob): Promise<TransformResult> {
 
     return transformResult;
 }
+
+({ performWork }) satisfies WorkloadModule;

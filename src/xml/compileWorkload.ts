@@ -1,3 +1,4 @@
+import type { WorkloadModule } from "../core/resolveWorkloadPath";
 import { spawn } from "child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -80,3 +81,5 @@ export async function performWork(job: CompileJob): Promise<CompileResult> {
         });
     });
 }
+
+({ performWork }) satisfies WorkloadModule;

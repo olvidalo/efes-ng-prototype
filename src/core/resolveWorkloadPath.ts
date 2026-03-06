@@ -2,6 +2,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 
+/** Contract that workload modules must satisfy. */
+export interface WorkloadModule {
+    performWork(job: any): Promise<any>;
+}
+
 /**
  * Resolve a workload script path, preferring the production (built) path
  * and falling back to the development (source) path.
