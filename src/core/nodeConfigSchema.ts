@@ -1,5 +1,5 @@
-import type { PipelineNode } from './pipeline';
-import type { Input } from './pipeline';
+import type { PipelineNode } from './pipelineNode';
+import type { Input } from './pipelineNode';
 
 // --- Schema field types ---
 

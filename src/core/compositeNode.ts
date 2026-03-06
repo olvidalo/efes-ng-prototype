@@ -1,4 +1,5 @@
-import { PipelineNode, Pipeline, type PipelineNodeConfig, type NodeOutput, type PipelineContext } from "./pipeline";
+import { PipelineNode, type PipelineNodeConfig, type NodeOutput } from "./pipelineNode";
+import { type Pipeline, type PipelineContext } from "./pipeline";
 
 /**
  * Mapping configuration for connecting internal node outputs to composite node outputs

@@ -1,4 +1,5 @@
-import {type PipelineContext, PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../core/pipeline";
+import {PipelineNode, type PipelineNodeConfig, type OutputConfig} from "../core/pipelineNode";
+import type {PipelineContext} from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";

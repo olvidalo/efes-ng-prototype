@@ -1,7 +1,8 @@
 import chokidar from 'chokidar';
 import path from 'node:path';
 import { stat } from 'node:fs/promises';
-import { Pipeline, isInput } from './pipeline';
+import { isInput } from './pipelineNode';
+import { Pipeline } from './pipeline';
 
 /**
  * Watches a pipeline's input files and triggers rebuilds on changes.

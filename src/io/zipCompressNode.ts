@@ -1,4 +1,5 @@
-import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type OutputConfig} from "../core/pipeline";
+import {type PipelineNodeConfig, PipelineNode, type OutputConfig} from "../core/pipelineNode";
+import type {PipelineContext} from "../core/pipeline";
 import {Zip, ZipPassThrough} from "fflate";
 import {createReadStream, createWriteStream} from "node:fs";
 import {mkdir} from "node:fs/promises";

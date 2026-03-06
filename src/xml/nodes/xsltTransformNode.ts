@@ -1,4 +1,4 @@
-import {from, type PipelineNodeConfig, type OutputConfig} from "../../core/pipeline";
+import {from, type PipelineNodeConfig, type OutputConfig} from "../../core/pipelineNode";
 import {CompositeNode} from "../../core/compositeNode";
 import {CompileStylesheetNode} from "./compileStylesheetNode";
 import {SefTransformNode} from "./sefTransformNode";

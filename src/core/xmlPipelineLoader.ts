@@ -1,7 +1,8 @@
 import { parseXmlDocument, Element } from 'slimdom';
 import { closestMatch } from 'leven';
 import fs from 'node:fs/promises';
-import { Pipeline, from, files, collect, absolutePath } from './pipeline';
+import { from, files, collect, absolutePath } from './pipelineNode';
+import { Pipeline } from './pipeline';
 import { NodeRegistry } from './nodeRegistry';
 import type { SchemaField } from './nodeConfigSchema';
 
