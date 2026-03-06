@@ -31,27 +31,17 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, typeof outp
             throw new Error(`ZipCompressNode "${this.name}" requires outputConfig.outputFilename to be specified`);
         }
 
-        // Treat all inputs as a single "item" for caching - we create ONE zip from MANY files
-        // The actual dependency tracking happens via inputPaths being read during cache validation
-        const allInputsKey = inputPaths.join('|');
+        const outputDir = this.config.outputConfig?.to ?? path.join(context.buildDir, this.name);
+        const filename = typeof this.config.outputConfig!.outputFilename === 'function'
+            ? this.config.outputConfig!.outputFilename('')
+            : this.config.outputConfig!.outputFilename!;
+        const zipPath = path.join(outputDir, filename);
 
-        const results = await this.withCache(
+        const outputs = await this.withCacheAggregate(
             context,
-            [allInputsKey],  // Single dummy item to trigger one execution
-            (item) => `zip-all-${inputPaths.length}-files`,
-            (item, outputKey) => {
-                const outputDir = this.config.outputConfig?.to ?? path.join(context.buildDir, this.name);
-                const filename = typeof this.config.outputConfig!.outputFilename === 'function'
-                    ? this.config.outputConfig!.outputFilename(item)
-                    : this.config.outputConfig!.outputFilename!;
-                return path.join(outputDir, filename);
-            },
-            async (item) => {
-                const outputDir = this.config.outputConfig?.to ?? path.join(context.buildDir, this.name);
-                const filename = typeof this.config.outputConfig!.outputFilename === 'function'
-                    ? this.config.outputConfig!.outputFilename(item)
-                    : this.config.outputConfig!.outputFilename!;
-                const zipPath = path.join(outputDir, filename);
+            () => `zip-all-${inputPaths.length}-files`,
+            () => zipPath,
+            async () => {
 
                 await mkdir(path.dirname(zipPath), {recursive: true});
 
@@ -104,7 +94,6 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, typeof outp
             }
         );
 
-        // Map withCache results to NodeOutput format
-        return results.map(r => r.outputs);
+        return [outputs];
     }
 }
