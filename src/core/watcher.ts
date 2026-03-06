@@ -1,5 +1,6 @@
 import chokidar from 'chokidar';
 import path from 'node:path';
+import { stat } from 'node:fs/promises';
 import { Pipeline, inputIsNodeOutputReference, inputIsFilesRef, inputIsCollectRef } from './pipeline';
 
 /**
@@ -11,6 +12,7 @@ export class PipelineWatcher {
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
     private isRunning = false;
     private pendingRebuild = false;
+    private lastMtimes = new Map<string, number>();
 
     constructor(
         private pipeline: Pipeline,
@@ -39,6 +41,7 @@ export class PipelineWatcher {
         // could fall inside watched trees, causing feedback loops. Possible fix: scan
         // node outputConfigs to build an ignore list dynamically.
         this.watcher = chokidar.watch(watchPaths, {
+            cwd: this.pipeline.projectDir,
             ignoreInitial: true,
             ignored: [
                 '**/node_modules/**',
@@ -46,6 +49,28 @@ export class PipelineWatcher {
                 `**/${this.pipeline.buildDir}/**`,
                 `**/${this.pipeline.cacheDir}/**`,
             ],
+        });
+
+        // Seed mtime map from chokidar's initial scan so that metadata-only
+        // changes (xattr updates on file open etc.) don't trigger a spurious rebuild
+        await new Promise<void>(resolve => {
+            this.watcher!.on('ready', async () => {
+                const watched = this.watcher!.getWatched();
+                const statPromises: Promise<void>[] = [];
+                for (const [dir, names] of Object.entries(watched)) {
+                    for (const name of names) {
+                        const relPath = path.join(dir, name);
+                        const absPath = path.resolve(this.pipeline.projectDir, relPath);
+                        statPromises.push(
+                            stat(absPath).then(s => {
+                                if (s.isFile()) this.lastMtimes.set(absPath, s.mtimeMs);
+                            }).catch(() => {})
+                        );
+                    }
+                }
+                await Promise.all(statPromises);
+                resolve();
+            });
         });
 
         this.watcher.on('change', (filePath) => this.onFileEvent('change', filePath));
@@ -62,9 +87,24 @@ export class PipelineWatcher {
         await this.pipeline.shutdown();
     }
 
-    private onFileEvent(event: string, filePath: string): void {
-        this.pipeline.emit('watch:change', { event, path: filePath });
-        console.log(`  [watch] ${event}: ${path.relative(this.pipeline.projectDir, filePath)}`);
+    private async onFileEvent(event: string, filePath: string): Promise<void> {
+        const absPath = path.resolve(this.pipeline.projectDir, filePath);
+
+        // For change events, skip if mtime hasn't actually changed
+        // (OS and editors can trigger ctime-only changes via xattrs, locks, etc.)
+        if (event === 'change') {
+            try {
+                const { mtimeMs } = await stat(absPath);
+                const lastMtime = this.lastMtimes.get(absPath);
+                this.lastMtimes.set(absPath, mtimeMs);
+                if (lastMtime !== undefined && mtimeMs === lastMtime) return;
+            } catch {
+                // File may have been deleted between event and stat — let it through
+            }
+        }
+
+        this.pipeline.emit('watch:change', { event, path: absPath });
+        console.log(`  [watch] ${event}: ${path.relative(this.pipeline.projectDir, absPath)}`);
         this.scheduleRebuild();
     }
 
