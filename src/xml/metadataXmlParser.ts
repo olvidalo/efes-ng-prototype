@@ -38,7 +38,7 @@ export function xpathNodes(doc: any, expr: string): any[] {
  * - If the element has <item> children, it becomes an array of their text values
  * - Otherwise, it becomes the text content of the element
  */
-export function elementToJsonValue(el: any): string | string[] {
+function elementToJsonValue(el: any): string | string[] {
     const items = XPath.evaluate('item', el, { resultForm: 'array' }) || [];
     if (items.length > 0) {
         return items.map((item: any) =>
