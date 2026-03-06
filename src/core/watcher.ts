@@ -1,7 +1,7 @@
 import chokidar from 'chokidar';
 import path from 'node:path';
 import { stat } from 'node:fs/promises';
-import { Pipeline, inputIsNodeOutputReference, inputIsFilesRef, inputIsCollectRef } from './pipeline';
+import { Pipeline, isInput } from './pipeline';
 
 /**
  * Watches a pipeline's input files and triggers rebuilds on changes.
@@ -162,16 +162,12 @@ export class PipelineWatcher {
     private extractPaths(obj: any, paths: Set<string>): void {
         if (obj == null) return;
 
-        // from() reference — skip (inter-node dependency, outputs are pipeline-internal)
-        if (inputIsNodeOutputReference(obj)) return;
-
-        // collect() reference — skip (intermediate directory, not a source input)
-        if (inputIsCollectRef(obj)) return;
-
-        // files() reference — pass glob patterns directly to chokidar
-        if (inputIsFilesRef(obj)) {
-            for (const pattern of obj.patterns) {
-                paths.add(pattern);
+        if (isInput(obj)) {
+            // Only files() refs are watched — from() and collect() are pipeline-internal
+            if (obj.type === 'files') {
+                for (const pattern of obj.patterns) {
+                    paths.add(pattern);
+                }
             }
             return;
         }

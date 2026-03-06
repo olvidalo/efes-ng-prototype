@@ -8,25 +8,25 @@ import {resolveWorkloadPath} from "./resolveWorkloadPath";
 import {EventEmitter} from "node:events";
 import {WorkerPool} from "../xml/workerPool";
 
-interface NodeOutputReference {
-    node: PipelineNode<any, any> | string;
-    output: string;
-    glob?: string;  // Optional glob pattern to filter output files
-}
+// --- Input types (tracked file dependencies) ---
 
-export function inputIsNodeOutputReference(value: any): value is NodeOutputReference {
-    return typeof value === 'object' && value !== null && 'node' in value && 'output' in value;
-}
-
-// FilesRef: tagged filesystem reference (glob patterns or literal paths)
 export type FilesRef = { type: 'files', patterns: string[] };
+export type NodeOutputReference = { type: 'from', node: PipelineNode<any, any> | string, output: string, glob?: string };
+export type CollectRef = { type: 'collect', dir: string };
+export type Input = FilesRef | NodeOutputReference | CollectRef;
+
+/** Check whether a value is a pipeline Input reference. */
+export function isInput(value: any): value is Input {
+    return typeof value === 'object' && value !== null
+        && (value.type === 'files' || value.type === 'from' || value.type === 'collect');
+}
 
 export function files(...patterns: string[]): FilesRef {
     return { type: 'files', patterns };
 }
 
-export function inputIsFilesRef(value: any): value is FilesRef {
-    return typeof value === 'object' && value !== null && value?.type === 'files';
+export function collect(dir: string): CollectRef {
+    return { type: 'collect', dir };
 }
 
 // AbsolutePath: a project-relative path that should be resolved to an absolute path at runtime.
@@ -42,21 +42,6 @@ export function absolutePath(p: string): AbsolutePath {
 export function isAbsolutePath(value: any): value is AbsolutePath {
     return typeof value === 'object' && value !== null && value?.type === 'absolute';
 }
-
-// CollectRef: reference to an intermediate directory assembled by multiple upstream nodes.
-// The pipeline auto-detects which nodes write to this directory and adds dependency edges.
-// Unlike files(), collect() paths are NOT watched (they're intermediate, not source).
-export type CollectRef = { type: 'collect', dir: string };
-
-export function collect(dir: string): CollectRef {
-    return { type: 'collect', dir };
-}
-
-export function inputIsCollectRef(value: any): value is CollectRef {
-    return typeof value === 'object' && value !== null && value?.type === 'collect';
-}
-
-export type Input = FilesRef | NodeOutputReference | CollectRef;
 export type NodeOutput<TKey extends string> = Record<TKey, string[]>;
 
 export function from<TNode extends PipelineNode<any, TOutput>, TOutput extends string>(
@@ -66,7 +51,7 @@ export function from<TNode extends PipelineNode<any, TOutput>, TOutput extends s
 ): NodeOutputReference;
 export function from(nodeName: string, output: string, glob?: string): NodeOutputReference;
 export function from(nodeOrName: PipelineNode<any, any> | string, output: string, glob?: string): NodeOutputReference {
-    return { node: nodeOrName, output, glob };
+    return { type: 'from', node: nodeOrName, output, glob };
 }
 
 /**
@@ -166,7 +151,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
     private async resolveConfigValue(context: PipelineContext, value: any): Promise<any> {
         if (value == null) return value;
-        if (inputIsFilesRef(value) || inputIsNodeOutputReference(value) || inputIsCollectRef(value)) {
+        if (isInput(value)) {
             return context.resolveInput(value);
         }
         if (isAbsolutePath(value)) {
@@ -277,21 +262,18 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             return 'null';
         }
 
-        // files() reference - use patterns
-        if (inputIsFilesRef(value)) {
-            return `files(${value.patterns.join(',')})`;
-        }
-
-        // from() reference - use logical reference
-        if (inputIsNodeOutputReference(value)) {
-            const globPart = value.glob ? `:${value.glob}` : '';
-            const nodeName = typeof value.node === 'string' ? value.node : value.node.name;
-            return `from(${nodeName}:${value.output}${globPart})`;
-        }
-
-        // collect() reference - use directory path
-        if (inputIsCollectRef(value)) {
-            return `collect(${value.dir})`;
+        // Input references
+        if (isInput(value)) {
+            switch (value.type) {
+                case 'files':   return `files(${value.patterns.join(',')})`;
+                case 'from': {
+                    const globPart = value.glob ? `:${value.glob}` : '';
+                    const nodeName = typeof value.node === 'string' ? value.node : value.node.name;
+                    return `from(${nodeName}:${value.output}${globPart})`;
+                }
+                case 'collect': return `collect(${value.dir})`;
+                default: value satisfies never;
+            }
         }
 
         // Functions - use toString()
@@ -448,17 +430,24 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
         // Walk raw config + resolved config in parallel to categorize inputs
         const categorize = (rawValue: any, resolvedValue: any) => {
-            if (inputIsFilesRef(rawValue) || inputIsCollectRef(rawValue)) {
+            if (isInput(rawValue)) {
                 const paths = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
-                configDependencyPaths.push(...paths);
-            } else if (inputIsNodeOutputReference(rawValue)) {
-                const paths = Array.isArray(resolvedValue) ? resolvedValue : [resolvedValue];
-                configDependencyPaths.push(...paths);
-                const upstreamName = typeof rawValue.node === 'string' ? rawValue.node : rawValue.node.name;
-                upstreamResolved.set(upstreamName, { ref: rawValue, paths });
-                const upstreamNode = context.getNodeInstance(upstreamName);
-                for (const p of paths) {
-                    pathToProducer.set(p, upstreamNode);
+                switch (rawValue.type) {
+                    case 'files':
+                    case 'collect':
+                        configDependencyPaths.push(...paths);
+                        break;
+                    case 'from': {
+                        configDependencyPaths.push(...paths);
+                        const upstreamName = typeof rawValue.node === 'string' ? rawValue.node : rawValue.node.name;
+                        upstreamResolved.set(upstreamName, { ref: rawValue, paths });
+                        const upstreamNode = context.getNodeInstance(upstreamName);
+                        for (const p of paths) {
+                            pathToProducer.set(p, upstreamNode);
+                        }
+                        break;
+                    }
+                    default: rawValue satisfies never;
                 }
             } else if (isAbsolutePath(rawValue)) {
                 // Static config path — not a tracked dependency
@@ -912,8 +901,10 @@ export class Pipeline extends EventEmitter implements PipelineContext {
 
     private findCollectRefs(obj: any, callback: (ref: CollectRef) => void): void {
         if (obj == null) return;
-        if (inputIsCollectRef(obj)) { callback(obj); return; }
-        if (inputIsNodeOutputReference(obj) || inputIsFilesRef(obj)) return;
+        if (isInput(obj)) {
+            if (obj.type === 'collect') callback(obj);
+            return; // files/from are leaf nodes — don't recurse
+        }
         if (typeof obj === 'object') {
             for (const value of Object.values(obj)) {
                 this.findCollectRefs(value, callback);
@@ -929,16 +920,18 @@ export class Pipeline extends EventEmitter implements PipelineContext {
             // Recursively check config for NodeOutputReferences
             if (node.config) {
                 const findNodeReferences = (obj: any, path: string = 'config') => {
-                    if (inputIsCollectRef(obj) || inputIsFilesRef(obj)) return;  // handled elsewhere
-                    if (inputIsNodeOutputReference(obj)) {
-                        const depName = typeof obj.node === 'string' ? obj.node : obj.node.name;
-                        try {
-                            this.graph.addDependency(node.name, depName);
-                        } catch (err: any) {
-                            throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err.message}`);
+                    if (isInput(obj)) {
+                        if (obj.type === 'from') {
+                            const depName = typeof obj.node === 'string' ? obj.node : obj.node.name;
+                            try {
+                                this.graph.addDependency(node.name, depName);
+                            } catch (err: any) {
+                                throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err.message}`);
+                            }
                         }
-                    } else if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-                        // Recursively search nested objects
+                        return; // files/collect are leaf nodes — don't recurse
+                    }
+                    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
                         for (const [key, value] of Object.entries(obj)) {
                             findNodeReferences(value, `${path}.${key}`);
                         }
@@ -1145,71 +1138,65 @@ export class Pipeline extends EventEmitter implements PipelineContext {
      * Implementation of resolveInput without caching (used internally by cached version)
      */
     private async resolveInputImpl(input: Input): Promise<string[]> {
-        // Node references
-        if (inputIsNodeOutputReference(input)) {
-            const nodeName = typeof input.node === 'string' ? input.node : input.node.name;
-            let outputs = this.nodeOutputs.get(nodeName)?.flatMap(output => output[input.output]).filter(x => x !== undefined);
-            if (!outputs || outputs.length === 0) {
-                throw new Error(`Node "${nodeName}" hasn't run yet or has not produced any outputs.`);
-            }
-
-            // Apply glob filtering if specified
-            if (input.glob) {
-                // Determine glob pattern based on first output location
-                // (all outputs from a node are in the same location)
-                let globPattern: string;
-                if (outputs[0]?.startsWith(this.buildDir)) {
-                    // Output is in default build directory - use full path for globbing
-                    globPattern = `${this.buildDir}/*/${input.glob}`
-                } else {
-                    // Output is in custom location - glob from current root
-                    globPattern = input.glob;
+        switch (input.type) {
+            case 'from': {
+                const nodeName = typeof input.node === 'string' ? input.node : input.node.name;
+                let outputs = this.nodeOutputs.get(nodeName)?.flatMap(output => output[input.output]).filter(x => x !== undefined);
+                if (!outputs || outputs.length === 0) {
+                    throw new Error(`Node "${nodeName}" hasn't run yet or has not produced any outputs.`);
                 }
 
-                // Run glob ONCE to get all matches (resolve to absolute for comparison)
-                const matches = await glob(globPattern, { cwd: this.projectDir });
-                const matchSet = new Set(matches.map(m => path.resolve(this.projectDir, m)));
-
-                // Filter outputs to only those that match (resolve both sides)
-                const filteredOutputs = outputs.filter(outputPath =>
-                    matchSet.has(path.resolve(this.projectDir, outputPath))
-                );
-
-                if (filteredOutputs.length === 0) {
-                    throw new Error(`No files from node "${nodeName}" output "${input.output}" match pattern: ${input.glob}.\nOutputs: ${JSON.stringify(outputs, null, 2)}`);
-                }
-                outputs = filteredOutputs;
-            }
-
-            return outputs
-        }
-
-        // Files references (glob patterns or literal paths)
-        if (inputIsFilesRef(input)) {
-            const results: string[] = [];
-            for (const pattern of input.patterns) {
-                const matches = await glob(pattern, { cwd: this.projectDir, nodir: true });
-                if (matches.length === 0) {
-                    // Check if it's a directory to give a better error message
-                    const resolved = path.resolve(this.projectDir, pattern);
-                    const isDir = await fs.stat(resolved).then(s => s.isDirectory(), () => false);
-                    if (isDir) {
-                        throw new Error(`files() resolved to a directory: ${pattern}. Use absolutePath() for directory paths or add a glob pattern (e.g., "${pattern}/**/*").`);
+                // Apply glob filtering if specified
+                if (input.glob) {
+                    let globPattern: string;
+                    if (outputs[0]?.startsWith(this.buildDir)) {
+                        globPattern = `${this.buildDir}/*/${input.glob}`
+                    } else {
+                        globPattern = input.glob;
                     }
-                    throw new Error(`No files found for pattern: ${pattern}`);
+
+                    const matches = await glob(globPattern, { cwd: this.projectDir });
+                    const matchSet = new Set(matches.map(m => path.resolve(this.projectDir, m)));
+
+                    const filteredOutputs = outputs.filter(outputPath =>
+                        matchSet.has(path.resolve(this.projectDir, outputPath))
+                    );
+
+                    if (filteredOutputs.length === 0) {
+                        throw new Error(`No files from node "${nodeName}" output "${input.output}" match pattern: ${input.glob}.\nOutputs: ${JSON.stringify(outputs, null, 2)}`);
+                    }
+                    outputs = filteredOutputs;
                 }
-                results.push(...matches.map(m => path.resolve(this.projectDir, m)));
+
+                return outputs;
             }
-            return results;
-        }
 
-        // Collect references (intermediate directory assembled by multiple nodes)
-        if (inputIsCollectRef(input)) {
-            const matches = await glob(path.join(input.dir, '**/*'), { nodir: true, cwd: this.projectDir });
-            return matches.map(m => path.resolve(this.projectDir, m));
-        }
+            case 'files': {
+                const results: string[] = [];
+                for (const pattern of input.patterns) {
+                    const matches = await glob(pattern, { cwd: this.projectDir, nodir: true });
+                    if (matches.length === 0) {
+                        const resolved = path.resolve(this.projectDir, pattern);
+                        const isDir = await fs.stat(resolved).then(s => s.isDirectory(), () => false);
+                        if (isDir) {
+                            throw new Error(`files() resolved to a directory: ${pattern}. Use absolutePath() for directory paths or add a glob pattern (e.g., "${pattern}/**/*").`);
+                        }
+                        throw new Error(`No files found for pattern: ${pattern}`);
+                    }
+                    results.push(...matches.map(m => path.resolve(this.projectDir, m)));
+                }
+                return results;
+            }
 
-        throw new Error(`Unknown input type: ${JSON.stringify(input)}`);
+            case 'collect': {
+                const matches = await glob(path.join(input.dir, '**/*'), { nodir: true, cwd: this.projectDir });
+                return matches.map(m => path.resolve(this.projectDir, m));
+            }
+
+            default:
+                input satisfies never;
+                throw new Error(`Unknown input type: ${JSON.stringify(input)}`);
+        }
     }
 
     /**
