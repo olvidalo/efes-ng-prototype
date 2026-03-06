@@ -129,6 +129,11 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         context.debug(`  [${this.name}] ${message}`);
     }
 
+    /** Absolute path to this node's output directory. Always resolved against projectDir. */
+    protected getOutputDir(context: PipelineContext): string {
+        return context.getNodeOutputDir(this.name);
+    }
+
     /**
      * Hash an output file for cache tracking purposes.
      * Override in subclasses to normalize non-deterministic output before hashing
@@ -202,7 +207,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
      * @param defaultExtension - Default extension for this node type (optional)
      * @returns Final output path
      */
-    protected calculateOutputPath(
+    protected getItemOutputPath(
         inputPath: string,
         context: PipelineContext,
         outputConfig: OutputConfig,

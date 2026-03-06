@@ -35,7 +35,7 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKe
         for (let i = 0; i < paths.length; i++) {
             const sourcePath = paths[i];
             // Use unified path calculation
-            const destPath = this.calculateOutputPath(sourcePath, context, this.config.outputConfig, undefined);
+            const destPath = this.getItemOutputPath(sourcePath, context, this.config.outputConfig, undefined);
 
             // Ensure destination directory exists
             await mkdir(path.dirname(destPath), { recursive: true });

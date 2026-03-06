@@ -35,9 +35,7 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
         const cfg = await this.resolvedConfig(context);
         // EleventyBuildNode needs the directory path, not the resolved file list
         const sourceDir = path.resolve(context.projectDir, (this.config.config.sourceDir as CollectRef).dir);
-        const outputDir = this.config.outputConfig?.to ?
-            path.resolve(context.projectDir, this.config.outputConfig.to) :
-            context.getBuildPath(this.name, sourceDir);
+        const outputDir = this.getOutputDir(context);
 
         // Check if source directory exists
         try {

@@ -38,7 +38,7 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
         const config = this.config.outputConfig ?? {};
         // Default extension is .xml for transforms (XSLT standard)
         const defaultExt = config.extension ?? '.xml';
-        return this.calculateOutputPath(item, context, config, defaultExt);
+        return this.getItemOutputPath(item, context, config, defaultExt);
     }
 
     async run(context: PipelineContext) {

@@ -48,7 +48,7 @@ export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig,
     // Helper: Calculate compiled output path using unified path handling
     private getCompiledPath(item: string, context: PipelineContext): string {
         const config = this.config.outputConfig ?? {};
-        return this.calculateOutputPath(item, context, config, '.sef.json');
+        return this.getItemOutputPath(item, context, config, '.sef.json');
     }
 
     async run(context: PipelineContext) {

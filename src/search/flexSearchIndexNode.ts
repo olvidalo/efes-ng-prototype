@@ -33,9 +33,7 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
             throw new Error("FlexSearchIndexNode: no input files");
         }
 
-        const outputDir = this.config.outputConfig?.to
-            ? path.resolve(context.projectDir, this.config.outputConfig.to)
-            : context.getBuildPath(this.name, metadataFiles[0]);
+        const outputDir = this.getOutputDir(context);
 
         const outputs = await this.withCacheAggregate(
             context,

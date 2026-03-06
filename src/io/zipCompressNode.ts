@@ -31,7 +31,7 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, typeof outp
             throw new Error(`ZipCompressNode "${this.name}" requires outputConfig.outputFilename to be specified`);
         }
 
-        const outputDir = this.config.outputConfig?.to ?? path.join(context.buildDir, this.name);
+        const outputDir = this.getOutputDir(context);
         const filename = typeof this.config.outputConfig!.outputFilename === 'function'
             ? this.config.outputConfig!.outputFilename('')
             : this.config.outputConfig!.outputFilename!;
@@ -68,7 +68,7 @@ export class ZipCompressNode extends PipelineNode<ZipCompressConfig, typeof outp
                         to: undefined,  // Don't add output dir to entry paths
                         outputFilename: undefined  // Don't override filename
                     };
-                    const entryPath = this.calculateOutputPath(filePath, context, entryConfig, undefined);
+                    const entryPath = this.getItemOutputPath(filePath, context, entryConfig, undefined);
                     const entryName = entryPath;
 
                     this.log(context, `Adding: ${entryName}`);
