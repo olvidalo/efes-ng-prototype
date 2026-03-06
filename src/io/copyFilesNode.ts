@@ -1,5 +1,5 @@
 import {type PipelineNodeConfig, PipelineNode, type PipelineContext, type OutputConfig} from "../core/pipeline";
-import {copyFile, mkdir, stat, access, constants} from "node:fs/promises";
+import {copyFile, mkdir, stat, constants} from "node:fs/promises";
 import path from "node:path";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
@@ -34,36 +34,31 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKe
 
         for (let i = 0; i < paths.length; i++) {
             const sourcePath = paths[i];
-            // Use unified path calculation
             const destPath = this.getItemOutputPath(sourcePath, context, this.config.outputConfig, undefined);
+            const sourceStat = await stat(sourcePath);
 
-            // Ensure destination directory exists
+            if (!sourceStat.isFile()) {
+                context.progress(this.name, i + 1, paths.length);
+                continue;
+            }
+
             await mkdir(path.dirname(destPath), { recursive: true });
 
             if (!this.config.outputConfig.overwrite) {
                 try {
                     const destStat = await stat(destPath);
-                    const sourceStat = await stat(sourcePath);
-                    // Skip only if dest exists AND is newer than source
                     if (destStat.mtimeMs >= sourceStat.mtimeMs) {
                         copiedFiles.push(destPath);
                         context.progress(this.name, i + 1, paths.length);
                         continue;
                     }
                 } catch (error: any) {
-                    if (error?.code !== 'ENOENT') {
-                        throw error;
-                    }
-                    // ENOENT means dest doesn't exist, proceed to copy
+                    if (error?.code !== 'ENOENT') throw error;
                 }
             }
 
-            // Copy the file
-            if ((await stat(sourcePath)).isFile()) {
-                await copyFile(sourcePath, destPath, constants.COPYFILE_FICLONE);
-                copiedFiles.push(destPath);
-            }
-
+            await copyFile(sourcePath, destPath, constants.COPYFILE_FICLONE);
+            copiedFiles.push(destPath);
             this.log(context, `Copied: ${sourcePath} → ${destPath}`);
             context.progress(this.name, i + 1, paths.length);
         }
