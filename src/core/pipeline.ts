@@ -401,6 +401,30 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     }
 
     /**
+     * Caching for aggregate nodes that produce a single output from many inputs.
+     * Wraps withCache() with a single synthetic item — all config inputs are
+     * tracked as shared dependencies, so any input change triggers a rebuild.
+     */
+    protected async withCacheAggregate<TOutput extends string>(
+        context: PipelineContext,
+        getCacheKey: () => string,
+        getOutputPath: (outputKey: TOutput) => string | undefined,
+        performWork: () => Promise<{
+            outputs: Record<TOutput, string[]>;
+            discoveredDependencies?: string[];
+        }>
+    ): Promise<NodeOutput<TOutput>> {
+        const results = await this.withCache(
+            context,
+            ['__aggregate__'],
+            () => getCacheKey(),
+            (_, outputKey) => getOutputPath(outputKey),
+            () => performWork()
+        );
+        return results[0].outputs;
+    }
+
+    /**
      * Build cache dependency metadata from already-resolved config.
      * Walks raw config to categorize inputs by type, using resolved paths
      * from this.resolvedConfig() — no re-resolution.
