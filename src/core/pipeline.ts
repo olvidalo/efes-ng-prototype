@@ -285,6 +285,16 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                             } catch (err: any) {
                                 throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err.message}`);
                             }
+
+                            // Validate output key exists on target node
+                            const depNode = this.graph.getNodeData(depName);
+                            const validOutputKeys: readonly string[] | undefined = (depNode.constructor as any).outputKeys;
+                            if (validOutputKeys && !validOutputKeys.includes(obj.output)) {
+                                throw new Error(
+                                    `Node "${node.name}": from("${depName}", "${obj.output}") references unknown output key. ` +
+                                    `Available on "${depName}": ${validOutputKeys.join(', ')}`
+                                );
+                            }
                         }
                         return; // files/collect are leaf nodes — don't recurse
                     }
