@@ -69,6 +69,8 @@ export abstract class CompositeNode<
      * Expands internal nodes into the main pipeline for streaming and parallelization.
      */
     onAddedToPipeline(pipeline: Pipeline): void {
+        this.validateOutputMappings();
+
         for (const node of this.internalNodes) {
             pipeline.addNode(node);
         }
@@ -77,7 +79,29 @@ export abstract class CompositeNode<
         for (const node of this.internalNodes) {
             pipeline.addGraphDependency(this.name, node.name);
         }
+    }
 
+    /** Validate that all output mappings reference valid internal nodes and output keys. */
+    private validateOutputMappings(): void {
+        const nodesByName = new Map(this.internalNodes.map(n => [n.name, n]));
+
+        for (const [ourOutput, mapping] of Object.entries(this.outputMappings)) {
+            const node = nodesByName.get(mapping.node);
+            if (!node) {
+                throw new Error(
+                    `CompositeNode "${this.name}": output "${ourOutput}" maps to unknown internal node "${mapping.node}". ` +
+                    `Available: ${[...nodesByName.keys()].join(', ')}`
+                );
+            }
+
+            const outputKeys: readonly string[] | undefined = (node.constructor as any).outputKeys;
+            if (outputKeys && !outputKeys.includes(mapping.output)) {
+                throw new Error(
+                    `CompositeNode "${this.name}": output "${ourOutput}" maps to unknown output key "${mapping.output}" on node "${mapping.node}". ` +
+                    `Available: ${outputKeys.join(', ')}`
+                );
+            }
+        }
     }
 
     /**
@@ -98,28 +122,21 @@ export abstract class CompositeNode<
 
         for (const [ourOutputName, mapping] of Object.entries(this.outputMappings)) {
             const internalNodeOutputs = context.getNodeOutputs(mapping.node);
-
-            if (internalNodeOutputs) {
-                // Find the specific output from the internal node
-                for (const nodeOutput of internalNodeOutputs) {
-                    const outputValue = nodeOutput[mapping.output];
-                    if (outputValue !== undefined) {
-                        // Map to our output name
-                        results.push({
-                            [ourOutputName]: outputValue
-                        } as NodeOutput<TOutput>);
-                    }
-                }
-            } else {
+            if (!internalNodeOutputs) {
                 throw new Error(
-                    `CompositeNode ${this.name}: Could not find outputs from internal node "${mapping.node}" for output "${ourOutputName}". ` +
-                    `Make sure the internal node exists and has run.`
+                    `CompositeNode "${this.name}": internal node "${mapping.node}" has not produced outputs`
                 );
             }
-        }
 
-        if (results.length === 0) {
-            console.warn(`CompositeNode ${this.name}: No outputs collected from internal pipeline`);
+            for (const nodeOutput of internalNodeOutputs) {
+                const outputValue = nodeOutput[mapping.output];
+                if (outputValue === undefined) {
+                    throw new Error(
+                        `CompositeNode "${this.name}": internal node "${mapping.node}" has no output "${mapping.output}"`
+                    );
+                }
+                results.push({ [ourOutputName]: outputValue } as NodeOutput<TOutput>);
+            }
         }
 
         return results;
