@@ -46,7 +46,7 @@
     <initialTemplate>aggregate</initialTemplate>
     <stylesheetParams>
       <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
-      <param name="indices-config"><absolute>1-input/indices-config.xsl</absolute></param>
+      <param name="indices-config"><files>1-input/indices-config.xsl</files></param>
     </stylesheetParams>
     <output to="2-intermediate/eleventy-site/_data/indices" filename="_summary.json"/>
   </xsltTransform>

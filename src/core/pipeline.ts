@@ -31,9 +31,11 @@ export function inputIsFilesRef(value: any): value is FilesRef {
 
 // AbsolutePath: a project-relative path that should be resolved to an absolute path at runtime.
 // Unlike files(), this is not a dependency reference — it's just path resolution. No glob, no tracking.
+// Use for directory paths or other non-file references passed as string values (e.g. XSLT params).
+// For file references, prefer files() which also tracks the file for cache invalidation.
 export type AbsolutePath = { type: 'absolute', path: string };
 
-export function absolute(p: string): AbsolutePath {
+export function absolutePath(p: string): AbsolutePath {
     return { type: 'absolute', path: p };
 }
 
@@ -1192,7 +1194,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                     const resolved = path.resolve(this.projectDir, pattern);
                     const isDir = await fs.stat(resolved).then(s => s.isDirectory(), () => false);
                     if (isDir) {
-                        throw new Error(`files() resolved to a directory: ${pattern}. Use absolute() for directory paths or add a glob pattern (e.g., "${pattern}/**/*").`);
+                        throw new Error(`files() resolved to a directory: ${pattern}. Use absolutePath() for directory paths or add a glob pattern (e.g., "${pattern}/**/*").`);
                     }
                     throw new Error(`No files found for pattern: ${pattern}`);
                 }

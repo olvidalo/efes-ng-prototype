@@ -71,7 +71,7 @@ ${nodeRefs}
     </data>
   </define>
 
-  <!-- Input: files, from, collect, absolute, or variable ref -->
+  <!-- Input: files, from, collect, absolutePath, or variable ref -->
   <define name="inputContent">
     <choice>
       <element name="files">
@@ -92,8 +92,8 @@ ${outputKeyValues}
         <a:documentation>A shared directory that multiple nodes write into. The node waits for all writers to finish before reading.</a:documentation>
         <ref name="nonEmptyString"/>
       </element>
-      <element name="absolute">
-        <a:documentation>Resolve a project-relative path to an absolute filesystem path. Useful for passing directory locations as XSLT parameters, e.g. for document() calls.</a:documentation>
+      <element name="absolutePath">
+        <a:documentation>Resolve a project-relative path to an absolute filesystem path. Useful for passing directory locations as XSLT parameters, e.g. for document() calls. For file references, prefer &lt;files&gt; which also tracks the file for cache invalidation.</a:documentation>
         <ref name="nonEmptyString"/>
       </element>
       <element name="ref">

@@ -1,7 +1,7 @@
 import { parseXmlDocument, Element } from 'slimdom';
 import { closestMatch } from 'leven';
 import fs from 'node:fs/promises';
-import { Pipeline, from, files, collect, absolute } from './pipeline';
+import { Pipeline, from, files, collect, absolutePath } from './pipeline';
 import { NodeRegistry } from './nodeRegistry';
 import type { SchemaField } from './nodeConfigSchema';
 
@@ -115,12 +115,12 @@ function parseField(
 }
 
 /**
- * Parse an input element. Expects exactly one child: <files>, <from>, <collect>, <absolute>, or <ref>.
+ * Parse an input element. Expects exactly one child: <files>, <from>, <collect>, <absolutePath>, or <ref>.
  */
 function parseInput(el: Element, variables: Map<string, any>): any {
     const child = el.children[0];
     if (!child) {
-        throw new Error(`<${el.localName}> requires a child input element (<files>, <from>, <collect>, <absolute>, or <ref>)`);
+        throw new Error(`<${el.localName}> requires a child input element (<files>, <from>, <collect>, <absolutePath>, or <ref>)`);
     }
 
     return parseInputChild(child, variables);
@@ -138,12 +138,12 @@ function parseInputChild(child: Element, variables: Map<string, any>): any {
         }
         case 'collect':
             return collect(requiredText(child));
-        case 'absolute':
-            return absolute(requiredText(child));
+        case 'absolutePath':
+            return absolutePath(requiredText(child));
         case 'ref':
             return resolveRef(child, variables);
         default:
-            throw new Error(`Unknown input type <${child.localName}>. Expected <files>, <from>, <collect>, <absolute>, or <ref>.`);
+            throw new Error(`Unknown input type <${child.localName}>. Expected <files>, <from>, <collect>, <absolutePath>, or <ref>.`);
     }
 }
 
@@ -231,7 +231,7 @@ function parseVariableContent(el: Element, variables: Map<string, any>): any {
     }
 
     const child = el.children[0];
-    if (['files', 'from', 'collect', 'absolute', 'ref'].includes(child.localName)) {
+    if (['files', 'from', 'collect', 'absolutePath', 'ref'].includes(child.localName)) {
         return parseInputChild(child, variables);
     }
     if (child.localName === 'param') {

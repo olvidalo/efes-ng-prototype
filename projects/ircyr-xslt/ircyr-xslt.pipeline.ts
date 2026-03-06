@@ -1,4 +1,4 @@
-import {CopyFilesNode, absolute, files, from, Pipeline, XsltTransformNode} from "efes-ng-phase-2-poc";
+import {CopyFilesNode, absolutePath, files, from, Pipeline, XsltTransformNode} from "efes-ng-phase-2-poc";
 
 
 
@@ -33,8 +33,8 @@ const preprocessKilnXsl = new XsltTransformNode({
         sourceFiles: from(copyKiln, "copied", "2-intermediate/ircyr-efes/webapps/ROOT/**/*.xsl"),
         stylesheet: files("1-input/stylesheets/preprocess-kiln-xsl.xsl"),
         stylesheetParams: {
-            "stylesheet-base-path": absolute("2-intermediate/ircyr-efes/webapps/ROOT"),
-            "efes-base-path": absolute("1-input/ircyr-efes"),
+            "stylesheet-base-path": absolutePath("2-intermediate/ircyr-efes/webapps/ROOT"),
+            "efes-base-path": absolutePath("1-input/ircyr-efes"),
         }
     },
     outputConfig: {
@@ -51,8 +51,8 @@ const preprocessKilnTemplates = new XsltTransformNode({
         sourceFiles: from(copyKiln, "copied", "2-intermediate/ircyr-efes/webapps/ROOT/assets/templates/**/*.xml"),
         stylesheet: files("1-input/stylesheets/preprocess-kiln-xsl.xsl"),
         stylesheetParams: {
-            "stylesheet-base-path": absolute("2-intermediate/ircyr-efes/webapps/ROOT"),
-            "efes-base-path": absolute("1-input/ircyr-efes")
+            "stylesheet-base-path": absolutePath("2-intermediate/ircyr-efes/webapps/ROOT"),
+            "efes-base-path": absolutePath("1-input/ircyr-efes")
         }
     },
     outputConfig: {
