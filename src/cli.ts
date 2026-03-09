@@ -133,6 +133,50 @@ program
     });
 
 program
+    .command('nodes')
+    .description('List available node types and their configuration')
+    .argument('[node-type]', 'Show details for a specific node type')
+    .action(async (nodeType?: string) => {
+        // Side-effect import registers all built-in nodes
+        await import('./core/builtinNodes');
+        const { NodeRegistry } = await import('./core/nodeRegistry');
+
+        const nodes = NodeRegistry.all();
+
+        if (!nodeType) {
+            console.log('Available node types:\n');
+            for (const node of nodes) {
+                console.log(`  <${node.xmlElement}>`);
+                if (node.description) console.log(`    ${node.description}`);
+            }
+            console.log(`\nRun 'efes nodes <type>' for details.`);
+            return;
+        }
+
+        const node = NodeRegistry.get(nodeType);
+        if (!node) {
+            console.error(`Unknown node type "${nodeType}". Available: ${NodeRegistry.elementNames().join(', ')}`);
+            process.exit(1);
+        }
+
+        console.log(`<${node.xmlElement}>`);
+        if (node.description) console.log(`  ${node.description}\n`);
+
+        const schema = node.configSchema;
+        const fields = Object.entries(schema);
+        if (fields.length) {
+            console.log('Inputs / config:');
+            for (const [name, field] of fields) {
+                const opt = field.optional ? ' (optional)' : '';
+                const desc = field.description ? ` — ${field.description}` : '';
+                console.log(`  ${name}: ${field.type}${opt}${desc}`);
+            }
+        }
+
+        console.log(`\nOutputs: ${[...node.outputKeys].join(', ')}`);
+    });
+
+program
     .command('schema')
     .description('Print RELAX NG schema for pipeline XML format')
     .action(() => {

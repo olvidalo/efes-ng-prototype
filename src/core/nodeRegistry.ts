@@ -19,6 +19,11 @@ class NodeRegistryImpl {
     elementNames(): string[] {
         return [...this.byElement.keys()];
     }
+
+    /** All registered node classes. */
+    all(): XmlRegistrableNode[] {
+        return [...this.byElement.values()];
+    }
 }
 
 export const NodeRegistry = new NodeRegistryImpl();
