@@ -281,8 +281,8 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                             const depName = typeof obj.node === 'string' ? obj.node : obj.node.name;
                             try {
                                 this.graph.addDependency(node.name, depName);
-                            } catch (err: any) {
-                                throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err.message}`);
+                            } catch (err) {
+                                throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err instanceof Error ? err.message : err}`, { cause: err });
                             }
 
                             // Validate output key exists on target node

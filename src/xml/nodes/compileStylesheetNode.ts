@@ -98,8 +98,8 @@ export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig,
                         },
                         discoveredDependencies
                     };
-                } catch (err: any) {
-                    throw new Error(`Failed to compile XSL: ${err.message}`);
+                } catch (err) {
+                    throw new Error(`Failed to compile XSL: ${err instanceof Error ? err.message : err}`, { cause: err });
                 }
             }
         );
