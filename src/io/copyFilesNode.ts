@@ -34,6 +34,7 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKe
         const cfg = await this.resolvedConfig(context);
         const paths = cfg.sourceFiles;
         const copiedFiles: string[] = [];
+        let skipped = 0;
 
         for (let i = 0; i < paths.length; i++) {
             const sourcePath = paths[i];
@@ -52,6 +53,7 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKe
                     const destStat = await stat(destPath);
                     if (destStat.mtimeMs >= sourceStat.mtimeMs) {
                         copiedFiles.push(destPath);
+                        skipped++;
                         context.progress(this.name, i + 1, paths.length);
                         continue;
                     }
@@ -66,6 +68,7 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKe
             context.progress(this.name, i + 1, paths.length);
         }
 
+        this.cacheStats = { hits: skipped, total: copiedFiles.length };
         return [{ copied: copiedFiles }];
     }
 }
