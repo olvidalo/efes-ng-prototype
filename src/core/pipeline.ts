@@ -227,16 +227,13 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         // Build map: normalized outputDir → node names (multiple nodes can share a dir)
         const outputDirToNodes = new Map<string, string[]>();
         for (const nodeName of this.graph.overallOrder()) {
-            const node = this.graph.getNodeData(nodeName);
-            const outputDir = (node.config.outputConfig as any)?.to;
-            if (outputDir) {
-                const key = path.normalize(outputDir);
-                const existing = outputDirToNodes.get(key);
-                if (existing) {
-                    existing.push(nodeName);
-                } else {
-                    outputDirToNodes.set(key, [nodeName]);
-                }
+            const outputDir = path.relative(this.projectDir, this.getNodeOutputDir(nodeName));
+            const key = path.normalize(outputDir);
+            const existing = outputDirToNodes.get(key);
+            if (existing) {
+                existing.push(nodeName);
+            } else {
+                outputDirToNodes.set(key, [nodeName]);
             }
         }
 
