@@ -105,7 +105,9 @@ function createPipelineState() {
 
       case 'watch:rebuild:start':
         resetNodes()
-        addLog('Rebuild triggered')
+        addLog(event.files?.length
+          ? `Rebuild triggered by ${event.files.length} file(s): ${event.files.join(', ')}`
+          : 'Rebuild triggered')
         break
 
       case 'watch:rebuild:done':

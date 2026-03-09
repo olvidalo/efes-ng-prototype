@@ -14,6 +14,7 @@ export class PipelineWatcher {
     private isRunning = false;
     private pendingRebuild = false;
     private lastMtimes = new Map<string, number>();
+    private changedFiles = new Set<string>();
 
     constructor(
         private pipeline: Pipeline,
@@ -104,8 +105,10 @@ export class PipelineWatcher {
             }
         }
 
+        const relPath = path.relative(this.pipeline.projectDir, absPath);
         this.pipeline.emit('watch:change', { event, path: absPath });
-        console.log(`  [watch] ${event}: ${path.relative(this.pipeline.projectDir, absPath)}`);
+        console.log(`  [watch] ${event}: ${relPath}`);
+        this.changedFiles.add(relPath);
         this.scheduleRebuild();
     }
 
@@ -123,9 +126,11 @@ export class PipelineWatcher {
 
     private async rebuild(): Promise<void> {
         this.isRunning = true;
+        const files = [...this.changedFiles];
+        this.changedFiles.clear();
         const start = performance.now();
-        this.pipeline.emit('watch:rebuild:start', {});
-        console.log('\n--- Rebuild triggered ---\n');
+        this.pipeline.emit('watch:rebuild:start', { files });
+        console.log(`\n--- Rebuild triggered by ${files.length} file(s): ${files.join(', ')} ---\n`);
 
         try {
             await this.pipeline.run();
