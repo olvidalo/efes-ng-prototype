@@ -348,7 +348,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         const cacheKeys = items.map(getCacheKey);
         const hashFile = this.buildHashFile(deps, context.cache);
 
-        context.log(`Cache lookup - contentSignature: ${deps.contentSignature}`);
+        this.debug(context, `Cache lookup (signature: ${deps.contentSignature})`);
 
         // Phase 1: Sequential cache validation
         const results: Array<{ item: string, outputs: NodeOutput<TOutput>, cached: boolean }> = [];
@@ -359,7 +359,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             const item = items[i];
             const cached = await this.tryFromCache(context, item, cacheKeys[i], deps, getOutputPath, hashFile);
             if (cached) {
-                context.log(`  - Skipping: ${item} (cached)`);
+                this.debug(context, `Skipping: ${item} (cached)`);
                 completed++;
                 context.progress(this.name, completed, items.length);
                 results[i] = { item, outputs: cached as NodeOutput<TOutput>, cached: true };
@@ -370,7 +370,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
 
         // Phase 2: Parallel work dispatch for all misses
         if (misses.length > 0) {
-            context.log(`Processing ${misses.length} cache misses`);
+            this.debug(context, `Processing ${misses.length} cache misses`);
             await Promise.all(misses.map(async ({ index, item, cacheKey }) => {
                 context.signal.throwIfAborted();
                 const result = await performWork(item);
@@ -382,6 +382,12 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         }
 
         this.cacheStats = { hits: results.filter(r => r.cached).length, total: results.length };
+        const { hits, total } = this.cacheStats;
+        if (hits > 0 && hits < total) {
+            this.log(context, `${hits}/${total} cached, processing ${total - hits}`);
+        } else if (hits === 0 && total > 1) {
+            this.log(context, `Processing ${total} items`);
+        }
         return results;
     }
 
@@ -478,7 +484,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         // hashing the same file N times (once per item)
         const sharedFileHashes = new Map<string, { hash: string; timestamp: number }>();
         if (sharedDependencyPaths.length > 0) {
-            context.log(`Pre-computing hashes for ${sharedDependencyPaths.length} shared dependencies`);
+            this.debug(context, `Pre-computing hashes for ${sharedDependencyPaths.length} shared dependencies`);
             await Promise.all(sharedDependencyPaths.map(async (filePath) => {
                 try {
                     const producer = pathToProducer.get(filePath);
