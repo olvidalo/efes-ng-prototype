@@ -111,7 +111,9 @@ export class Pipeline extends EventEmitter implements PipelineContext {
             console.log(`  [${name}] Pipeline completed in ${(durationMs / 1000).toFixed(2)}s`);
             console.log(`  [${name}] \nNode timing summary:`);
             for (const [nodeName, time] of timings) {
-                console.log(`  [${name}]   ${nodeName.padEnd(40)} ${(time / 1000).toFixed(2)}s`);
+                const outputDir = this.getNodeOutputDir(nodeName);
+                const relDir = path.relative(this.projectDir, outputDir);
+                console.log(`  [${name}]   ${nodeName.padEnd(40)} ${(time / 1000).toFixed(2)}s  → ${relDir}`);
             }
         });
         this.on('node:start', ({ name }) =>
