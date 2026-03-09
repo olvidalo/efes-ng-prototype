@@ -89,6 +89,25 @@
             <xsl:variable name="index-entities"
                 select="$all-entities[@indexType = $index-id]"/>
 
+            <!-- Validate column keys against extracted entity fields -->
+            <xsl:if test="exists($index-entities)">
+                <xsl:variable name="column-keys" select="idx:columns/idx:column[not(@type = 'references')]/@key/string()"/>
+                <xsl:variable name="label-keys" select="idx:columns/idx:column/@labelKey/string()"/>
+                <xsl:variable name="internal-fields" select="('inscriptionId', 'indexType', 'sortKey', 'collectionName', 'invNr')"/>
+                <xsl:variable name="entity-fields" select="distinct-values(
+                    $index-entities[1]/*[not(local-name() = $internal-fields)]/local-name()
+                )"/>
+                <xsl:for-each select="$column-keys[not(. = $entity-fields)]">
+                    <xsl:message>WARNING: index "<xsl:value-of select="$index-id"/>": column key "<xsl:value-of select="."/>" has no matching extracted field</xsl:message>
+                </xsl:for-each>
+                <xsl:for-each select="$label-keys[not(. = $entity-fields)]">
+                    <xsl:message>WARNING: index "<xsl:value-of select="$index-id"/>": labelKey "<xsl:value-of select="."/>" has no matching extracted field</xsl:message>
+                </xsl:for-each>
+                <xsl:for-each select="$entity-fields[not(. = ($column-keys, $label-keys))]">
+                    <xsl:message>NOTE: index "<xsl:value-of select="$index-id"/>": extracted field "<xsl:value-of select="."/>" has no column definition</xsl:message>
+                </xsl:for-each>
+            </xsl:if>
+
             <!-- Group by sortKey -->
             <xsl:variable name="grouped-entries" as="element(fn:array)">
                 <fn:array key="entries">
