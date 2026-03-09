@@ -1,4 +1,5 @@
 import { DepGraph } from "dependency-graph";
+import { closestMatch } from "leven";
 import { CacheManager } from "./cache";
 import { glob } from "glob";
 import path from "node:path";
@@ -282,15 +283,24 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                             try {
                                 this.graph.addDependency(node.name, depName);
                             } catch (err) {
-                                throw new Error(`Failed to add automatic dependency for node ${node.name}: ${err instanceof Error ? err.message : err}`, { cause: err });
+                                const allNodes = this.graph.overallOrder();
+                                const suggestion = closestMatch(depName, allNodes, { maxDistance: 3 });
+                                throw new Error(
+                                    `Node "${node.name}": from("${depName}", "${obj.output}") references unknown node "${depName}".` +
+                                    `${suggestion ? ` Did you mean "${suggestion}"?` : ''}\n` +
+                                    `Available nodes: ${allNodes.join(', ')}`,
+                                    { cause: err }
+                                );
                             }
 
                             // Validate output key exists on target node
                             const depNode = this.graph.getNodeData(depName);
                             const validOutputKeys: readonly string[] | undefined = (depNode.constructor as any).outputKeys;
                             if (validOutputKeys && !validOutputKeys.includes(obj.output)) {
+                                const keySuggestion = closestMatch(obj.output, [...validOutputKeys], { maxDistance: 3 });
                                 throw new Error(
-                                    `Node "${node.name}": from("${depName}", "${obj.output}") references unknown output key. ` +
+                                    `Node "${node.name}": from("${depName}", "${obj.output}") references unknown output key.` +
+                                    `${keySuggestion ? ` Did you mean "${keySuggestion}"?` : ''} ` +
                                     `Available on "${depName}": ${validOutputKeys.join(', ')}`
                                 );
                             }
