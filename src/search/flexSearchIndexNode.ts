@@ -11,7 +11,7 @@ const configSchema = {
     documents:   { type: 'input', description: 'Per-document metadata XML files to build search index from.' },
     idField:     { type: 'scalar', description: 'The document field to use as a unique identifier (e.g. "documentId").' },
     textFields:  { type: 'array', description: 'Document fields to include in the full-text search index.' },
-    facetFields: { type: 'array', description: 'Document fields to use as facet filters in the search interface.' },
+    excludeFields: { type: 'array', optional: true, description: 'Fields to exclude from the search index (not indexed as text or facet).' },
 } as const satisfies NodeConfigSchema;
 
 interface FlexSearchIndexConfig extends PipelineNodeConfig {
@@ -45,11 +45,15 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
                 const documents = await this.parseMetadataFiles(metadataFiles, context);
                 this.log(context, `Processing ${documents.length} documents`);
 
+                // Auto-discover facet fields: all fields minus id, text, and excluded
+                const exclude = new Set([...cfg.textFields, ...(cfg.excludeFields ?? []), cfg.idField]);
+                const facetFields = this.discoverFacetFields(documents, exclude);
+
                 const indexConfig = {
                     id: cfg.idField,
                     store: true,
                     index: cfg.textFields,
-                    tag: cfg.facetFields,
+                    tag: facetFields,
                 };
                 const searchIndex = new FlexSearch.Document(indexConfig);
 
@@ -67,7 +71,7 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
                 // Export and save
                 await fs.mkdir(outputDir, { recursive: true });
 
-                const facets = this.generateFacets(documents);
+                const facets = this.generateFacets(documents, facetFields);
 
                 await fs.writeFile(path.join(outputDir, 'facets.json'), JSON.stringify(facets, null, 2));
                 await fs.writeFile(path.join(outputDir, 'count.json'), JSON.stringify({ total: documents.length }));
@@ -115,10 +119,20 @@ export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typ
         return documents;
     }
 
-    private generateFacets(documents: any[]): Record<string, Record<string, number>> {
+    private discoverFacetFields(documents: Record<string, any>[], exclude: Set<string>): string[] {
+        const allKeys = new Set<string>();
+        for (const doc of documents) {
+            for (const key of Object.keys(doc)) {
+                if (!exclude.has(key)) allKeys.add(key);
+            }
+        }
+        return [...allKeys].sort();
+    }
+
+    private generateFacets(documents: any[], facetFields: string[]): Record<string, Record<string, number>> {
         const facets: Record<string, Record<string, number>> = {};
 
-        this.config.config.facetFields?.forEach(field => {
+        facetFields.forEach(field => {
             facets[field] = {};
             documents.forEach(doc => {
                 const values = Array.isArray(doc[field]) ? doc[field] : [doc[field]];

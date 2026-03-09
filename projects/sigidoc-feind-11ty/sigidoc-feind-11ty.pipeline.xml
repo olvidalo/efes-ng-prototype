@@ -172,23 +172,6 @@
       <field>fullText</field>
       <field>title</field>
     </textFields>
-    <facetFields>
-      <field>material</field>
-      <field>objectType</field>
-      <field>language</field>
-      <field>personalNames</field>
-      <field>familyNames</field>
-      <field>gender</field>
-      <field>milieu</field>
-      <field>placeNames</field>
-      <field>dignities</field>
-      <field>civilOffices</field>
-      <field>ecclesiasticalOffices</field>
-      <field>militaryOffices</field>
-      <field>collection</field>
-      <field>metrical</field>
-      <field>monogram</field>
-    </facetFields>
     <output to="2-intermediate/eleventy-site/search-data"/>
   </flexSearchIndex>
 

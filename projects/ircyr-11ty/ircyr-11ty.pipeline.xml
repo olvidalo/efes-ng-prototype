@@ -58,14 +58,6 @@
       <field>fullText</field>
       <field>title</field>
     </textFields>
-    <facetFields>
-      <field>material</field>
-      <field>objectType</field>
-      <field>textType</field>
-      <field>language</field>
-      <field>findspot</field>
-      <field>repository</field>
-    </facetFields>
     <output to="2-intermediate/eleventy-site/search-data"/>
   </flexSearchIndex>
 
