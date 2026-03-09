@@ -21,7 +21,8 @@ export class WorkerPool {
 
     constructor(
         private poolSize: number,
-        private workerPath: string  // Now expects absolute path
+        private workerPath: string,
+        private onLog?: (nodeName: string, message: string) => void,
     ) {
         for (let i = 0; i < poolSize; i++) {
             this.spawnWorker(i);
@@ -36,6 +37,14 @@ export class WorkerPool {
         this.workerIds.set(worker, id);
 
         worker.on("message", (message) => {
+            if (message.type === 'log') {
+                const job = this.activeJobs.get(worker);
+                if (job && this.onLog) {
+                    this.onLog(job.job.nodeName, message.message);
+                }
+                return;
+            }
+
             const job = this.activeJobs.get(worker);
             if (!job) return;
 

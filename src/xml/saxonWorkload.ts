@@ -1,4 +1,4 @@
-import type { WorkloadModule } from "../core/resolveWorkloadPath";
+import type { WorkloadModule, WorkerLog } from "../core/resolveWorkloadPath";
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
@@ -73,7 +73,7 @@ export interface TransformResult {
     resultDocumentPaths: string[];
 }
 
-export async function performWork(job: TransformJob): Promise<TransformResult> {
+export async function performWork(job: TransformJob, log: WorkerLog): Promise<TransformResult> {
     const transformOptions: any = {
         // stylesheetFileName: job.sefStylesheetPath,
         stylesheetInternal: job.stylesheetInternal,
@@ -113,9 +113,8 @@ export async function performWork(job: TransformJob): Promise<TransformResult> {
     try {
         result = await SaxonJS.transform(transformOptions);
     } catch (error) {
-        console.log("Error transforming", job.sourcePath, " with ", path.basename(job.sefStylesheetPath, ".sef.json"));
-        console.error(error);
-        throw error
+        log(`Error transforming ${job.sourcePath} with ${path.basename(job.sefStylesheetPath, ".sef.json")}`);
+        throw error;
     }
 
     // Write principal result

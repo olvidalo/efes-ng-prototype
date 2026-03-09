@@ -2,9 +2,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 
+export type WorkerLog = (message: string) => void;
+
 /** Contract that workload modules must satisfy. */
 export interface WorkloadModule {
-    performWork(job: any): Promise<any>;
+    performWork(job: any, log: WorkerLog): Promise<any>;
 }
 
 /**

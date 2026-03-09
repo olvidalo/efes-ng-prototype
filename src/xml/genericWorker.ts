@@ -19,10 +19,15 @@ parentPort.on("message", async (message) => {
             throw new Error(`Workload module ${message.workloadScript} must export a 'performWork' function`);
         }
 
-        const result = await workloadModule.performWork(message);
-        parentPort!.postMessage({ success: true, result });
+        const log = (msg: string) => {
+            parentPort!.postMessage({ type: 'log', message: msg });
+        };
+
+        const result = await workloadModule.performWork(message, log);
+        parentPort!.postMessage({ type: 'result', success: true, result });
     } catch (error: any) {
         parentPort!.postMessage({
+            type: 'result',
             success: false,
             error: {
                 message: error.message,

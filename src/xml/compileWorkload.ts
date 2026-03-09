@@ -1,4 +1,4 @@
-import type { WorkloadModule } from "../core/resolveWorkloadPath";
+import type { WorkloadModule, WorkerLog } from "../core/resolveWorkloadPath";
 import { spawn } from "child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,7 +32,7 @@ function resolveXslt3Binary(): string {
     return 'xslt3-he';
 }
 
-export async function performWork(job: CompileJob): Promise<CompileResult> {
+export async function performWork(job: CompileJob, log: WorkerLog): Promise<CompileResult> {
     return new Promise<CompileResult>((resolve, reject) => {
         // Use spawn instead of fork since xslt3-he is a binary, not a Node script
         const xslt3Binary = resolveXslt3Binary();
@@ -68,8 +68,10 @@ export async function performWork(job: CompileJob): Promise<CompileResult> {
         }
 
         child.on('close', (code) => {
+            if (stderr.trim()) {
+                log(stderr.trim());
+            }
             if (code === 0) {
-                console.log(`Successfully compiled: ${path.basename(job.outputPath)}`);
                 resolve({ outputPath: job.outputPath });
             } else {
                 reject(new Error(`XSLT compilation failed with exit code ${code}\nstderr: ${stderr}`));
