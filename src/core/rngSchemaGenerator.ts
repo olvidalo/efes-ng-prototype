@@ -106,7 +106,7 @@ ${outputKeyValues}
     <element name="output">
       <a:documentation>Configure where and how this node writes its output files.</a:documentation>
       <optional><attribute name="to"><a:documentation>Destination directory for output files.</a:documentation></attribute></optional>
-      <optional><attribute name="from"><a:documentation>Source path prefix to strip when calculating output paths, preserving only the relative structure below it.</a:documentation></attribute></optional>
+      <optional><attribute name="stripPrefix"><a:documentation>Strip this prefix from input paths to derive the output subpath, preserving only the relative structure below it.</a:documentation></attribute></optional>
       <optional><attribute name="extension"><a:documentation>Replace the file extension on output files (e.g. ".html").</a:documentation></attribute></optional>
       <optional><attribute name="flat"><a:documentation>If "true", flatten all output into a single directory, ignoring subdirectory structure.</a:documentation></attribute></optional>
       <optional><attribute name="filename"><a:documentation>Write output to a single file with this name. Only for nodes that produce exactly one output file.</a:documentation></attribute></optional>

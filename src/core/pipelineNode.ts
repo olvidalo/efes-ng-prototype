@@ -57,8 +57,8 @@ export function from(nodeOrName: PipelineNode<any, any> | string, output: string
 export interface OutputConfig {
     /** Output directory. Default: buildDir/nodeName */
     to?: string;
-    /** Strip this prefix from input paths (e.g., from: "1-input", to: "2-intermediate") */
-    from?: string;
+    /** Strip this prefix from input paths to derive output subpath */
+    stripPrefix?: string;
     /** Flatten to just filename, ignoring directory structure */
     flat?: boolean;
     /** Override entire output filename (string or function) */
@@ -205,9 +205,9 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         if (outputConfig.flat) {
             // Just filename, no directory structure
             processedPath = path.basename(cleanPath);
-        } else if (outputConfig.from) {
+        } else if (outputConfig.stripPrefix) {
             // Strip input base prefix from path
-            const prefix = outputConfig.from;
+            const prefix = outputConfig.stripPrefix;
             const normalizedClean = cleanPath.split(path.sep).join('/');
             const normalizedPrefix = prefix.split(path.sep).join('/');
 

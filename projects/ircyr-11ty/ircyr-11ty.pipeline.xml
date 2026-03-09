@@ -3,7 +3,7 @@
 
   <copyFiles name="copy-eleventy-site">
     <sourceFiles><files>1-input/eleventy-site/**/*</files></sourceFiles>
-    <output to="2-intermediate/eleventy-site" from="1-input/eleventy-site"/>
+    <output to="2-intermediate/eleventy-site" stripPrefix="1-input/eleventy-site"/>
   </copyFiles>
 
   <xsltTransform name="transform-epidoc">
@@ -20,7 +20,7 @@
       <param name="parm-verse-lines">on</param>
     </stylesheetParams>
     <output to="2-intermediate/eleventy-site/en/inscriptions"
-            from="1-input/inscriptions"
+            stripPrefix="1-input/inscriptions"
             extension=".html"/>
   </xsltTransform>
 
@@ -37,7 +37,7 @@
       <param name="tags">inscriptions</param>
     </stylesheetParams>
     <output to="2-intermediate/eleventy-site/en/inscriptions"
-            from="1-input/inscriptions"
+            stripPrefix="1-input/inscriptions"
             extension=".11tydata.json"/>
   </xsltTransform>
 

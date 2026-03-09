@@ -209,13 +209,13 @@ function parseMap(el: Element, variables: Map<string, any>): Record<string, any>
 function parseOutputConfig(el: Element): Record<string, any> {
     const config: Record<string, any> = {};
     const to = el.getAttribute('to');
-    const fromAttr = el.getAttribute('from');
+    const stripPrefix = el.getAttribute('stripPrefix');
     const extension = el.getAttribute('extension');
     const flat = el.getAttribute('flat');
     const filename = el.getAttribute('filename');
 
     if (to) config.to = to;
-    if (fromAttr) config.from = fromAttr;
+    if (stripPrefix) config.stripPrefix = stripPrefix;
     if (extension) config.extension = extension;
     if (flat) config.flat = flat === 'true';
     if (filename) config.outputFilename = filename;
