@@ -563,8 +563,11 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
         }
 
         // Validate dependencies
-        const dependenciesValid = await context.cache.isValid(cached, context.resolveInput.bind(context), hashFile);
-        if (!dependenciesValid) return null;
+        const invalidReason = await context.cache.isValid(cached, context.resolveInput.bind(context), hashFile);
+        if (invalidReason) {
+            this.debug(context, `cache miss: ${invalidReason}`);
+            return null;
+        }
 
         // Copy files if needed (cross-node cache reuse)
         for (const [outputKey, cachedPaths] of Object.entries(cached.outputsByKey)) {

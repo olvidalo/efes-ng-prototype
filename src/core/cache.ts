@@ -125,13 +125,13 @@ export class CacheManager {
    * 3. Tracked file hashes - only if timestamps changed
    * 4. Output existence - verify all outputs still exist
    *
-   * Returns false if any validation check fails.
+   * Returns null if valid, or a reason string explaining why the cache is invalid.
    */
   async isValid(
     entry: CacheEntry,
     resolveInput?: (input: any) => Promise<string[]>,
     hashFile?: (filePath: string) => Promise<string>,
-  ): Promise<boolean> {
+  ): Promise<string | null> {
     // 1. Check upstream output signatures (cheapest - string comparison)
     if (entry.upstreamOutputSignatures && resolveInput) {
       for (const [nodeName, upstreamInfo] of Object.entries(entry.upstreamOutputSignatures)) {
@@ -147,12 +147,12 @@ export class CacheManager {
           // Use resolveInput to get the correctly filtered paths (same as during storage)
           currentPaths = await resolveInput(nodeRef);
         } catch (error) {
-          return false; // Upstream node hasn't run yet or error occurred
+          return `upstream "${nodeName}" not available`;
         }
 
         const currentSignature = CacheManager.computeOutputSignature(currentPaths);
         if (currentSignature !== upstreamInfo.signature) {
-          return false; // Upstream produced different file set
+          return `upstream "${nodeName}" output changed (${currentPaths.length} files)`;
         }
       }
     }
@@ -172,11 +172,11 @@ export class CacheManager {
           ? await hashFile(filePath)
           : await this.computeFileHash(filePath);
         if (currentHash !== fileInfo.hash) {
-          return false; // Content changed
+          return `${fileInfo.source} file changed: ${path.basename(filePath)}`;
         }
         // Timestamp changed but content identical - still valid
       } catch (err) {
-          return false; // File missing
+        return `${fileInfo.source} file missing: ${path.basename(filePath)}`;
       }
     }
 
@@ -186,12 +186,12 @@ export class CacheManager {
         try {
           await fs.access(outputPath);
         } catch {
-          return false; // Output missing
+          return `output missing: ${path.basename(outputPath)}`;
         }
       }
     }
 
-    return true;
+    return null;
   }
 
   /**
