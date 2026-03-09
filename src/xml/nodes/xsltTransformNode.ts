@@ -24,7 +24,6 @@ interface XsltTransformConfig extends PipelineNodeConfig {
 const outputKeys = ['transformed', 'result-documents', 'compiledStylesheet'] as const;
 
 export class XsltTransformNode extends CompositeNode<XsltTransformConfig, typeof outputKeys[number]> {
-    static readonly xmlElement = 'xsltTransform' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
     static readonly description = 'Apply an XSLT stylesheet to XML source files using Saxon-JS (XSLT 3.0). The stylesheet is automatically compiled to SEF format.';

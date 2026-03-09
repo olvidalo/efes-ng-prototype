@@ -18,7 +18,6 @@ interface CopyFilesConfig extends PipelineNodeConfig {
 const outputKeys = ['copied'] as const;
 
 export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKeys[number]> {
-    static readonly xmlElement = 'copyFiles' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
     static readonly description = 'Copy files from source to destination, preserving directory structure. Requires an output element with a "to" attribute.';

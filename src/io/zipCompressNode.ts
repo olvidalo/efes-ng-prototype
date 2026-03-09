@@ -18,7 +18,6 @@ interface ZipCompressConfig extends PipelineNodeConfig {
 const outputKeys = ['zip'] as const;
 
 export class ZipCompressNode extends PipelineNode<ZipCompressConfig, typeof outputKeys[number]> {
-    static readonly xmlElement = 'zipCompress' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
     static readonly description = 'Compress files into a single ZIP archive. Requires an output element with a "filename" attribute.';

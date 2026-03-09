@@ -22,7 +22,6 @@ interface FlexSearchIndexConfig extends PipelineNodeConfig {
 const outputKeys = ['searchIndex'] as const;
 
 export class FlexSearchIndexNode extends PipelineNode<FlexSearchIndexConfig, typeof outputKeys[number]> {
-    static readonly xmlElement = 'flexSearchIndex' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
     static readonly description = 'Build a FlexSearch full-text search index from per-document metadata XML files. Produces index files that can be loaded client-side for in-browser search.';

@@ -52,10 +52,10 @@ export function parsePipelineXml(xml: string): Pipeline {
         const elementName = child.localName;
         const nodeClass = NodeRegistry.get(elementName);
         if (!nodeClass) {
-            const suggestion = closestMatch(elementName, NodeRegistry.elementNames(), { maxDistance: 3 });
+            const suggestion = closestMatch(elementName, NodeRegistry.names(), { maxDistance: 3 });
             throw new Error(
                 `Unknown node type <${elementName}>.${suggestion ? ` Did you mean <${suggestion}>?` : ''}\n` +
-                `Available node types: ${NodeRegistry.elementNames().join(', ')}`
+                `Available node types: ${NodeRegistry.names().join(', ')}`
             );
         }
 

@@ -19,7 +19,6 @@ interface EleventyBuildConfig extends PipelineNodeConfig {
 const outputKeys = ['built'] as const;
 
 export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof outputKeys[number]> {
-    static readonly xmlElement = 'eleventyBuild' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
     static readonly description = 'Run Eleventy to build the final static website from the assembled intermediate files. This is typically the last step in the pipeline.';

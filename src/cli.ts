@@ -141,12 +141,10 @@ program
         await import('./core/builtinNodes');
         const { NodeRegistry } = await import('./core/nodeRegistry');
 
-        const nodes = NodeRegistry.all();
-
         if (!nodeType) {
             console.log('Available node types:\n');
-            for (const node of nodes) {
-                console.log(`  <${node.xmlElement}>`);
+            for (const [name, node] of NodeRegistry.all()) {
+                console.log(`  ${name}`);
                 if (node.description) console.log(`    ${node.description}`);
             }
             console.log(`\nRun 'efes nodes <type>' for details.`);
@@ -155,11 +153,11 @@ program
 
         const node = NodeRegistry.get(nodeType);
         if (!node) {
-            console.error(`Unknown node type "${nodeType}". Available: ${NodeRegistry.elementNames().join(', ')}`);
+            console.error(`Unknown node type "${nodeType}". Available: ${NodeRegistry.names().join(', ')}`);
             process.exit(1);
         }
 
-        console.log(`<${node.xmlElement}>`);
+        console.log(`${nodeType}`);
         if (node.description) console.log(`  ${node.description}\n`);
 
         const schema = node.configSchema;

@@ -22,7 +22,6 @@ interface CompileStylesheetConfig extends PipelineNodeConfig {
 const outputKeys = ['compiledStylesheet'] as const;
 
 export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig, typeof outputKeys[number]> {
-    static readonly xmlElement = 'compileStylesheet' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
     static readonly description = 'Compile XSLT stylesheets to Saxon Executable Format (SEF) for fast runtime execution.';

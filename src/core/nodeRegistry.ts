@@ -1,28 +1,34 @@
-import type { XmlRegistrableNode } from './nodeConfigSchema';
+import type { DescribedNode } from './nodeConfigSchema';
 
 class NodeRegistryImpl {
-    private byElement = new Map<string, XmlRegistrableNode>();
+    private byName = new Map<string, DescribedNode>();
+    private byClass = new Map<DescribedNode, string>();
 
-    register(nodeClass: XmlRegistrableNode): void {
-        const name = nodeClass.xmlElement;
-        if (this.byElement.has(name)) {
-            throw new Error(`Duplicate XML element name "${name}" — already registered by another node class.`);
+    register(name: string, nodeClass: DescribedNode): void {
+        if (this.byName.has(name)) {
+            throw new Error(`Duplicate node type name "${name}" — already registered by another node class.`);
         }
-        this.byElement.set(name, nodeClass);
+        this.byName.set(name, nodeClass);
+        this.byClass.set(nodeClass, name);
     }
 
-    get(elementName: string): XmlRegistrableNode | undefined {
-        return this.byElement.get(elementName);
+    get(name: string): DescribedNode | undefined {
+        return this.byName.get(name);
     }
 
-    /** All registered element names (for "did you mean?" suggestions). */
-    elementNames(): string[] {
-        return [...this.byElement.keys()];
+    /** Reverse lookup: get the registered name for a node class. */
+    nameOf(nodeClass: DescribedNode): string | undefined {
+        return this.byClass.get(nodeClass);
     }
 
-    /** All registered node classes. */
-    all(): XmlRegistrableNode[] {
-        return [...this.byElement.values()];
+    /** All registered type names. */
+    names(): string[] {
+        return [...this.byName.keys()];
+    }
+
+    /** All registered entries as [name, nodeClass] pairs. */
+    all(): [string, DescribedNode][] {
+        return [...this.byName.entries()];
     }
 }
 

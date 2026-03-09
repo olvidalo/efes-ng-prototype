@@ -24,7 +24,6 @@ interface SefTransformConfig extends PipelineNodeConfig {
 const outputKeys = ['transformed', 'result-documents'] as const;
 
 export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof outputKeys[number]> {
-    static readonly xmlElement = 'sefTransform' as const;
     static readonly configSchema = configSchema;
     static readonly outputKeys = outputKeys;
     static readonly description = 'Apply a pre-compiled SEF stylesheet to XML source files using Saxon-JS. Supports result-documents, stylesheet parameters, and no-source mode.';

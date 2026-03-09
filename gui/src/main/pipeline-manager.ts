@@ -2,6 +2,8 @@ import { BrowserWindow } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import { DevServer } from './dev-server'
+import { NodeRegistry } from '../../../src/core/nodeRegistry'
+import type { DescribedNode } from '../../../src/core/nodeConfigSchema'
 
 export interface NodeInfo {
   outputKeys: string[]
@@ -186,7 +188,7 @@ export class PipelineManager {
       const outputDir = path.relative(this.pipeline.projectDir, absOutputDir)
 
       // Node type name
-      const nodeType = ctor.xmlElement || ctor.name || 'unknown'
+      const nodeType = NodeRegistry.nameOf(ctor as DescribedNode) || ctor.name || 'unknown'
 
       // Description
       const description = ctor.description || null

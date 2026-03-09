@@ -7,26 +7,24 @@ import './builtinNodes';
  * Auto-generated from the node registry and each node's configSchema.
  */
 export function generateRngSchema(): string {
-    const nodeRefs = NodeRegistry.elementNames()
-        .map(name => `          <ref name="${name}"/>`)
+    const entries = NodeRegistry.all();
+
+    const nodeRefs = entries
+        .map(([name]) => `          <ref name="${name}"/>`)
         .join('\n');
 
-    const nodeDefinitions = NodeRegistry.elementNames()
-        .map(name => {
-            const entry = NodeRegistry.get(name)!;
-            return generateNodeDefinition(name, entry.configSchema, entry.description);
-        })
+    const nodeDefinitions = entries
+        .map(([name, node]) => generateNodeDefinition(name, node.configSchema, node.description))
         .join('\n\n');
 
-    const allOutputKeys = [...new Set(NodeRegistry.elementNames().flatMap(name => NodeRegistry.get(name)!.outputKeys))];
+    const allOutputKeys = [...new Set(entries.flatMap(([, node]) => [...node.outputKeys]))];
     const outputKeyValues = allOutputKeys.map(k => `            <value>${k}</value>`).join('\n');
 
-    const outputKeyAsserts = NodeRegistry.elementNames()
-        .map(name => {
-            const keys = NodeRegistry.get(name)!.outputKeys;
-            const valueTests = keys.map(k => `@output = '${k}'`).join(' or ');
+    const outputKeyAsserts = entries
+        .map(([name, node]) => {
+            const valueTests = node.outputKeys.map(k => `@output = '${k}'`).join(' or ');
             return `      <sch:assert test="not(/pipeline/${name}[@name = $target]) or ${valueTests}">
-        Invalid output "<sch:value-of select="@output"/>" for ${name} node. Valid: ${keys.join(', ')}.
+        Invalid output "<sch:value-of select="@output"/>" for ${name} node. Valid: ${[...node.outputKeys].join(', ')}.
       </sch:assert>`;
         })
         .join('\n');

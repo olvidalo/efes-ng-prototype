@@ -30,10 +30,9 @@ export type ConfigFromSchema<S extends NodeConfigSchema> = {
     -readonly [K in keyof S as S[K] extends { optional: true } ? K : never]?: FieldTypeMap[S[K]['type']];
 };
 
-// --- Interface for nodes that can be loaded from XML ---
+// --- Interface for self-describing node classes ---
 
-export interface XmlRegistrableNode {
-    readonly xmlElement: string;
+export interface DescribedNode {
     readonly configSchema: NodeConfigSchema;
     readonly outputKeys: readonly string[];
     readonly description?: string;
