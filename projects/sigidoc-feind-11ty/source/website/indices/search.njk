@@ -70,6 +70,7 @@ eleventyComputed:
 <script>
     EfesSearch.init({
         searchDataUrl: '../../search-data',
+        textFields: ['fullText', 'title'],
         facets: {
             material:               { label: '{{ t.search.material }}' },
             objectType:             { label: '{{ t.search.objectType }}' },

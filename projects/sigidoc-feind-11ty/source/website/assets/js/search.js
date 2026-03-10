@@ -41,6 +41,7 @@ const EfesSearch = (function() {
     function init(userConfig) {
         config = Object.assign({
             searchDataUrl: '/search-data',
+            textFields: ['fullText', 'title'],
             facets: {},
             expandedFacets: [],
             resultUrl: (doc) => doc.documentId + '.html',
@@ -73,33 +74,27 @@ const EfesSearch = (function() {
 
     async function loadIndex() {
         try {
-            els.progressText.textContent = 'Loading search index...';
+            els.progressText.textContent = 'Loading search data...';
             const base = config.searchDataUrl;
 
-            const [configRes, facetsRes, docsRes, indexListRes] = await Promise.all([
-                fetch(base + '/config.json'),
-                fetch(base + '/facets.json'),
-                fetch(base + '/documents.json'),
-                fetch(base + '/index.json')
-            ]);
-
-            const indexConfig = await configRes.json();
-            facetData = await facetsRes.json();
-            allDocuments = await docsRes.json();
-            const indexFiles = await indexListRes.json();
+            const res = await fetch(base + '/documents.json');
+            allDocuments = await res.json();
 
             els.progressText.textContent =
-                'Loading ' + indexFiles.length + ' index segments (' + allDocuments.length + ' documents)...';
+                'Building index for ' + allDocuments.length + ' documents...';
 
-            searchIndex = new FlexSearch.Document(indexConfig);
+            searchIndex = new FlexSearch.Document({
+                document: {
+                    id: 'documentId',
+                    index: config.textFields,
+                }
+            });
 
-            for (const file of indexFiles) {
-                const res = await fetch(base + '/' + file);
-                const data = await res.text();
-                searchIndex.import(file, data);
+            for (const doc of allDocuments) {
+                searchIndex.add(doc);
             }
 
-            els.progressText.textContent = 'Index loaded: ' + allDocuments.length + ' documents.';
+            facetData = computeFacets(allDocuments);
 
             buildFacets();
             setupEventListeners();
@@ -110,9 +105,28 @@ const EfesSearch = (function() {
             performFilteredSearch();
 
         } catch (err) {
-            els.progressText.textContent = 'Error loading search index: ' + err.message;
+            els.progressText.textContent = 'Error loading search data: ' + err.message;
             console.error('Search init error:', err);
         }
+    }
+
+    function computeFacets(docs) {
+        const result = {};
+        for (const field of Object.keys(facetConfig)) {
+            const counts = {};
+            for (const doc of docs) {
+                const val = doc[field];
+                if (Array.isArray(val)) {
+                    for (const v of val) {
+                        if (v) counts[v] = (counts[v] || 0) + 1;
+                    }
+                } else if (val) {
+                    counts[val] = (counts[val] || 0) + 1;
+                }
+            }
+            result[field] = counts;
+        }
+        return result;
     }
 
     // --- Facet UI ---

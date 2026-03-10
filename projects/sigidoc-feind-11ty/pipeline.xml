@@ -165,23 +165,22 @@
 
   <!-- ===== SEARCH ===== -->
 
-  <flexSearchIndex name="build-search-index">
-    <documents><from node="extract-epidoc-metadata-en" output="transformed"/></documents>
-    <idField>documentId</idField>
-    <textFields>
-      <field>fullText</field>
-      <field>title</field>
-    </textFields>
-    <output to="_assembly/search-data"/>
-  </flexSearchIndex>
+  <xsltTransform name="aggregate-search-data">
+    <stylesheet><files>source/stylesheets/lib/aggregate-search-data.xsl</files></stylesheet>
+    <initialTemplate>aggregate</initialTemplate>
+    <stylesheetParams>
+      <param name="metadata-files"><from node="extract-epidoc-metadata-en" output="transformed"/></param>
+    </stylesheetParams>
+    <output to="_assembly/search-data" filename="documents.json"/>
+  </xsltTransform>
 
   <!-- ===== FINAL ASSEMBLY ===== -->
 
   <eleventyBuild name="eleventy-build">
     <sourceDir><collect>_assembly</collect></sourceDir>
     <passthroughCopy>
-      <param name="_assembly/search-data">search-data</param>
-      <param name="_assembly/assets">assets</param>
+      <param name="search-data">search-data</param>
+      <param name="assets">assets</param>
     </passthroughCopy>
     <output to="_output"/>
   </eleventyBuild>
