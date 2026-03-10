@@ -1,4 +1,5 @@
 import type { WorkloadModule } from "../core/resolveWorkloadPath";
+import path from "node:path";
 // @ts-ignore
 import { Eleventy } from '@11ty/eleventy'
 
@@ -14,7 +15,11 @@ export async function performWork(job: {
       // processes the files regardless of cwd.
       eleventyConfig.setUseGitIgnore(false)
       for (const [from, to] of Object.entries(job.passthroughCopy ?? {})) {
-        eleventyConfig.addPassthroughCopy({ [from]: to })
+        // Eleventy resolves passthrough source paths relative to CWD, not
+        // the input directory. Resolve them against sourceDir so pipeline
+        // authors can use paths relative to the assembly directory.
+        const absFrom = path.resolve(job.sourceDir, from)
+        eleventyConfig.addPassthroughCopy({ [absFrom]: to })
       }
     }
   })
