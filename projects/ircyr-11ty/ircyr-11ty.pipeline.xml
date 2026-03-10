@@ -27,6 +27,14 @@
   <xsltTransform name="extract-epidoc-metadata">
     <sourceFiles><files>1-input/inscriptions/*.xml</files></sourceFiles>
     <stylesheet><files>1-input/indices-config.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="divine-file"><files>1-input/authority/divine.xml</files></param>
+      <param name="emperors-file"><files>1-input/authority/emperors.xml</files></param>
+      <param name="months-file"><files>1-input/authority/months.xml</files></param>
+      <param name="places-file"><files>1-input/authority/places.xml</files></param>
+      <param name="symbols-file"><files>1-input/authority/symbols.xml</files></param>
+      <param name="bibliography-file"><files>1-input/authority/bibliography.xml</files></param>
+    </stylesheetParams>
   </xsltTransform>
 
   <xsltTransform name="generate-eleventy-data">

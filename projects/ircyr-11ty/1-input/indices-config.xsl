@@ -31,20 +31,24 @@
     <!-- CONFIGURATION                                                       -->
     <!-- ================================================================== -->
 
-    <!-- Authority files (paths relative to this XSL file) -->
-    <xsl:variable name="divine-authority" select="document('authority/divine.xml')"/>
-    <xsl:variable name="emperors-authority" select="document('authority/emperors.xml')"/>
-    <xsl:variable name="months-authority" select="document('authority/months.xml')"/>
-    <xsl:variable name="places-authority" select="document('authority/places.xml')"/>
-    <xsl:variable name="symbols-authority" select="document('authority/symbols.xml')"/>
-    <xsl:variable name="bibliography-authority" select="document('authority/bibliography.xml')"/>
+    <!-- Authority file paths (passed from pipeline for dependency tracking) -->
+    <xsl:param name="divine-file" as="xs:string"/>
+    <xsl:variable name="divine-authority" select="document('file://' || $divine-file)"/>
 
-    <!-- Language code → display label mapping (used by extract-search) -->
-    <xsl:variable name="language-labels" as="element()*">
-        <label code="grc">Ancient Greek</label>
-        <label code="la">Latin</label>
-        <label code="he">Hebrew</label>
-    </xsl:variable>
+    <xsl:param name="emperors-file" as="xs:string"/>
+    <xsl:variable name="emperors-authority" select="document('file://' || $emperors-file)"/>
+
+    <xsl:param name="months-file" as="xs:string"/>
+    <xsl:variable name="months-authority" select="document('file://' || $months-file)"/>
+
+    <xsl:param name="places-file" as="xs:string"/>
+    <xsl:variable name="places-authority" select="document('file://' || $places-file)"/>
+
+    <xsl:param name="symbols-file" as="xs:string"/>
+    <xsl:variable name="symbols-authority" select="document('file://' || $symbols-file)"/>
+
+    <xsl:param name="bibliography-file" as="xs:string"/>
+    <xsl:variable name="bibliography-authority" select="document('file://' || $bibliography-file)"/>
 
     <!-- ================================================================== -->
     <!-- INDEX: personal_names (Personal Names)                              -->
@@ -703,8 +707,15 @@
         <xsl:variable name="notAfter" select="string(.//tei:origDate/@notAfter)"/>
         <dateNotBefore><xsl:value-of select="if ($notBefore castable as xs:integer) then xs:integer($notBefore) else $notBefore"/></dateNotBefore>
         <dateNotAfter><xsl:value-of select="if ($notAfter castable as xs:integer) then xs:integer($notAfter) else $notAfter"/></dateNotAfter>
-        <xsl:variable name="lang-code" select="string(.//tei:div[@type='edition']/@xml:lang)"/>
-        <language><xsl:value-of select="($language-labels[@code = $lang-code], $lang-code)[1]"/></language>
+        <xsl:variable name="lang" select="string(.//tei:div[@type='edition']/@xml:lang)"/>
+        <language>
+            <xsl:choose>
+                <xsl:when test="$lang = 'grc'">Ancient Greek</xsl:when>
+                <xsl:when test="$lang = 'la'">Latin</xsl:when>
+                <xsl:when test="$lang = 'he'">Hebrew</xsl:when>
+                <xsl:otherwise><xsl:value-of select="$lang"/></xsl:otherwise>
+            </xsl:choose>
+        </language>
         <fullText><xsl:value-of select="normalize-space(string-join(.//tei:div[@type='edition']//text(), ' '))"/></fullText>
     </xsl:template>
 

@@ -30,26 +30,28 @@
     <!-- CONFIGURATION                                                       -->
     <!-- ================================================================== -->
 
-    <!-- Authority file paths (passed as stylesheet parameters from pipeline) -->
-    <xsl:param name="geography-file" as="xs:string" select="''"/>
-    <xsl:variable name="geography" select="if ($geography-file != '') then document('file://' || $geography-file) else ()"/>
-    <xsl:param name="dignities-file" as="xs:string" select="''"/>
-    <xsl:variable name="dignities" select="if ($dignities-file != '') then document('file://' || $dignities-file) else ()"/>
-    <xsl:param name="offices-file" as="xs:string" select="''"/>
-    <xsl:variable name="offices" select="if ($offices-file != '') then document('file://' || $offices-file) else ()"/>
-    <xsl:param name="invocations-file" as="xs:string" select="''"/>
-    <xsl:variable name="invocations" select="if ($invocations-file != '') then document('file://' || $invocations-file) else ()"/>
-    <xsl:param name="bibliography-file" as="xs:string" select="''"/>
-    <xsl:variable name="bibliography-authority" select="if ($bibliography-file != '') then document('file://' || $bibliography-file) else ()"/>
+    <!-- Authority file paths (passed from pipeline for dependency tracking) -->
+    <xsl:param name="geography-file" as="xs:string"/>
+    <xsl:variable name="geography" select="document('file://' || $geography-file)"/>
 
-    <!-- Language code → display label mapping (used by extract-search) -->
-    <xsl:variable name="language-labels" as="element()*">
-        <label code="grc">Ancient Greek</label>
-        <label code="la">Latin</label>
-        <label code="grc-Latn">Transliterated Greek</label>
-    </xsl:variable>
+    <xsl:param name="dignities-file" as="xs:string"/>
+    <xsl:variable name="dignities" select="document('file://' || $dignities-file)"/>
 
-    <!-- ================================================================== -->
+    <xsl:param name="offices-file" as="xs:string"/>
+    <xsl:variable name="offices" select="document('file://' || $offices-file)"/>
+
+    <xsl:param name="invocations-file" as="xs:string"/>
+    <xsl:variable name="invocations" select="document('file://' || $invocations-file)"/>
+
+    <xsl:param name="bibliography-file" as="xs:string"/>
+    <xsl:variable name="bibliography-authority" select="document('file://' || $bibliography-file)"/>
+
+    <!-- Common fields for seal entity records (re-used across all index extraction templates) -->
+    <xsl:variable name="seal-collection" select="normalize-space(//tei:rs[@type='collection-name'][@xml:lang='en'])"/>
+    <xsl:variable name="seal-inv-nr" select="normalize-space(//tei:idno[@type='inv-nr-current'][normalize-space()][1])"/>
+
+
+<!-- ================================================================== -->
     <!-- INDEX: persons (Prosopography)                                      -->
     <!-- ================================================================== -->
     <idx:index id="persons" title="Persons" order="1">
@@ -72,8 +74,8 @@
                 <entity indexType="persons">
                     <name><xsl:value-of select="$displayName"/></name>
                     <sortKey><xsl:value-of select="lower-case($displayName)"/></sortKey>
-                    <collectionName><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:rs[@type='collection-name'][@xml:lang='en'])"/></collectionName>
-                    <invNr><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:idno[@type='inv-nr-current'][normalize-space()][1])"/></invNr>
+                    <collectionName><xsl:value-of select="$seal-collection"/></collectionName>
+                    <invNr><xsl:value-of select="$seal-inv-nr"/></invNr>
                 </entity>
             </xsl:if>
         </xsl:for-each>
@@ -108,8 +110,8 @@
                     <geonamesId><xsl:value-of select="normalize-space($place/tei:idno[@type='geonames'])"/></geonamesId>
                     <tib><xsl:value-of select="string($place/tei:idno[@type='TIB']/following-sibling::tei:link[contains(@target,'tib')]/@target)"/></tib>
                     <tibId><xsl:value-of select="normalize-space($place/tei:idno[@type='TIB'])"/></tibId>
-                    <collectionName><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:rs[@type='collection-name'][@xml:lang='en'])"/></collectionName>
-                    <invNr><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:idno[@type='inv-nr-current'][normalize-space()][1])"/></invNr>
+                    <collectionName><xsl:value-of select="$seal-collection"/></collectionName>
+                    <invNr><xsl:value-of select="$seal-inv-nr"/></invNr>
                 </entity>
             </xsl:if>
         </xsl:for-each>
@@ -138,8 +140,8 @@
                 <entity indexType="dignities">
                     <name><xsl:value-of select="$displayName"/></name>
                     <sortKey><xsl:value-of select="$ref-id"/></sortKey>
-                    <collectionName><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:rs[@type='collection-name'][@xml:lang='en'])"/></collectionName>
-                    <invNr><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:idno[@type='inv-nr-current'][normalize-space()][1])"/></invNr>
+                    <collectionName><xsl:value-of select="$seal-collection"/></collectionName>
+                    <invNr><xsl:value-of select="$seal-inv-nr"/></invNr>
                 </entity>
             </xsl:if>
         </xsl:for-each>
@@ -169,8 +171,8 @@
                     <name><xsl:value-of select="$displayName"/></name>
                     <sortKey><xsl:value-of select="$ref-id"/></sortKey>
                     <officeType><xsl:value-of select="string(@subtype)"/></officeType>
-                    <collectionName><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:rs[@type='collection-name'][@xml:lang='en'])"/></collectionName>
-                    <invNr><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:idno[@type='inv-nr-current'][normalize-space()][1])"/></invNr>
+                    <collectionName><xsl:value-of select="$seal-collection"/></collectionName>
+                    <invNr><xsl:value-of select="$seal-inv-nr"/></invNr>
                 </entity>
             </xsl:if>
         </xsl:for-each>
@@ -198,8 +200,8 @@
                 <entity indexType="invocations">
                     <name><xsl:value-of select="$displayName"/></name>
                     <sortKey><xsl:value-of select="$ref-id"/></sortKey>
-                    <collectionName><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:rs[@type='collection-name'][@xml:lang='en'])"/></collectionName>
-                    <invNr><xsl:value-of select="normalize-space(ancestor::tei:TEI//tei:idno[@type='inv-nr-current'][normalize-space()][1])"/></invNr>
+                    <collectionName><xsl:value-of select="$seal-collection"/></collectionName>
+                    <invNr><xsl:value-of select="$seal-inv-nr"/></invNr>
                 </entity>
             </xsl:if>
         </xsl:for-each>
@@ -279,8 +281,15 @@
         <!-- Facet and filter fields -->
         <objectType><xsl:value-of select="normalize-space(//tei:objectType/tei:term/tei:seg[@xml:lang='en'])"/></objectType>
         <material><xsl:value-of select="normalize-space(//tei:material/tei:seg[@xml:lang='en'])"/></material>
-        <xsl:variable name="lang-code" select="string((//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']/@xml:lang)[1])"/>
-        <language><xsl:value-of select="($language-labels[@code = $lang-code], $lang-code)[1]"/></language>
+        <xsl:variable name="lang" select="string((//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']/@xml:lang)[1])"/>
+        <language>
+            <xsl:choose>
+                <xsl:when test="$lang = 'grc'">Ancient Greek</xsl:when>
+                <xsl:when test="$lang = 'la'">Latin</xsl:when>
+                <xsl:when test="$lang = 'grc-Latn'">Transliterated Greek</xsl:when>
+                <xsl:otherwise><xsl:value-of select="$lang"/></xsl:otherwise>
+            </xsl:choose>
+        </language>
         <personalNames>
             <xsl:for-each select="//tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:forename[normalize-space()]">
                 <item><xsl:value-of select="normalize-space(.)"/></item>
