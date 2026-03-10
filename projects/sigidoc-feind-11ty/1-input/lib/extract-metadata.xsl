@@ -8,6 +8,7 @@
 
     - extract-all-entities: dispatches to individual extraction templates
     - extract-search: returns search facet data as XML elements
+      (multi-valued fields using <item> children are automatically deduped)
     - extract-metadata: returns project-specific page display fields
 -->
 <xsl:stylesheet version="3.0"
@@ -96,10 +97,27 @@
                 <xsl:copy-of select="$grouped-entities"/>
             </entities>
 
-            <search>
+            <!-- Dedup multi-valued search fields (elements with <item> children) -->
+            <xsl:variable name="raw-search">
                 <xsl:apply-templates select="/tei:TEI" mode="extract-search">
                     <xsl:with-param name="entities" select="$grouped-entities" tunnel="yes"/>
                 </xsl:apply-templates>
+            </xsl:variable>
+            <search>
+                <xsl:for-each select="$raw-search/*">
+                    <xsl:copy>
+                        <xsl:choose>
+                            <xsl:when test="item">
+                                <xsl:for-each-group select="item" group-by="normalize-space(.)">
+                                    <item><xsl:value-of select="current-grouping-key()"/></item>
+                                </xsl:for-each-group>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:copy-of select="node()"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:copy>
+                </xsl:for-each>
             </search>
         </metadata>
     </xsl:template>

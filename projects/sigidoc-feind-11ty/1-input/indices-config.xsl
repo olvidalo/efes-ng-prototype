@@ -282,21 +282,17 @@
         <xsl:variable name="lang-code" select="string((//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']/@xml:lang)[1])"/>
         <language><xsl:value-of select="($language-labels[@code = $lang-code], $lang-code)[1]"/></language>
         <personalNames>
-            <xsl:for-each select="distinct-values(
-                //tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:forename
-                    /normalize-space(.)[string-length(.) > 0])">
-                <item><xsl:value-of select="."/></item>
+            <xsl:for-each select="//tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:forename[normalize-space()]">
+                <item><xsl:value-of select="normalize-space(.)"/></item>
             </xsl:for-each>
         </personalNames>
         <familyNames>
-            <xsl:for-each select="distinct-values(
-                //tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:surname
-                    /normalize-space(.)[string-length(.) > 0])">
-                <item><xsl:value-of select="."/></item>
+            <xsl:for-each select="//tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:surname[normalize-space()]">
+                <item><xsl:value-of select="normalize-space(.)"/></item>
             </xsl:for-each>
         </familyNames>
         <gender>
-            <xsl:for-each select="distinct-values(//tei:listPerson[@type='issuer']/tei:person/@gender)">
+            <xsl:for-each select="//tei:listPerson[@type='issuer']/tei:person/@gender">
                 <xsl:choose>
                     <xsl:when test=". = 'M'"><item>Male</item></xsl:when>
                     <xsl:when test=". = 'F'"><item>Female</item></xsl:when>
@@ -306,34 +302,32 @@
             </xsl:for-each>
         </gender>
         <milieu>
-            <xsl:for-each select="distinct-values(
-                //tei:listPerson[@type='issuer']/tei:person/@role
-                    ! translate(., '-', ' '))">
-                <item><xsl:value-of select="."/></item>
+            <xsl:for-each select="//tei:listPerson[@type='issuer']/tei:person/@role">
+                <item><xsl:value-of select="translate(., '-', ' ')"/></item>
             </xsl:for-each>
         </milieu>
         <placeNames>
-            <xsl:for-each select="distinct-values($entities/places/entity/name)">
+            <xsl:for-each select="$entities/places/entity/name">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </placeNames>
         <dignities>
-            <xsl:for-each select="distinct-values($entities/dignities/entity/name)">
+            <xsl:for-each select="$entities/dignities/entity/name">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </dignities>
         <civilOffices>
-            <xsl:for-each select="distinct-values($entities/offices/entity[officeType = 'civil']/name)">
+            <xsl:for-each select="$entities/offices/entity[officeType = 'civil']/name">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </civilOffices>
         <ecclesiasticalOffices>
-            <xsl:for-each select="distinct-values($entities/offices/entity[officeType = 'ecclesiastical']/name)">
+            <xsl:for-each select="$entities/offices/entity[officeType = 'ecclesiastical']/name">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </ecclesiasticalOffices>
         <militaryOffices>
-            <xsl:for-each select="distinct-values($entities/offices/entity[officeType = 'military']/name)">
+            <xsl:for-each select="$entities/offices/entity[officeType = 'military']/name">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </militaryOffices>
