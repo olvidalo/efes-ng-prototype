@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Entity Indices Configuration
+    Metadata & Index Configuration for IRCyr
 
-    This file contains both:
-    1. Index metadata (in idx: namespace) - title, columns, notes
-    2. Extraction templates (xsl:template) - XPath logic for each index type
+    This stylesheet is the project-specific counterpart to the generic
+    extract-metadata.xsl library. It defines:
+
+    1. Configuration (authority files, language labels)
+    2. Index definitions (idx:index metadata + extract-{id} templates)
+    3. Templates that override the defaults in extract-metadata.xsl:
+       - extract-all-entities: dispatches to all extract-{id} templates
+       - extract-search: search facet / filter fields
+       - extract-metadata: project-specific page display fields
 
     To add a new index:
-    1. Add an <idx:index> element with metadata
+    1. Add an <idx:index> block with column metadata
     2. Add an <xsl:template mode="extract-{id}"> with extraction logic
+    3. Add an <xsl:apply-templates> line to extract-all-entities
 -->
 <xsl:stylesheet version="3.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -21,7 +28,26 @@
     <xsl:import href="lib/extract-metadata.xsl"/>
 
     <!-- ================================================================== -->
-    <!-- INDEX: persons                                                      -->
+    <!-- CONFIGURATION                                                       -->
+    <!-- ================================================================== -->
+
+    <!-- Authority files (paths relative to this XSL file) -->
+    <xsl:variable name="divine-authority" select="document('authority/divine.xml')"/>
+    <xsl:variable name="emperors-authority" select="document('authority/emperors.xml')"/>
+    <xsl:variable name="months-authority" select="document('authority/months.xml')"/>
+    <xsl:variable name="places-authority" select="document('authority/places.xml')"/>
+    <xsl:variable name="symbols-authority" select="document('authority/symbols.xml')"/>
+    <xsl:variable name="bibliography-authority" select="document('authority/bibliography.xml')"/>
+
+    <!-- Language code → display label mapping (used by extract-search) -->
+    <xsl:variable name="language-labels" as="element()*">
+        <label code="grc">Ancient Greek</label>
+        <label code="la">Latin</label>
+        <label code="he">Hebrew</label>
+    </xsl:variable>
+
+    <!-- ================================================================== -->
+    <!-- INDEX: personal_names (Personal Names)                              -->
     <!-- ================================================================== -->
     <idx:index id="personal_names" title="Personal Names" order="1">
         <idx:description>Index of personal names attested in the inscriptions.</idx:description>
@@ -285,9 +311,6 @@
         </idx:notes>
     </idx:index>
 
-    <!-- Load divine authority file (path relative to this XSL file) -->
-    <xsl:variable name="divine-authority" select="document('authority/divine.xml')"/>
-
     <xsl:template match="tei:TEI" mode="extract-divine_beings">
         <xsl:for-each select=".//tei:persName[@type='divine'][@key]">
             <xsl:variable name="key" select="string(@key)"/>
@@ -322,9 +345,6 @@
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
         </idx:notes>
     </idx:index>
-
-    <!-- Load emperors authority file -->
-    <xsl:variable name="emperors-authority" select="document('authority/emperors.xml')"/>
 
     <xsl:template match="tei:TEI" mode="extract-emperors">
         <xsl:for-each select=".//tei:persName[@type='emperor'][@key]">
@@ -433,9 +453,6 @@
         </idx:notes>
     </idx:index>
 
-    <!-- Load months authority file -->
-    <xsl:variable name="months-authority" select="document('authority/months.xml')"/>
-
     <xsl:template match="tei:TEI" mode="extract-months">
         <xsl:for-each select=".//tei:rs[@type='month'][@key][ancestor::tei:div/@type='edition']">
             <xsl:variable name="key" select="string(@key)"/>
@@ -491,9 +508,6 @@
         </idx:notes>
     </idx:index>
 
-    <!-- Load places authority file -->
-    <xsl:variable name="places-authority" select="document('authority/places.xml')"/>
-
     <xsl:template match="tei:TEI" mode="extract-mentioned_places">
         <xsl:for-each select=".//tei:div[@type='edition']//tei:placeName[@ref][@nymRef]">
             <xsl:variable name="ref-id" select="normalize-unicode(substring-after(@ref, '#'), 'NFD')"/>
@@ -543,9 +557,6 @@
         </idx:columns>
     </idx:index>
 
-    <!-- Load symbols authority file -->
-    <xsl:variable name="symbols-authority" select="document('authority/symbols.xml')"/>
-
     <xsl:template match="tei:TEI" mode="extract-symbols">
         <xsl:for-each select=".//tei:g[@ref][ancestor::tei:div/@type='edition']">
             <xsl:variable name="ref-id" select="substring-after(@ref, '#')"/>
@@ -565,56 +576,6 @@
                 <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
                 <line><xsl:value-of select="string(preceding::tei:lb[1]/@n)"/></line>
             </entity>
-        </xsl:for-each>
-    </xsl:template>
-
-    <!-- ================================================================== -->
-    <!-- INDEX: bibliography (Bibliography)                                  -->
-    <!-- ================================================================== -->
-    <idx:index id="bibliography" title="Bibliography" order="20" nav="bibliography">
-        <idx:description>Bibliographic references cited in the inscriptions.</idx:description>
-        <idx:columns>
-            <idx:column key="shortCitation">Citation</idx:column>
-            <idx:column key="fullCitation">Full Citation</idx:column>
-            <idx:column key="references" type="references">Inscriptions</idx:column>
-        </idx:columns>
-        <idx:sort>
-            <idx:key field="shortCitation"/>
-        </idx:sort>
-    </idx:index>
-
-    <!-- Load bibliography authority file -->
-    <xsl:variable name="bibliography-authority" select="document('authority/bibliography.xml')"/>
-
-    <xsl:template match="tei:TEI" mode="extract-bibliography">
-        <xsl:for-each select=".//tei:body//tei:div//tei:bibl[tei:ptr[@target != '']]">
-            <xsl:variable name="target" select="string(tei:ptr/@target)"/>
-            <xsl:variable name="auth" select="$bibliography-authority//tei:bibl[@xml:id = $target]"/>
-            <xsl:variable name="shortCitation" select="normalize-space($auth/tei:bibl[@type='abbrev'])"/>
-            <xsl:variable name="fullCitation" select="normalize-space($auth)"/>
-
-            <xsl:choose>
-                <xsl:when test="tei:citedRange">
-                    <xsl:for-each select="tei:citedRange">
-                        <entity indexType="bibliography">
-                            <bibRef><xsl:value-of select="$target"/></bibRef>
-                            <sortKey><xsl:value-of select="lower-case(if ($shortCitation != '') then $shortCitation else $target)"/></sortKey>
-                            <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
-                            <fullCitation><xsl:value-of select="$fullCitation"/></fullCitation>
-                            <citedRange><xsl:value-of select="normalize-space(.)"/></citedRange>
-                        </entity>
-                    </xsl:for-each>
-                </xsl:when>
-                <xsl:otherwise>
-                    <entity indexType="bibliography">
-                        <bibRef><xsl:value-of select="$target"/></bibRef>
-                        <sortKey><xsl:value-of select="lower-case(if ($shortCitation != '') then $shortCitation else $target)"/></sortKey>
-                        <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
-                        <fullCitation><xsl:value-of select="$fullCitation"/></fullCitation>
-                        <citedRange/>
-                    </entity>
-                </xsl:otherwise>
-            </xsl:choose>
         </xsl:for-each>
     </xsl:template>
 
@@ -651,18 +612,60 @@
         </xsl:for-each>
     </xsl:template>
 
-    <!-- Language code → display label mapping (used by extract-search) -->
-    <xsl:variable name="language-labels" as="element()*">
-        <label code="grc">Ancient Greek</label>
-        <label code="la">Latin</label>
-        <label code="he">Hebrew</label>
-    </xsl:variable>
+    <!-- ================================================================== -->
+    <!-- INDEX: bibliography (Bibliography)                                  -->
+    <!-- ================================================================== -->
+    <idx:index id="bibliography" title="Bibliography" order="20" nav="bibliography">
+        <idx:description>Bibliographic references cited in the inscriptions.</idx:description>
+        <idx:columns>
+            <idx:column key="shortCitation">Citation</idx:column>
+            <idx:column key="fullCitation">Full Citation</idx:column>
+            <idx:column key="references" type="references">Inscriptions</idx:column>
+        </idx:columns>
+        <idx:sort>
+            <idx:key field="shortCitation"/>
+        </idx:sort>
+    </idx:index>
+
+    <xsl:template match="tei:TEI" mode="extract-bibliography">
+        <xsl:for-each select=".//tei:body//tei:div//tei:bibl[tei:ptr[@target != '']]">
+            <xsl:variable name="target" select="string(tei:ptr/@target)"/>
+            <xsl:variable name="auth" select="$bibliography-authority//tei:bibl[@xml:id = $target]"/>
+            <xsl:variable name="shortCitation" select="normalize-space($auth/tei:bibl[@type='abbrev'])"/>
+            <xsl:variable name="fullCitation" select="normalize-space($auth)"/>
+
+            <xsl:choose>
+                <xsl:when test="tei:citedRange">
+                    <xsl:for-each select="tei:citedRange">
+                        <entity indexType="bibliography">
+                            <bibRef><xsl:value-of select="$target"/></bibRef>
+                            <sortKey><xsl:value-of select="lower-case(if ($shortCitation != '') then $shortCitation else $target)"/></sortKey>
+                            <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
+                            <fullCitation><xsl:value-of select="$fullCitation"/></fullCitation>
+                            <citedRange><xsl:value-of select="normalize-space(.)"/></citedRange>
+                        </entity>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <entity indexType="bibliography">
+                        <bibRef><xsl:value-of select="$target"/></bibRef>
+                        <sortKey><xsl:value-of select="lower-case(if ($shortCitation != '') then $shortCitation else $target)"/></sortKey>
+                        <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
+                        <fullCitation><xsl:value-of select="$fullCitation"/></fullCitation>
+                        <citedRange/>
+                    </entity>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:template>
 
     <!-- ================================================================== -->
-    <!-- HOOKS for generic frontmatter XSL                                  -->
+    <!-- TEMPLATES FOR GENERIC EXTRACTION LIBRARY                            -->
+    <!-- These override the empty defaults in extract-metadata.xsl.          -->
+    <!-- The library calls them during metadata extraction for each document.-->
     <!-- ================================================================== -->
 
-    <!-- Dispatch: calls all extraction templates -->
+    <!-- Dispatches to all extract-{id} templates above -->
     <xsl:template match="tei:TEI" mode="extract-all-entities">
         <xsl:apply-templates select="." mode="extract-personal_names"/>
         <xsl:apply-templates select="." mode="extract-persons"/>
@@ -680,13 +683,14 @@
         <xsl:apply-templates select="." mode="extract-bibliography"/>
     </xsl:template>
 
-    <!-- Search facets -->
+    <!-- Search facet and filter fields for FlexSearch index -->
     <xsl:template match="tei:TEI" mode="extract-search">
-        <!-- Document-level fields (needed for search result display) -->
+        <!-- Fields shown in search result display -->
         <title><xsl:value-of select="$title"/></title>
         <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
         <findspot><xsl:value-of select="string-join(.//tei:placeName[@type='ancientFindspot'], ', ')"/></findspot>
 
+        <!-- Facet and filter fields -->
         <material><xsl:value-of select="normalize-space(string-join(.//tei:support//tei:material, ', '))"/></material>
         <objectType><xsl:value-of select="normalize-space(string-join(.//tei:support//tei:objectType, ', '))"/></objectType>
         <textType>
@@ -704,7 +708,7 @@
         <fullText><xsl:value-of select="normalize-space(string-join(.//tei:div[@type='edition']//text(), ' '))"/></fullText>
     </xsl:template>
 
-    <!-- Project-specific page display fields -->
+    <!-- Project-specific page display fields (added to <page> in metadata output) -->
     <xsl:template match="tei:TEI" mode="extract-metadata">
         <findspot><xsl:value-of select="string-join(.//tei:placeName[@type='ancientFindspot'], ', ')"/></findspot>
     </xsl:template>

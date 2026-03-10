@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Entity Indices Configuration for SigiDoc FEIND
+    Metadata & Index Configuration for SigiDoc FEIND
 
-    This file contains both:
-    1. Index metadata (in idx: namespace) - title, columns, notes
-    2. Extraction templates (xsl:template) - XPath logic for each index type
+    This stylesheet is the project-specific counterpart to the generic
+    extract-metadata.xsl library. It defines:
+
+    1. Configuration (authority files, language labels)
+    2. Index definitions (idx:index metadata + extract-{id} templates)
+    3. Templates that override the defaults in extract-metadata.xsl:
+       - extract-all-entities: dispatches to all extract-{id} templates
+       - extract-search: search facet / filter fields
+       - extract-metadata: project-specific page display fields
 
     To add a new index:
-    1. Add an <idx:index> element with metadata
+    1. Add an <idx:index> block with column metadata
     2. Add an <xsl:template mode="extract-{id}"> with extraction logic
+    3. Add an <xsl:apply-templates> line to extract-all-entities
 -->
 <xsl:stylesheet version="3.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -18,6 +25,29 @@
     exclude-result-prefixes="xs">
 
     <xsl:import href="lib/extract-metadata.xsl"/>
+
+    <!-- ================================================================== -->
+    <!-- CONFIGURATION                                                       -->
+    <!-- ================================================================== -->
+
+    <!-- Authority file paths (passed as stylesheet parameters from pipeline) -->
+    <xsl:param name="geography-file" as="xs:string" select="''"/>
+    <xsl:variable name="geography" select="if ($geography-file != '') then document('file://' || $geography-file) else ()"/>
+    <xsl:param name="dignities-file" as="xs:string" select="''"/>
+    <xsl:variable name="dignities" select="if ($dignities-file != '') then document('file://' || $dignities-file) else ()"/>
+    <xsl:param name="offices-file" as="xs:string" select="''"/>
+    <xsl:variable name="offices" select="if ($offices-file != '') then document('file://' || $offices-file) else ()"/>
+    <xsl:param name="invocations-file" as="xs:string" select="''"/>
+    <xsl:variable name="invocations" select="if ($invocations-file != '') then document('file://' || $invocations-file) else ()"/>
+    <xsl:param name="bibliography-file" as="xs:string" select="''"/>
+    <xsl:variable name="bibliography-authority" select="if ($bibliography-file != '') then document('file://' || $bibliography-file) else ()"/>
+
+    <!-- Language code → display label mapping (used by extract-search) -->
+    <xsl:variable name="language-labels" as="element()*">
+        <label code="grc">Ancient Greek</label>
+        <label code="la">Latin</label>
+        <label code="grc-Latn">Transliterated Greek</label>
+    </xsl:variable>
 
     <!-- ================================================================== -->
     <!-- INDEX: persons (Prosopography)                                      -->
@@ -63,59 +93,6 @@
         </idx:columns>
     </idx:index>
 
-    <!-- ================================================================== -->
-    <!-- INDEX: dignities (Dignities)                                       -->
-    <!-- ================================================================== -->
-    <idx:index id="dignities" title="Dignities" order="3">
-        <idx:description>Dignities and titles attested on seals.</idx:description>
-        <idx:columns>
-            <idx:column key="name">Dignity</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
-        </idx:columns>
-    </idx:index>
-
-    <!-- ================================================================== -->
-    <!-- INDEX: offices (Offices)                                           -->
-    <!-- ================================================================== -->
-    <idx:index id="offices" title="Offices" order="4">
-        <idx:description>Offices attested on seals.</idx:description>
-        <idx:columns>
-            <idx:column key="name">Office</idx:column>
-            <idx:column key="officeType">Type</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
-        </idx:columns>
-    </idx:index>
-
-    <!-- ================================================================== -->
-    <!-- INDEX: invocations (Invocations)                                   -->
-    <!-- ================================================================== -->
-    <idx:index id="invocations" title="Invocations" order="5">
-        <idx:description>Invocations attested on seals.</idx:description>
-        <idx:columns>
-            <idx:column key="name">Invocation</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
-        </idx:columns>
-    </idx:index>
-
-    <!-- Language code → display label mapping (used by extract-search) -->
-    <xsl:variable name="language-labels" as="element()*">
-        <label code="grc">Ancient Greek</label>
-        <label code="la">Latin</label>
-        <label code="grc-Latn">Transliterated Greek</label>
-    </xsl:variable>
-
-    <!-- Authority file paths – passed as stylesheet parameters (absolute paths) -->
-    <xsl:param name="geography-file" as="xs:string" select="''"/>
-    <xsl:variable name="geography" select="if ($geography-file != '') then document('file://' || $geography-file) else ()"/>
-    <xsl:param name="dignities-file" as="xs:string" select="''"/>
-    <xsl:variable name="dignities" select="if ($dignities-file != '') then document('file://' || $dignities-file) else ()"/>
-    <xsl:param name="offices-file" as="xs:string" select="''"/>
-    <xsl:variable name="offices" select="if ($offices-file != '') then document('file://' || $offices-file) else ()"/>
-    <xsl:param name="invocations-file" as="xs:string" select="''"/>
-    <xsl:variable name="invocations" select="if ($invocations-file != '') then document('file://' || $invocations-file) else ()"/>
-    <xsl:param name="bibliography-file" as="xs:string" select="''"/>
-    <xsl:variable name="bibliography-authority" select="if ($bibliography-file != '') then document('file://' || $bibliography-file) else ()"/>
-
     <xsl:template match="tei:TEI" mode="extract-places">
         <xsl:for-each select=".//tei:div[@type='textpart']//tei:placeName[starts-with(@ref, '#geo')]">
             <xsl:variable name="geo-id" select="substring-after(@ref, '#')"/>
@@ -138,6 +115,17 @@
         </xsl:for-each>
     </xsl:template>
 
+    <!-- ================================================================== -->
+    <!-- INDEX: dignities (Dignities)                                        -->
+    <!-- ================================================================== -->
+    <idx:index id="dignities" title="Dignities" order="3">
+        <idx:description>Dignities and titles attested on seals.</idx:description>
+        <idx:columns>
+            <idx:column key="name">Dignity</idx:column>
+            <idx:column key="references" type="references">Seals</idx:column>
+        </idx:columns>
+    </idx:index>
+
     <xsl:template match="tei:TEI" mode="extract-dignities">
         <xsl:for-each select=".//tei:div[@type='textpart']//tei:rs[@type='dignity'][starts-with(@ref, '#d')]">
             <xsl:variable name="ref-id" select="substring-after(@ref, '#')"/>
@@ -157,6 +145,18 @@
         </xsl:for-each>
     </xsl:template>
 
+    <!-- ================================================================== -->
+    <!-- INDEX: offices (Offices)                                            -->
+    <!-- ================================================================== -->
+    <idx:index id="offices" title="Offices" order="4">
+        <idx:description>Offices attested on seals.</idx:description>
+        <idx:columns>
+            <idx:column key="name">Office</idx:column>
+            <idx:column key="officeType">Type</idx:column>
+            <idx:column key="references" type="references">Seals</idx:column>
+        </idx:columns>
+    </idx:index>
+
     <xsl:template match="tei:TEI" mode="extract-offices">
         <xsl:for-each select=".//tei:div[@type='textpart']//tei:rs[@type='office'][@subtype][starts-with(@ref, '#of')]">
             <xsl:variable name="ref-id" select="substring-after(@ref, '#')"/>
@@ -175,6 +175,17 @@
             </xsl:if>
         </xsl:for-each>
     </xsl:template>
+
+    <!-- ================================================================== -->
+    <!-- INDEX: invocations (Invocations)                                    -->
+    <!-- ================================================================== -->
+    <idx:index id="invocations" title="Invocations" order="5">
+        <idx:description>Invocations attested on seals.</idx:description>
+        <idx:columns>
+            <idx:column key="name">Invocation</idx:column>
+            <idx:column key="references" type="references">Seals</idx:column>
+        </idx:columns>
+    </idx:index>
 
     <xsl:template match="tei:TEI" mode="extract-invocations">
         <xsl:for-each select=".//tei:div[@type='textpart']//tei:rs[@type='invocation'][starts-with(@ref, '#inv')]">
@@ -242,10 +253,12 @@
     </xsl:template>
 
     <!-- ================================================================== -->
-    <!-- HOOKS for generic frontmatter XSL                                  -->
+    <!-- TEMPLATES FOR GENERIC EXTRACTION LIBRARY                            -->
+    <!-- These override the empty defaults in extract-metadata.xsl.          -->
+    <!-- The library calls them during metadata extraction for each document.-->
     <!-- ================================================================== -->
 
-    <!-- Dispatch: calls all extraction templates -->
+    <!-- Dispatches to all extract-{id} templates above -->
     <xsl:template match="tei:TEI" mode="extract-all-entities">
         <xsl:apply-templates select="." mode="extract-persons"/>
         <xsl:apply-templates select="." mode="extract-places"/>
@@ -255,133 +268,90 @@
         <xsl:apply-templates select="." mode="extract-bibliography"/>
     </xsl:template>
 
-    <!-- Search facets -->
+    <!-- Search facet and filter fields for FlexSearch index -->
     <xsl:template match="tei:TEI" mode="extract-search">
         <xsl:param name="entities" tunnel="yes"/>
 
-        <!-- Derive facets from entity data (now XML nodes) -->
-        <xsl:variable name="places-list" select="$entities/places/entity"/>
-        <xsl:variable name="dignities-list" select="$entities/dignities/entity"/>
-        <xsl:variable name="offices-list" select="$entities/offices/entity"/>
-
-        <xsl:variable name="personalNames" as="xs:string*"
-            select="distinct-values(
-                //tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:forename
-                    /normalize-space(.)[string-length(.) > 0]
-            )"/>
-        <xsl:variable name="familyNames" as="xs:string*"
-            select="distinct-values(
-                //tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:surname
-                    /normalize-space(.)[string-length(.) > 0]
-            )"/>
-
-        <xsl:variable name="genderValues" as="xs:string*">
-            <xsl:for-each select="distinct-values(//tei:listPerson[@type='issuer']/tei:person/@gender)">
-                <xsl:choose>
-                    <xsl:when test=". = 'M'"><xsl:sequence select="'Male'"/></xsl:when>
-                    <xsl:when test=". = 'F'"><xsl:sequence select="'Female'"/></xsl:when>
-                    <xsl:when test=". = 'E'"><xsl:sequence select="'Eunuch'"/></xsl:when>
-                    <xsl:otherwise><xsl:sequence select="string(.)"/></xsl:otherwise>
-                </xsl:choose>
-            </xsl:for-each>
-        </xsl:variable>
-
-        <xsl:variable name="milieuValues" as="xs:string*"
-            select="distinct-values(
-                //tei:listPerson[@type='issuer']/tei:person/@role
-                    ! translate(., '-', ' ')
-            )"/>
-
-        <xsl:variable name="placeNamesList" as="xs:string*"
-            select="distinct-values($places-list/name)"/>
-        <xsl:variable name="dignityNamesList" as="xs:string*"
-            select="distinct-values($dignities-list/name)"/>
-        <xsl:variable name="civilOfficesList" as="xs:string*"
-            select="distinct-values($offices-list[officeType = 'civil']/name)"/>
-        <xsl:variable name="ecclesiasticalOfficesList" as="xs:string*"
-            select="distinct-values($offices-list[officeType = 'ecclesiastical']/name)"/>
-        <xsl:variable name="militaryOfficesList" as="xs:string*"
-            select="distinct-values($offices-list[officeType = 'military']/name)"/>
-
-        <xsl:variable name="metricalValue">
-            <xsl:choose>
-                <xsl:when test="//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']//tei:lg">yes</xsl:when>
-                <xsl:otherwise>no</xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
-
-        <xsl:variable name="monogramValues" as="xs:string*"
-            select="distinct-values(
-                //tei:div[@type='edition'][@subtype='editorial']
-                    //tei:div[@type='textpart'][starts-with(@rend, 'monogram')]
-                    /@rend ! replace(., '^monogram-?', '')
-            )"/>
-
-        <xsl:variable name="fullText" select="normalize-space(string-join(
-            //tei:div[@type='edition'][@subtype='editorial']//text(), ' '
-        ))"/>
-
-        <!-- Document-level fields (needed for search result display) -->
+        <!-- Fields shown in search result display -->
         <title><xsl:value-of select="$title"/></title>
         <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
 
+        <!-- Facet and filter fields -->
         <objectType><xsl:value-of select="normalize-space(//tei:objectType/tei:term/tei:seg[@xml:lang='en'])"/></objectType>
         <material><xsl:value-of select="normalize-space(//tei:material/tei:seg[@xml:lang='en'])"/></material>
         <xsl:variable name="lang-code" select="string((//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']/@xml:lang)[1])"/>
         <language><xsl:value-of select="($language-labels[@code = $lang-code], $lang-code)[1]"/></language>
         <personalNames>
-            <xsl:for-each select="$personalNames">
+            <xsl:for-each select="distinct-values(
+                //tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:forename
+                    /normalize-space(.)[string-length(.) > 0])">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </personalNames>
         <familyNames>
-            <xsl:for-each select="$familyNames">
+            <xsl:for-each select="distinct-values(
+                //tei:listPerson[@type='issuer']/tei:person/tei:persName[@xml:lang='en']/tei:surname
+                    /normalize-space(.)[string-length(.) > 0])">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </familyNames>
-        <gender><xsl:value-of select="string($genderValues[1])"/></gender>
+        <gender>
+            <xsl:for-each select="distinct-values(//tei:listPerson[@type='issuer']/tei:person/@gender)">
+                <xsl:choose>
+                    <xsl:when test=". = 'M'"><item>Male</item></xsl:when>
+                    <xsl:when test=". = 'F'"><item>Female</item></xsl:when>
+                    <xsl:when test=". = 'E'"><item>Eunuch</item></xsl:when>
+                    <xsl:otherwise><item><xsl:value-of select="."/></item></xsl:otherwise>
+                </xsl:choose>
+            </xsl:for-each>
+        </gender>
         <milieu>
-            <xsl:for-each select="$milieuValues">
+            <xsl:for-each select="distinct-values(
+                //tei:listPerson[@type='issuer']/tei:person/@role
+                    ! translate(., '-', ' '))">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </milieu>
         <placeNames>
-            <xsl:for-each select="$placeNamesList">
+            <xsl:for-each select="distinct-values($entities/places/entity/name)">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </placeNames>
         <dignities>
-            <xsl:for-each select="$dignityNamesList">
+            <xsl:for-each select="distinct-values($entities/dignities/entity/name)">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </dignities>
         <civilOffices>
-            <xsl:for-each select="$civilOfficesList">
+            <xsl:for-each select="distinct-values($entities/offices/entity[officeType = 'civil']/name)">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </civilOffices>
         <ecclesiasticalOffices>
-            <xsl:for-each select="$ecclesiasticalOfficesList">
+            <xsl:for-each select="distinct-values($entities/offices/entity[officeType = 'ecclesiastical']/name)">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </ecclesiasticalOffices>
         <militaryOffices>
-            <xsl:for-each select="$militaryOfficesList">
+            <xsl:for-each select="distinct-values($entities/offices/entity[officeType = 'military']/name)">
                 <item><xsl:value-of select="."/></item>
             </xsl:for-each>
         </militaryOffices>
-        <metrical><xsl:value-of select="string($metricalValue)"/></metrical>
-        <monogram><xsl:value-of select="if (count($monogramValues) > 0)
-            then string-join($monogramValues, ', ') else ''"/></monogram>
+        <metrical><xsl:value-of select="if (//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']//tei:lg) then 'yes' else 'no'"/></metrical>
+        <monogram><xsl:value-of select="string-join(distinct-values(
+            //tei:div[@type='edition'][@subtype='editorial']
+                //tei:div[@type='textpart'][starts-with(@rend, 'monogram')]
+                /@rend ! replace(., '^monogram-?', '')), ', ')"/></monogram>
         <collection><xsl:value-of select="normalize-space(//tei:rs[@type='collection-name'][@xml:lang='en'])"/></collection>
         <xsl:variable name="notBefore" select="string(//tei:origDate/@notBefore)"/>
         <xsl:variable name="notAfter" select="string(//tei:origDate/@notAfter)"/>
         <dateNotBefore><xsl:value-of select="if ($notBefore castable as xs:integer) then xs:integer($notBefore) else $notBefore"/></dateNotBefore>
         <dateNotAfter><xsl:value-of select="if ($notAfter castable as xs:integer) then xs:integer($notAfter) else $notAfter"/></dateNotAfter>
-        <fullText><xsl:value-of select="$fullText"/></fullText>
+        <fullText><xsl:value-of select="normalize-space(string-join(
+            //tei:div[@type='edition'][@subtype='editorial']//text(), ' '))"/></fullText>
     </xsl:template>
 
-    <!-- Project-specific page display fields -->
+    <!-- Project-specific page display fields (added to <page> in metadata output) -->
     <xsl:template match="tei:TEI" mode="extract-metadata">
         <category><xsl:value-of select="string-join(//tei:msDesc/tei:msContents/tei:summary[@n='whole']/tei:seg)"/></category>
     </xsl:template>
