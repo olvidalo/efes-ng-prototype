@@ -2,22 +2,22 @@
 <pipeline name="SigiDoc Feind">
 
   <!-- Authority files referenced by XSLT document() calls -->
-  <variable name="geography-file"><files>1-input/authority/geography.xml</files></variable>
-  <variable name="dignities-file"><files>1-input/authority/dignities.xml</files></variable>
-  <variable name="offices-file"><files>1-input/authority/offices.xml</files></variable>
-  <variable name="invocations-file"><files>1-input/authority/invocation.xml</files></variable>
-  <variable name="bibliography-file"><files>1-input/authority/bibliography.xml</files></variable>
+  <variable name="geography-file"><files>source/authority/geography.xml</files></variable>
+  <variable name="dignities-file"><files>source/authority/dignities.xml</files></variable>
+  <variable name="offices-file"><files>source/authority/offices.xml</files></variable>
+  <variable name="invocations-file"><files>source/authority/invocation.xml</files></variable>
+  <variable name="bibliography-file"><files>source/authority/bibliography.xml</files></variable>
 
   <copyFiles name="copy-eleventy-site">
-    <sourceFiles><files>1-input/eleventy-site/**/*</files></sourceFiles>
-    <output to="2-intermediate/eleventy-site" stripPrefix="1-input/eleventy-site"/>
+    <sourceFiles><files>source/website/**/*</files></sourceFiles>
+    <output to="_assembly" stripPrefix="source/website"/>
   </copyFiles>
 
   <!-- ===== ENGLISH ===== -->
 
   <xsltTransform name="prune-epidoc-english">
-    <sourceFiles><files>1-input/feind-collection/*.xml</files></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/prune-to-language.xsl</files></stylesheet>
+    <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
+    <stylesheet><files>source/stylesheets/lib/prune-to-language.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">en</param>
     </stylesheetParams>
@@ -25,18 +25,18 @@
 
   <xsltTransform name="transform-epidoc-en">
     <sourceFiles><from node="prune-epidoc-english" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/epidoc-to-html.xsl</files></stylesheet>
+    <stylesheet><files>source/stylesheets/lib/epidoc-to-html.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">en</param>
     </stylesheetParams>
-    <output to="2-intermediate/eleventy-site/en/seals"
-            stripPrefix="1-input/feind-collection"
+    <output to="_assembly/en/seals"
+            stripPrefix="source/feind-collection"
             extension=".html"/>
   </xsltTransform>
 
   <xsltTransform name="extract-epidoc-metadata-en">
     <sourceFiles><from node="prune-epidoc-english" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/indices-config.xsl</files></stylesheet>
+    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">en</param>
       <param name="geography-file"><ref name="geography-file"/></param>
@@ -49,21 +49,21 @@
 
   <xsltTransform name="generate-eleventy-data-en">
     <sourceFiles><from node="extract-epidoc-metadata-en" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheet><files>source/stylesheets/lib/create-11ty-data.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="layout">layouts/document.njk</param>
       <param name="tags">seals</param>
     </stylesheetParams>
-    <output to="2-intermediate/eleventy-site/en/seals"
-            stripPrefix="1-input/feind-collection"
+    <output to="_assembly/en/seals"
+            stripPrefix="source/feind-collection"
             extension=".11tydata.json"/>
   </xsltTransform>
 
   <!-- ===== GERMAN ===== -->
 
   <xsltTransform name="prune-epidoc-german">
-    <sourceFiles><files>1-input/feind-collection/*.xml</files></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/prune-to-language.xsl</files></stylesheet>
+    <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
+    <stylesheet><files>source/stylesheets/lib/prune-to-language.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">de</param>
     </stylesheetParams>
@@ -71,18 +71,18 @@
 
   <xsltTransform name="transform-epidoc-de">
     <sourceFiles><from node="prune-epidoc-german" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/epidoc-to-html.xsl</files></stylesheet>
+    <stylesheet><files>source/stylesheets/lib/epidoc-to-html.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">de</param>
     </stylesheetParams>
-    <output to="2-intermediate/eleventy-site/de/seals"
-            stripPrefix="1-input/feind-collection"
+    <output to="_assembly/de/seals"
+            stripPrefix="source/feind-collection"
             extension=".html"/>
   </xsltTransform>
 
   <xsltTransform name="extract-epidoc-metadata-de">
     <sourceFiles><from node="prune-epidoc-german" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/indices-config.xsl</files></stylesheet>
+    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">de</param>
       <param name="geography-file"><ref name="geography-file"/></param>
@@ -95,21 +95,21 @@
 
   <xsltTransform name="generate-eleventy-data-de">
     <sourceFiles><from node="extract-epidoc-metadata-de" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheet><files>source/stylesheets/lib/create-11ty-data.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="layout">layouts/document.njk</param>
       <param name="tags">seals</param>
     </stylesheetParams>
-    <output to="2-intermediate/eleventy-site/de/seals"
-            stripPrefix="1-input/feind-collection"
+    <output to="_assembly/de/seals"
+            stripPrefix="source/feind-collection"
             extension=".11tydata.json"/>
   </xsltTransform>
 
   <!-- ===== GREEK ===== -->
 
   <xsltTransform name="prune-epidoc-greek">
-    <sourceFiles><files>1-input/feind-collection/*.xml</files></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/prune-to-language.xsl</files></stylesheet>
+    <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
+    <stylesheet><files>source/stylesheets/lib/prune-to-language.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">el</param>
     </stylesheetParams>
@@ -117,18 +117,18 @@
 
   <xsltTransform name="transform-epidoc-el">
     <sourceFiles><from node="prune-epidoc-greek" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/stylesheets/epidoc-to-html.xsl</files></stylesheet>
+    <stylesheet><files>source/stylesheets/lib/epidoc-to-html.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">el</param>
     </stylesheetParams>
-    <output to="2-intermediate/eleventy-site/el/seals"
-            stripPrefix="1-input/feind-collection"
+    <output to="_assembly/el/seals"
+            stripPrefix="source/feind-collection"
             extension=".html"/>
   </xsltTransform>
 
   <xsltTransform name="extract-epidoc-metadata-el">
     <sourceFiles><from node="prune-epidoc-greek" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/indices-config.xsl</files></stylesheet>
+    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="language">el</param>
       <param name="geography-file"><ref name="geography-file"/></param>
@@ -141,26 +141,26 @@
 
   <xsltTransform name="generate-eleventy-data-el">
     <sourceFiles><from node="extract-epidoc-metadata-el" output="transformed"/></sourceFiles>
-    <stylesheet><files>1-input/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheet><files>source/stylesheets/lib/create-11ty-data.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="layout">layouts/document.njk</param>
       <param name="tags">seals</param>
     </stylesheetParams>
-    <output to="2-intermediate/eleventy-site/el/seals"
-            stripPrefix="1-input/feind-collection"
+    <output to="_assembly/el/seals"
+            stripPrefix="source/feind-collection"
             extension=".11tydata.json"/>
   </xsltTransform>
 
   <!-- ===== INDEX AGGREGATION ===== -->
 
   <xsltTransform name="aggregate-indices">
-    <stylesheet><files>1-input/lib/aggregate-indices.xsl</files></stylesheet>
+    <stylesheet><files>source/stylesheets/lib/aggregate-indices.xsl</files></stylesheet>
     <initialTemplate>aggregate</initialTemplate>
     <stylesheetParams>
       <param name="metadata-files"><from node="extract-epidoc-metadata-en" output="transformed"/></param>
-      <param name="indices-config"><files>1-input/indices-config.xsl</files></param>
+      <param name="indices-config"><files>source/indices-config.xsl</files></param>
     </stylesheetParams>
-    <output to="2-intermediate/eleventy-site/_data/indices" filename="_summary.json"/>
+    <output to="_assembly/_data/indices" filename="_summary.json"/>
   </xsltTransform>
 
   <!-- ===== SEARCH ===== -->
@@ -172,18 +172,18 @@
       <field>fullText</field>
       <field>title</field>
     </textFields>
-    <output to="2-intermediate/eleventy-site/search-data"/>
+    <output to="_assembly/search-data"/>
   </flexSearchIndex>
 
   <!-- ===== FINAL ASSEMBLY ===== -->
 
   <eleventyBuild name="eleventy-build">
-    <sourceDir><collect>2-intermediate/eleventy-site</collect></sourceDir>
+    <sourceDir><collect>_assembly</collect></sourceDir>
     <passthroughCopy>
-      <param name="2-intermediate/eleventy-site/search-data">search-data</param>
-      <param name="2-intermediate/eleventy-site/assets">assets</param>
+      <param name="_assembly/search-data">search-data</param>
+      <param name="_assembly/assets">assets</param>
     </passthroughCopy>
-    <output to="3-output"/>
+    <output to="_output"/>
   </eleventyBuild>
 
 </pipeline>

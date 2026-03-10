@@ -8,7 +8,7 @@ export interface PipelineFileInfo {
 
 /**
  * Scan a project directory for a pipeline definition file.
- * Supports both *.pipeline.ts and *.pipeline.xml.
+ * Looks for pipeline.xml or pipeline.ts (preferred), falling back to *.pipeline.xml / *.pipeline.ts.
  * Errors on ambiguity (both formats) or absence.
  */
 export function discoverPipelineFile(dir: string): PipelineFileInfo {
@@ -17,6 +17,26 @@ export function discoverPipelineFile(dir: string): PipelineFileInfo {
         throw new Error(`Project directory not found: ${absDir}`);
     }
 
+    // Prefer canonical names: pipeline.xml / pipeline.ts
+    const xmlCanonical = path.resolve(absDir, 'pipeline.xml');
+    const tsCanonical = path.resolve(absDir, 'pipeline.ts');
+    const hasXmlCanonical = fs.existsSync(xmlCanonical);
+    const hasTsCanonical = fs.existsSync(tsCanonical);
+
+    if (hasXmlCanonical && hasTsCanonical) {
+        throw new Error(
+            `Ambiguous pipeline config: found both pipeline.ts and pipeline.xml. ` +
+            `Remove one to resolve the ambiguity.`
+        );
+    }
+    if (hasXmlCanonical) {
+        return { filePath: xmlCanonical, format: 'xml' };
+    }
+    if (hasTsCanonical) {
+        return { filePath: tsCanonical, format: 'ts' };
+    }
+
+    // Fallback: legacy *.pipeline.ts / *.pipeline.xml
     const entries = fs.readdirSync(absDir);
     const tsFiles = entries.filter(f => f.endsWith('.pipeline.ts'));
     const xmlFiles = entries.filter(f => f.endsWith('.pipeline.xml'));
@@ -41,5 +61,5 @@ export function discoverPipelineFile(dir: string): PipelineFileInfo {
         return { filePath: path.resolve(absDir, xmlFiles[0]), format: 'xml' };
     }
 
-    throw new Error(`No *.pipeline.ts or *.pipeline.xml found in ${absDir}`);
+    throw new Error(`No pipeline definition found in ${absDir}`);
 }

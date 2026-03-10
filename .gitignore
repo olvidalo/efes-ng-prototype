@@ -14,6 +14,8 @@ test/**/.test-temp
 
 projects/*/.efes-build/
 projects/*/.efes-cache/
+projects/*/_assembly/
+projects/*/_output/
 projects/*/2-intermediate/*
 !projects/*/2-intermediate/.keep
 projects/*/3-output/*

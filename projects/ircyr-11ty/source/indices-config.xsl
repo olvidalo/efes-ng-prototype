@@ -25,7 +25,7 @@
     xmlns:efes="http://efes.info/functions"
     exclude-result-prefixes="xs efes">
 
-    <xsl:import href="lib/extract-metadata.xsl"/>
+    <xsl:import href="stylesheets/lib/extract-metadata.xsl"/>
 
     <!-- ================================================================== -->
     <!-- CONFIGURATION                                                       -->

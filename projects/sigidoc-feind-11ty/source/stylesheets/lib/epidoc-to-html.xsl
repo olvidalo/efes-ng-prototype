@@ -6,7 +6,7 @@
     exclude-result-prefixes="i18n xs">
 
     <!-- Import the SigiDoc start-edition stylesheet -->
-    <xsl:import href="../sigidoc-stylesheets/start-edition.xsl"/>
+    <xsl:import href="../sigidoc/start-edition.xsl"/>
 
     <xsl:output method="xml" encoding="UTF-8" indent="no"/>
 
@@ -14,7 +14,7 @@
     <xsl:param name="language" select="'en'"/>
 
     <!-- Load the messages file based on language parameter -->
-    <xsl:variable name="messages-file" select="concat('../i18n/messages_', $language, '.xml')"/>
+    <xsl:variable name="messages-file" select="concat('../../translations/messages_', $language, '.xml')"/>
     <xsl:variable name="messages" select="doc($messages-file)"/>
 
     <!-- Key for efficient message lookup -->

@@ -24,7 +24,7 @@
     xmlns:idx="http://efes.info/indices"
     exclude-result-prefixes="xs">
 
-    <xsl:import href="lib/extract-metadata.xsl"/>
+    <xsl:import href="stylesheets/lib/extract-metadata.xsl"/>
 
     <!-- ================================================================== -->
     <!-- CONFIGURATION                                                       -->
