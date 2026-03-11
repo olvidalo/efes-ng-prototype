@@ -13,9 +13,8 @@ eleventyComputed:
 
 {% set t = translations[langCode] %}
 
-<link rel="stylesheet" href="/assets/css/efes-search.css">
-<script src="https://rawcdn.githack.com/nextapps-de/flexsearch/0.8.2/dist/flexsearch.bundle.min.js"></script>
-<script type="module" src="/assets/js/efes-search/index.js"></script>
+<link rel="stylesheet" href="/assets/efes-search/efes-search.css">
+<script type="module" src="/assets/efes-search/efes-search.js"></script>
 
 <efes-search data-url="../../search-data/documents.json" text-fields="fullText,title">
     <aside class="efes-facet-sidebar">

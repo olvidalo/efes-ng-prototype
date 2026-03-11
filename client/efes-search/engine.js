@@ -10,6 +10,8 @@
  *   facets-change  — updated facet counts
  *   filters-change — active filter set changed (facets, date range, or query)
  */
+import { Document } from 'flexsearch';
+
 export class SearchEngine extends EventTarget {
     #documents = [];
     #index = null;
@@ -52,7 +54,7 @@ export class SearchEngine extends EventTarget {
             if (!res.ok) throw new Error(`Failed to fetch ${this.#url}: ${res.status}`);
             this.#documents = await res.json();
 
-            this.#index = new FlexSearch.Document({
+            this.#index = new Document({
                 document: { id: 'documentId', index: this.#textFields },
             });
             for (const doc of this.#documents) {
