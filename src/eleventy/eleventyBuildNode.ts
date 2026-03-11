@@ -48,7 +48,7 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
 
         this.log(context, `Building Eleventy site: ${sourceDir} -> ${outputDir}`);
 
-        const workloadScript = resolveWorkloadPath(import.meta.url, 'eleventyWorkload.ts', 'eleventy/eleventyWorkload.js');
+        const workloadScript = resolveWorkloadPath(import.meta.url, 'eleventyWorkload.mts', 'eleventy/eleventyWorkload.js');
 
         // recycleAfter: Eleventy caches compiled templates in module-level statics
         // (TemplateContent._inputCache, _compileCache) that persist across builds

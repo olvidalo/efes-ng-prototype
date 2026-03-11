@@ -25,9 +25,9 @@ export default defineConfig([
         entry: {
             index: 'src/index.ts',
             cli: 'src/cli.ts',
-            genericWorker: 'src/xml/genericWorker.ts',
-            'xml/saxonWorkload': 'src/xml/saxonWorkload.ts',
-            'xml/compileWorkload': 'src/xml/compileWorkload.ts',
+            genericWorker: 'src/xml/genericWorker.mts',
+            'xml/saxonWorkload': 'src/xml/saxonWorkload.mts',
+            'xml/compileWorkload': 'src/xml/compileWorkload.mts',
         },
         format: ['esm'],
         platform: 'node',

@@ -134,7 +134,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
 
     private getOrCreateWorkerPool(): WorkerPool {
         if (!this._workerPool) {
-            const workerPath = resolveWorkloadPath(import.meta.url, '../xml/genericWorker.ts', 'genericWorker.js');
+            const workerPath = resolveWorkloadPath(import.meta.url, '../xml/genericWorker.mts', 'genericWorker.js');
             this._workerPool = new WorkerPool(this.workerThreads, workerPath, (nodeName, message) => {
                 console.log(`  [${this.name}]   [${nodeName}] ${message}`);
             });

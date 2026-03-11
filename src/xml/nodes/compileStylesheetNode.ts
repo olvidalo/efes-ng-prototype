@@ -76,7 +76,7 @@ export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig,
                 this.log(context, `Found ${discoveredDependencies.length} dependencies: ${JSON.stringify(discoveredDependencies)}`);
 
                 try {
-                    const workloadScript = resolveWorkloadPath(import.meta.url, '../compileWorkload.ts', 'xml/compileWorkload.js');
+                    const workloadScript = resolveWorkloadPath(import.meta.url, '../compileWorkload.mts', 'xml/compileWorkload.js');
 
                     // Execute compilation in worker thread
                     const result = await context.workerPool.execute<{
