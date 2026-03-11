@@ -9,6 +9,7 @@ interface WorkerJob {
     job: any;
     resolve: (result: any) => void;
     reject: (error: Error) => void;
+    recycleAfter?: boolean;
 }
 
 export class WorkerPool {
@@ -58,7 +59,12 @@ export class WorkerPool {
                 job.reject(error);
             }
 
-            this.processNext(worker);
+            if (job.recycleAfter) {
+                // Terminate and respawn so module-level caches are cleared
+                this.replaceWorker(worker);
+            } else {
+                this.processNext(worker);
+            }
         });
 
         worker.on("error", (error) => {
@@ -75,9 +81,9 @@ export class WorkerPool {
         this.workers.push(worker);
     }
 
-    execute<T>(job: any): Promise<T> {
+    execute<T>(job: any, opts?: { recycleAfter?: boolean }): Promise<T> {
         return new Promise((resolve, reject) => {
-            const workerJob: WorkerJob = { job, resolve, reject };
+            const workerJob: WorkerJob = { job, resolve, reject, recycleAfter: opts?.recycleAfter };
 
             // Try to find an idle worker
             const idleWorker = this.workers.find(w => !this.activeJobs.has(w));
@@ -97,6 +103,7 @@ export class WorkerPool {
         const idx = this.workers.indexOf(worker);
         if (idx !== -1) this.workers.splice(idx, 1);
         this.workerIds.delete(worker);
+        worker.terminate();
         if (!this.terminated) {
             this.spawnWorker(id);
         }

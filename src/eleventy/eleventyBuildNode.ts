@@ -50,6 +50,10 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
 
         const workloadScript = resolveWorkloadPath(import.meta.url, 'eleventyWorkload.ts', 'eleventy/eleventyWorkload.js');
 
+        // recycleAfter: Eleventy caches compiled templates in module-level statics
+        // (TemplateContent._inputCache, _compileCache) that persist across builds
+        // in long-lived worker threads. Recycling the worker after each build
+        // ensures a clean slate without disabling the cache (which costs 2-3s).
         const result = await context.workerPool.execute<{ outputDir: string }>({
             workloadScript,
             nodeName: this.name,
@@ -57,7 +61,7 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
             sourceDir,
             outputDir,
             passthroughCopy: cfg.passthroughCopy ?? {}
-        });
+        }, { recycleAfter: true });
 
         this.log(context, `Eleventy build completed: ${result.outputDir}`);
         return [{ built: [result.outputDir] }];
