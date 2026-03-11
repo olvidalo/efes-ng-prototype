@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pipeline name="IRCyR Eleventy">
 
+  <meta siteDir="_output"/>
+
   <copyFiles name="copy-eleventy-site">
     <sourceFiles><files>source/website/**/*</files></sourceFiles>
     <output to="_assembly" stripPrefix="source/website"/>

@@ -53,11 +53,31 @@ export function generateRngSchema(): string {
           </choice>
         </attribute>
       </optional>
+      <optional><ref name="meta"/></optional>
       <zeroOrMore>
         <choice>
           <ref name="variable"/>
 ${nodeRefs}
         </choice>
+      </zeroOrMore>
+    </element>
+  </define>
+
+  <!-- Pipeline metadata: project-level settings consumed by CLI, GUI, etc. -->
+  <define name="meta">
+    <element name="meta">
+      <a:documentation>Project-level metadata not used by the pipeline itself. Consumed by CLI, GUI, and other tools (e.g. siteDir for the dev server).</a:documentation>
+      <optional>
+        <attribute name="siteDir">
+          <a:documentation>Directory where the final site is generated. Used by the dev server for live preview and the CLI for status checks.</a:documentation>
+        </attribute>
+      </optional>
+      <zeroOrMore>
+        <attribute>
+          <anyName>
+            <except><name>siteDir</name></except>
+          </anyName>
+        </attribute>
       </zeroOrMore>
     </element>
   </define>

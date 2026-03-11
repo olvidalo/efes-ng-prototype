@@ -94,28 +94,11 @@ export class PipelineManager {
 
   async clean(): Promise<void> {
     if (!this.pipeline) throw new Error('No pipeline loaded')
-    const cacheDir = path.resolve(this.pipeline.projectDir, this.pipeline.cacheDir)
-    const buildDir = path.resolve(this.pipeline.projectDir, this.pipeline.buildDir)
-    for (const dir of [cacheDir, buildDir]) {
-      if (fs.existsSync(dir)) {
-        fs.rmSync(dir, { recursive: true })
-      }
-    }
-    // Clean all node output directories (covers custom outputConfig.to paths like 2-intermediate/)
-    for (const name of this.pipeline.getNodeNames()) {
-      try {
-        const dir = this.pipeline.getNodeOutputDir(name)
-        if (fs.existsSync(dir)) {
-          fs.rmSync(dir, { recursive: true })
-        }
-      } catch { /* node may not have output dir */ }
-    }
-    // Clear output contents but keep the directory (sirv needs it)
-    const outputDir = path.resolve(this.pipeline.projectDir, '3-output')
-    if (fs.existsSync(outputDir)) {
-      for (const entry of fs.readdirSync(outputDir)) {
-        fs.rmSync(path.join(outputDir, entry), { recursive: true })
-      }
+    await this.pipeline.clean()
+    // Ensure siteDir exists for sirv (it needs the directory even when empty)
+    const siteDir = this.pipeline.meta.siteDir
+    if (siteDir) {
+      fs.mkdirSync(path.resolve(this.pipeline.projectDir, siteDir), { recursive: true })
     }
     this.devServer?.broadcast({ type: 'empty' })
   }
@@ -124,7 +107,9 @@ export class PipelineManager {
     if (!this.pipeline) throw new Error('No pipeline loaded')
     if (this.devServer?.isRunning()) throw new Error('Dev server already running')
 
-    const outputDir = path.resolve(this.pipeline.projectDir, '3-output')
+    const siteDir = this.pipeline.meta.siteDir
+    if (!siteDir) throw new Error('Pipeline has no meta.siteDir — cannot start dev server')
+    const outputDir = path.resolve(this.pipeline.projectDir, siteDir)
 
     // Ensure dir exists (sirv needs it)
     if (!fs.existsSync(outputDir)) {
@@ -168,7 +153,7 @@ export class PipelineManager {
       const outputKeys: string[] = ctor.outputKeys ? [...ctor.outputKeys] : []
 
       // Actual output files grouped by key (only available after a run)
-      // stripBuildPrefix removes .efes-build/node-name/ but preserves input structure (e.g. 1-input/)
+      // stripBuildPrefix removes .efes-build/node-name/ prefix
       const rawOutputs = this.pipeline.getNodeOutputs(nodeName)
       const outputs: Record<string, string[]> = {}
       if (rawOutputs) {

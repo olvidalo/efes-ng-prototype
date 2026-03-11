@@ -40,6 +40,9 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     private abortController: AbortController | null = null;
     private resolveInputCache = new Map<string, Promise<string[]>>();
 
+    /** Project-level metadata. Not used by the pipeline itself — consumed by CLI, GUI, etc. */
+    public meta: Record<string, string> = {};
+
     constructor(
         public readonly name: string,
         public readonly buildDir: string = '.efes-build',
@@ -195,6 +198,20 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         }
 
         return path.relative(this.projectDir, resolvedInputPath);
+    }
+
+    /** Remove all build artifacts: buildDir, cacheDir, and all node output directories. */
+    async clean(): Promise<void> {
+        this.ensureReady();
+        const dirs = new Set<string>();
+        dirs.add(path.resolve(this.projectDir, this.buildDir));
+        dirs.add(path.resolve(this.projectDir, this.cacheDir));
+        for (const name of this.getNodeNames()) {
+            try { dirs.add(this.getNodeOutputDir(name)); } catch { /* node may not have output dir */ }
+        }
+        await Promise.all([...dirs].map(dir =>
+            fs.rm(dir, { recursive: true, force: true }).catch(() => {})
+        ));
     }
 
     /** Total number of nodes (including expanded composite internals). */

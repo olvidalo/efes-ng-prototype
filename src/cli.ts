@@ -67,16 +67,9 @@ program
     .description('Remove build artifacts')
     .option('--project <path>', 'Project directory', '.')
     .action(async (opts) => {
-        const absDir = path.resolve(opts.project);
-        const dirs = ['.efes-build', '.efes-cache', '2-intermediate', '3-output'];
-
-        for (const dir of dirs) {
-            const target = path.join(absDir, dir);
-            if (fs.existsSync(target)) {
-                fs.rmSync(target, { recursive: true });
-                console.log(`  Removed: ${dir}`);
-            }
-        }
+        const pipeline = await discoverPipeline(opts.project);
+        await pipeline.clean();
+        console.log('Cleaned build artifacts.');
     });
 
 program
@@ -114,9 +107,12 @@ program
             console.log('\nCache: empty');
         }
 
-        // Output status
-        const outputDir = path.join(absDir, '3-output');
-        console.log(`Output: ${fs.existsSync(outputDir) ? 'built' : 'not built'}`);
+        // Site output status
+        const siteDir = pipeline.meta.siteDir;
+        if (siteDir) {
+            const sitePath = path.join(path.resolve(opts.project), siteDir);
+            console.log(`Site output: ${fs.existsSync(sitePath) ? 'built' : 'not built'} (${siteDir})`);
+        }
     });
 
 program

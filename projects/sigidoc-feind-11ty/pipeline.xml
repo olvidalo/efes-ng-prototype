@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pipeline name="SigiDoc Feind">
 
+  <meta siteDir="_output"/>
+
   <!-- Authority files referenced by XSLT document() calls -->
   <variable name="geography-file"><files>source/authority/geography.xml</files></variable>
   <variable name="dignities-file"><files>source/authority/dignities.xml</files></variable>

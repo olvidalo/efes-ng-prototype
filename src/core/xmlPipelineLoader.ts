@@ -45,9 +45,17 @@ export function parsePipelineXml(xml: string): Pipeline {
         }
     }
 
+    // Parse optional <meta> element
+    const metaEl = root.children.find(el => el.localName === 'meta');
+    if (metaEl) {
+        for (const attr of metaEl.attributes) {
+            pipeline.meta[attr.localName] = attr.value;
+        }
+    }
+
     // Pass 2: parse and instantiate nodes
     for (const child of root.children) {
-        if (child.localName === 'variable') continue;
+        if (child.localName === 'variable' || child.localName === 'meta') continue;
 
         const elementName = child.localName;
         const nodeClass = NodeRegistry.get(elementName);
