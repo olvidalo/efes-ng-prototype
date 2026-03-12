@@ -13,6 +13,7 @@ export class PipelineWatcher {
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
     private isRunning = false;
     private pendingRebuild = false;
+    private buildCancelled = false;
     private lastMtimes = new Map<string, number>();
     private changedFiles = new Set<string>();
 
@@ -117,7 +118,11 @@ export class PipelineWatcher {
 
         this.debounceTimer = setTimeout(async () => {
             if (this.isRunning) {
+                // Cancel the current (now stale) build — it will restart
+                // from the finally block with the latest file changes.
                 this.pendingRebuild = true;
+                this.buildCancelled = true;
+                this.pipeline.cancel();
                 return;
             }
             await this.rebuild();
@@ -126,6 +131,7 @@ export class PipelineWatcher {
 
     private async rebuild(): Promise<void> {
         this.isRunning = true;
+        this.buildCancelled = false;
         const files = [...this.changedFiles];
         this.changedFiles.clear();
         const start = performance.now();
@@ -134,9 +140,13 @@ export class PipelineWatcher {
 
         try {
             await this.pipeline.run();
-            const durationMs = performance.now() - start;
-            this.pipeline.emit('watch:rebuild:done', { durationMs });
-            console.log(`\n--- Rebuild complete (${(durationMs / 1000).toFixed(2)}s) ---\n`);
+            if (this.buildCancelled) {
+                console.log(`\n--- Rebuild cancelled, restarting ---\n`);
+            } else {
+                const durationMs = performance.now() - start;
+                this.pipeline.emit('watch:rebuild:done', { durationMs });
+                console.log(`\n--- Rebuild complete (${(durationMs / 1000).toFixed(2)}s) ---\n`);
+            }
         } catch (err) {
             this.pipeline.emit('watch:rebuild:error', { error: err });
             console.error('\n--- Rebuild failed ---\n', err);

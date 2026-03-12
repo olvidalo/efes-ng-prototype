@@ -410,9 +410,12 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     async cancel(): Promise<void> {
         if (!this.abortController) return;
         this.abortController.abort();
-        if (this._workerPool) {
-            await this._workerPool.terminate();
-            this._workerPool = null;
+        // Clear reference immediately so the next run() creates a fresh pool,
+        // even if terminate() is still cleaning up in the background.
+        const pool = this._workerPool;
+        this._workerPool = null;
+        if (pool) {
+            await pool.terminate();
         }
     }
 
