@@ -48,6 +48,7 @@ export class XsltTransformNode extends CompositeNode<XsltTransformConfig, typeof
                 sefStylesheet: from(compile, "compiledStylesheet"),
                 initialTemplate: this.config.config.initialTemplate,
                 stylesheetParams: this.config.config.stylesheetParams,
+                tunnelParams: this.config.config.tunnelParams,
                 templateParams: this.config.config.templateParams,
                 serializationParams: this.config.config.serializationParams,
                 initialMode: this.config.config.initialMode,
