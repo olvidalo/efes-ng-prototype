@@ -21,6 +21,9 @@
       <param name="parm-line-inc">5</param>
       <param name="parm-verse-lines">on</param>
     </stylesheetParams>
+    <tunnelParams>
+      <param name="parm-image-loc">https://ircyr2020.inslib.kcl.ac.uk/images/</param>
+    </tunnelParams>
     <output to="_assembly/en/inscriptions"
             stripPrefix="source/inscriptions"
             extension=".html"/>
