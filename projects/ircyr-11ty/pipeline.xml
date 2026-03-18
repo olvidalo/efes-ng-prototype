@@ -10,20 +10,17 @@
 
   <xsltTransform name="transform-epidoc">
     <sourceFiles><files>source/inscriptions/*.xml</files></sourceFiles>
-    <stylesheet><files>source/stylesheets/epidoc/start-edition.xsl</files></stylesheet>
-    <initialTemplate>inslib-body-structure</initialTemplate>
+    <stylesheet><files>source/stylesheets/lib/epidoc-to-html.xsl</files></stylesheet>
     <stylesheetParams>
-      <param name="parm-edition-type">interpretive</param>
-      <param name="parm-edn-structure">inslib</param>
-      <param name="parm-external-app-style">inslib</param>
-      <param name="parm-internal-app-style">none</param>
-      <param name="parm-leiden-style">panciera</param>
-      <param name="parm-line-inc">5</param>
-      <param name="parm-verse-lines">on</param>
+      <param name="edn-structure">inslib</param>
+      <param name="edition-type">interpretive</param>
+      <param name="external-app-style">inslib</param>
+      <param name="internal-app-style">none</param>
+      <param name="leiden-style">panciera</param>
+      <param name="line-inc">5</param>
+      <param name="verse-lines">on</param>
+      <param name="image-loc">https://ircyr2020.inslib.kcl.ac.uk/images/</param>
     </stylesheetParams>
-    <tunnelParams>
-      <param name="parm-image-loc">https://ircyr2020.inslib.kcl.ac.uk/images/</param>
-    </tunnelParams>
     <output to="_assembly/en/inscriptions"
             stripPrefix="source/inscriptions"
             extension=".html"/>

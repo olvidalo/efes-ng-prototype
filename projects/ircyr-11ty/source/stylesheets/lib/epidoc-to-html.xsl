@@ -16,7 +16,7 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     exclude-result-prefixes="i18n xs">
 
-    <xsl:import href="../sigidoc/start-edition.xsl"/>
+    <xsl:import href="../epidoc/start-edition.xsl"/>
 
     <xsl:output method="xml" encoding="UTF-8" indent="no"/>
 
@@ -48,7 +48,7 @@
 
     <xsl:template match="/">
         <xsl:variable name="body-output">
-            <xsl:call-template name="sigidoc-body-structure">
+            <xsl:call-template name="inslib-body-structure">
                 <xsl:with-param name="parm-edn-structure" select="$edn-structure" tunnel="yes"/>
                 <xsl:with-param name="parm-edition-type" select="$edition-type" tunnel="yes"/>
                 <xsl:with-param name="parm-external-app-style" select="$external-app-style" tunnel="yes"/>

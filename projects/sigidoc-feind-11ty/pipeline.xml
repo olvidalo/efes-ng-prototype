@@ -29,6 +29,15 @@
     <sourceFiles><from node="prune-epidoc-english" output="transformed"/></sourceFiles>
     <stylesheet><files>source/stylesheets/lib/epidoc-to-html.xsl</files></stylesheet>
     <stylesheetParams>
+      <param name="edn-structure">sigidoc</param>
+      <param name="edition-type">interpretive</param>
+      <param name="external-app-style">iospe</param>
+      <param name="internal-app-style">none</param>
+      <param name="leiden-style">sigidoc</param>
+      <param name="line-inc">1</param>
+      <param name="verse-lines">off</param>
+      <param name="bibloc"><ref name="bibliography-file"/></param>
+      <param name="bib-link-template">../../bibliography/$1/</param>
       <param name="language">en</param>
     </stylesheetParams>
     <output to="_assembly/en/seals"
@@ -75,6 +84,15 @@
     <sourceFiles><from node="prune-epidoc-german" output="transformed"/></sourceFiles>
     <stylesheet><files>source/stylesheets/lib/epidoc-to-html.xsl</files></stylesheet>
     <stylesheetParams>
+      <param name="edn-structure">sigidoc</param>
+      <param name="edition-type">interpretive</param>
+      <param name="external-app-style">iospe</param>
+      <param name="internal-app-style">none</param>
+      <param name="leiden-style">sigidoc</param>
+      <param name="line-inc">1</param>
+      <param name="verse-lines">off</param>
+      <param name="bibloc"><ref name="bibliography-file"/></param>
+      <param name="bib-link-template">../../bibliography/$1/</param>
       <param name="language">de</param>
     </stylesheetParams>
     <output to="_assembly/de/seals"
@@ -121,6 +139,15 @@
     <sourceFiles><from node="prune-epidoc-greek" output="transformed"/></sourceFiles>
     <stylesheet><files>source/stylesheets/lib/epidoc-to-html.xsl</files></stylesheet>
     <stylesheetParams>
+      <param name="edn-structure">sigidoc</param>
+      <param name="edition-type">interpretive</param>
+      <param name="external-app-style">iospe</param>
+      <param name="internal-app-style">none</param>
+      <param name="leiden-style">sigidoc</param>
+      <param name="line-inc">1</param>
+      <param name="verse-lines">off</param>
+      <param name="bibloc"><ref name="bibliography-file"/></param>
+      <param name="bib-link-template">../../bibliography/$1/</param>
       <param name="language">el</param>
     </stylesheetParams>
     <output to="_assembly/el/seals"
