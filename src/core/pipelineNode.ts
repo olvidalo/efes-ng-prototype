@@ -84,6 +84,10 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     /** Set by withCache() after each run — null if node doesn't use caching */
     cacheStats: { hits: number; total: number } | null = null;
 
+    /** All root filesystem dependencies — glob patterns (from config) + absolute paths (discovered at runtime).
+     *  The watcher reads this after each run. Cleared between runs for watch mode re-entrancy. */
+    rootDependencies = new Set<string>();
+
     /** Lazily resolved config — all Input refs replaced with resolved paths.
      *  Cleared between runs (watch mode). */
     private _resolvedConfig: Record<string, any> | null = null;
@@ -94,6 +98,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     /** Clear resolved config cache (called between runs for watch mode). */
     clearResolvedConfig(): void {
         this._resolvedConfig = null;
+        this.rootDependencies.clear();
     }
 
     get name() {
@@ -148,7 +153,11 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     private async resolveConfigValue(context: PipelineContext, value: any): Promise<any> {
         if (value == null) return value;
         if (isInput(value)) {
-            return context.resolveInput(value);
+            const resolved = await context.resolveInput(value);
+            if (value.type === 'files') {
+                for (const pattern of value.patterns) this.rootDependencies.add(pattern);
+            }
+            return resolved;
         }
         if (isAbsolutePath(value)) {
             return [path.resolve(context.projectDir, value.path)];
@@ -374,6 +383,9 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             await Promise.all(misses.map(async ({ index, item, cacheKey }) => {
                 context.signal.throwIfAborted();
                 const result = await performWork(item);
+                if (result.discoveredDependencies) {
+                    for (const dep of result.discoveredDependencies) this.rootDependencies.add(dep);
+                }
                 completed++;
                 context.progress(this.name, completed, items.length);
                 await this.storeCacheEntry(context, cacheKey, item, result, deps);
@@ -577,6 +589,11 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                     await context.cache.copyToExpectedPath(cachedPaths[j], expectedPaths[j]);
                 }
             }
+        }
+
+        // Extract discovered dependencies from cache for watcher tracking
+        for (const [filePath, info] of Object.entries(cached.trackedFiles)) {
+            if (info.source === 'discovered') this.rootDependencies.add(filePath);
         }
 
         return newOutputsByKey;

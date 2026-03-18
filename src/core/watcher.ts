@@ -1,7 +1,6 @@
 import chokidar from 'chokidar';
 import path from 'node:path';
 import { stat } from 'node:fs/promises';
-import { isInput } from './pipelineNode';
 import { Pipeline } from './pipeline';
 
 /**
@@ -76,6 +75,9 @@ export class PipelineWatcher {
             });
         });
 
+        // Add discovered dependencies from the initial build to chokidar
+        this.updateWatchPaths();
+
         this.watcher.on('change', (filePath) => this.onFileEvent('change', filePath));
         this.watcher.on('add', (filePath) => this.onFileEvent('add', filePath));
         this.watcher.on('unlink', (filePath) => this.onFileEvent('unlink', filePath));
@@ -143,6 +145,7 @@ export class PipelineWatcher {
             if (this.buildCancelled) {
                 console.log(`\n--- Rebuild cancelled, restarting ---\n`);
             } else {
+                this.updateWatchPaths();
                 const durationMs = performance.now() - start;
                 this.pipeline.emit('watch:rebuild:done', { durationMs });
                 console.log(`\n--- Rebuild complete (${(durationMs / 1000).toFixed(2)}s) ---\n`);
@@ -160,47 +163,26 @@ export class PipelineWatcher {
     }
 
     /**
-     * Extract filesystem paths to watch from all node configs.
-     * Scans for files() and from() references in node configs.
-     * Skips from() references (inter-node dependencies).
+     * Collect all root filesystem dependencies from nodes after a pipeline run.
+     * Includes glob patterns (from files() config) and absolute paths (discovered at runtime).
      */
     private collectWatchPaths(): string[] {
         const paths = new Set<string>();
-
         for (const nodeName of this.pipeline.getNodeNames()) {
-            const node = this.pipeline.getNodeData(nodeName);
-            this.extractPaths(node.config?.config, paths);
+            const node = this.pipeline.getNodeInstance(nodeName);
+            for (const dep of node.rootDependencies) {
+                paths.add(dep);
+            }
         }
-
         return [...paths].sort();
     }
 
-    private extractPaths(obj: any, paths: Set<string>): void {
-        if (obj == null) return;
-
-        if (isInput(obj)) {
-            // Only files() refs are watched — from() and collect() are pipeline-internal
-            if (obj.type === 'files') {
-                for (const pattern of obj.patterns) {
-                    paths.add(pattern);
-                }
-            }
-            return;
-        }
-
-        // Arrays
-        if (Array.isArray(obj)) {
-            for (const item of obj) {
-                this.extractPaths(item, paths);
-            }
-            return;
-        }
-
-        // Objects — recurse into values (plain config objects)
-        if (typeof obj === 'object') {
-            for (const value of Object.values(obj)) {
-                this.extractPaths(value, paths);
-            }
+    /** After a rebuild, add any newly discovered dependencies to chokidar. */
+    private updateWatchPaths(): void {
+        if (!this.watcher) return;
+        const paths = this.collectWatchPaths();
+        if (paths.length > 0) {
+            this.watcher.add(paths);
         }
     }
 }
