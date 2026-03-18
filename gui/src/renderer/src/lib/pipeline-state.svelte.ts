@@ -117,6 +117,12 @@ function createPipelineState() {
       case 'watch:rebuild:error':
         addLog(`Rebuild failed: ${event.error}`)
         break
+
+      case 'pipeline:reloaded':
+        pipelineName = event.name
+        nodes = event.nodeNames.map((n: string) => ({ name: n, status: 'pending' as const }))
+        addLog(`Pipeline config reloaded: ${event.name} (${event.nodeNames.length} nodes)`)
+        break
     }
   }
 

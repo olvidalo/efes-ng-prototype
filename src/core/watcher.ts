@@ -1,6 +1,7 @@
 import chokidar from 'chokidar';
 import path from 'node:path';
 import { stat } from 'node:fs/promises';
+import { EventEmitter } from 'node:events';
 import { Pipeline } from './pipeline';
 import { discoverPipeline } from './discoverPipelineFile';
 
@@ -9,8 +10,11 @@ import { discoverPipeline } from './discoverPipelineFile';
  * Uses chokidar for efficient native filesystem event monitoring.
  * If the pipeline config file itself changes, the pipeline is destroyed
  * and recreated from the updated config before rebuilding.
+ *
+ * Events:
+ *   'reload' (pipeline: Pipeline) — emitted after config change triggers pipeline recreation
  */
-export class PipelineWatcher {
+export class PipelineWatcher extends EventEmitter {
     private watcher: chokidar.FSWatcher | null = null;
     private debounceTimer: ReturnType<typeof setTimeout> | null = null;
     private isRunning = false;
@@ -29,6 +33,7 @@ export class PipelineWatcher {
         configPath: string,
         private debounceMs: number = 300
     ) {
+        super();
         this.pipeline = pipeline;
         this.configPath = configPath;
         this.configRelPath = path.relative(pipeline.projectDir, configPath);
@@ -166,6 +171,7 @@ export class PipelineWatcher {
                 await this.pipeline.shutdown();
                 this.pipeline = await discoverPipeline(this.projectDir);
                 this.pipeline.verbose = this.verbose;
+                this.emit('reload', this.pipeline);
             }
             await this.pipeline.run();
             if (this.buildCancelled) {

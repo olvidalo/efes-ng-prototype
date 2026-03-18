@@ -57,9 +57,7 @@ export class PipelineManager {
 
     this.pipeline.projectDir = absDir
 
-    // Remove default console listeners, install event forwarding
-    this.pipeline.removeAllListeners()
-    this.installEventForwarding()
+    this.setupPipelineEvents()
 
     // Start dev server for live preview
     const { url } = await this.startDevServer()
@@ -75,6 +73,15 @@ export class PipelineManager {
     const { PipelineWatcher } = require('efes-ng-phase-2-poc')
 
     this.watcher = new PipelineWatcher(this.pipeline, this.configPath)
+    this.watcher.on('reload', (newPipeline: any) => {
+      this.pipeline = newPipeline
+      this.setupPipelineEvents()
+      this.send('pipeline:event', {
+        type: 'pipeline:reloaded',
+        name: newPipeline.name,
+        nodeNames: newPipeline.getNodeNames(),
+      })
+    })
     // Fire-and-forget — watcher.start() never resolves (keeps process alive via await)
     this.watcher.start().catch((err: any) => {
       this.send('pipeline:event', { type: 'watch:error', error: err.message })
@@ -228,6 +235,12 @@ export class PipelineManager {
       await this.pipeline.shutdown()
       this.pipeline = null
     }
+  }
+
+  /** Remove default console listeners and install event forwarding to renderer. */
+  private setupPipelineEvents(): void {
+    this.pipeline.removeAllListeners()
+    this.installEventForwarding()
   }
 
   private send(channel: string, data: any): void {
