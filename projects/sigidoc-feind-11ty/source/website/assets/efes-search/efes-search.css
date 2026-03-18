@@ -7,13 +7,14 @@
 
 /* --- Theme integration --- */
 efes-search {
-    --efes-accent-color: var(--accent-color, #0066cc);
-    --efes-primary-color: var(--primary-color, #2c5282);
-    --efes-primary-hover: var(--primary-hover, #1a365d);
-    --efes-text-color: var(--text-color, #2d3748);
-    --efes-border-color: var(--border-color, #e2e8f0);
-    --efes-bg-light: var(--bg-light, #f7fafc);
-    --efes-shadow-sm: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08));
+    --efes-accent: var(--gold, #b8860b);
+    --efes-accent-light: var(--gold-light, #d4a843);
+    --efes-accent-faint: var(--gold-faint, #f5ecd7);
+    --efes-ink: var(--ink, #1a1a2e);
+    --efes-slate: var(--slate, #4a4a5a);
+    --efes-border: var(--border-color, #d5cfc4);
+    --efes-bg: var(--parchment-light, #faf7f2);
+    --efes-shadow: var(--shadow-sm, 0 1px 3px rgba(26,26,46,0.08));
 }
 
 /* --- Search layout --- */
@@ -32,9 +33,11 @@ efes-search > .efes-facet-sidebar {
 }
 
 efes-search > .efes-facet-sidebar h2 {
-    font-size: 1rem;
+    font-family: var(--font-display, Georgia, serif);
+    font-size: 1.125rem;
+    font-weight: 600;
     margin: 0 0 0.75rem;
-    color: var(--efes-primary-color);
+    color: var(--efes-ink);
     border: none;
 }
 
@@ -55,23 +58,23 @@ efes-search-input {
     flex: 1;
     padding: 0.6rem 1rem;
     font-size: 1rem;
-    border: 2px solid var(--efes-border-color);
-    border-radius: 6px;
-    transition: border-color 0.2s;
+    font-family: var(--font-body, sans-serif);
+    border: 1px solid var(--efes-border);
+    background: #fff;
+    transition: border-color 0.15s;
 }
 
 .efes-search-input:focus {
     outline: none;
-    border-color: var(--efes-accent-color);
+    border-color: var(--efes-accent);
 }
 
 /* --- Shared facet header/content (used by efes-facet and efes-date-range) --- */
 efes-facet,
 efes-date-range {
     display: block;
-    background: var(--efes-bg-light);
-    border: 1px solid var(--efes-border-color);
-    border-radius: 6px;
+    background: var(--efes-bg);
+    border: 1px solid var(--efes-border);
     margin-bottom: 0.5rem;
     overflow: hidden;
 }
@@ -85,13 +88,14 @@ efes-date-range {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: white;
+    background: #fff;
+    color: var(--efes-ink);
 }
 
 .efes-facet-header::after {
     content: '\25BC';
     font-size: 0.65rem;
-    color: #a0aec0;
+    color: var(--efes-border);
     transition: transform 0.2s;
 }
 
@@ -118,11 +122,13 @@ efes-date-range {
     padding: 0.2rem 0;
     font-size: 0.85rem;
     cursor: pointer;
+    color: var(--efes-ink);
 }
 
 .efes-facet-item input[type="checkbox"] {
     margin: 0;
     flex-shrink: 0;
+    accent-color: var(--efes-accent);
 }
 
 .efes-facet-label {
@@ -134,9 +140,10 @@ efes-date-range {
 }
 
 .efes-facet-count {
-    color: #a0aec0;
+    color: var(--efes-slate);
     font-size: 0.8rem;
     flex-shrink: 0;
+    opacity: 0.6;
 }
 
 .efes-facet-item-disabled {
@@ -160,18 +167,26 @@ efes-date-range .efes-facet-content {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    color: var(--efes-ink);
 }
 
 .efes-date-range-inputs input {
     padding: 0.35rem 0.5rem;
-    border: 1px solid var(--efes-border-color);
-    border-radius: 4px;
+    border: 1px solid var(--efes-border);
     font-size: 0.85rem;
+    font-family: var(--font-body, sans-serif);
+    background: #fff;
+}
+
+.efes-date-range-inputs input:focus {
+    outline: none;
+    border-color: var(--efes-accent);
 }
 
 .efes-date-hint {
-    color: #a0aec0;
+    color: var(--efes-slate);
     font-size: 0.75rem;
+    opacity: 0.6;
 }
 
 .efes-clear-dates-btn {
@@ -179,14 +194,16 @@ efes-date-range .efes-facet-content {
     padding: 0.3rem 0.6rem;
     font-size: 0.8rem;
     background: none;
-    border: 1px solid var(--efes-border-color);
-    border-radius: 4px;
+    border: 1px solid var(--efes-border);
     cursor: pointer;
-    color: #718096;
+    color: var(--efes-slate);
+    font-family: var(--font-body, sans-serif);
 }
 
 .efes-clear-dates-btn:hover {
-    background: #edf2f7;
+    background: var(--efes-accent-faint);
+    border-color: var(--efes-accent);
+    color: var(--efes-ink);
 }
 
 /* --- Active filters --- */
@@ -201,8 +218,8 @@ efes-active-filters {
     align-items: center;
     margin-bottom: 1rem;
     padding: 0.75rem;
-    background: #ebf8ff;
-    border-radius: 6px;
+    background: var(--efes-accent-faint);
+    border: 1px solid var(--efes-border);
 }
 
 .efes-filter-tag {
@@ -210,9 +227,8 @@ efes-active-filters {
     align-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0.5rem;
-    background: #1976d2;
+    background: var(--efes-accent);
     color: white;
-    border-radius: 4px;
     font-size: 0.8rem;
 }
 
@@ -238,7 +254,7 @@ efes-results {
 
 .efes-results-status {
     font-size: 0.9rem;
-    color: #718096;
+    color: var(--efes-slate);
     margin-bottom: 1rem;
 }
 
@@ -250,25 +266,25 @@ efes-results {
 
 .efes-result-item {
     padding: 0.75rem;
-    border: 1px solid var(--efes-border-color);
-    border-radius: 6px;
+    border: 1px solid var(--efes-border);
     margin-bottom: 0.5rem;
-    transition: box-shadow 0.2s;
+    background: #fff;
+    transition: border-color 0.15s;
 }
 
 .efes-result-item:hover {
-    box-shadow: var(--efes-shadow-sm);
+    border-color: var(--efes-accent);
 }
 
 .efes-result-item a {
-    color: var(--efes-accent-color);
+    color: var(--efes-accent);
     text-decoration: none;
     font-weight: 500;
     font-size: 0.95rem;
 }
 
 .efes-result-item a:hover {
-    text-decoration: underline;
+    color: var(--efes-accent-light);
 }
 
 .efes-result-details {
@@ -277,7 +293,7 @@ efes-results {
     gap: 0.75rem;
     margin-top: 0.35rem;
     font-size: 0.8rem;
-    color: #718096;
+    color: var(--efes-slate);
 }
 
 /* --- Clear all button --- */
@@ -289,17 +305,17 @@ efes-results {
     width: 100%;
     padding: 0.5rem;
     font-size: 0.85rem;
+    font-family: var(--font-body, sans-serif);
     background: none;
-    border: 1px solid var(--efes-border-color);
-    border-radius: 6px;
+    border: 1px solid var(--efes-border);
     cursor: pointer;
-    color: #718096;
-    transition: all 0.2s;
+    color: var(--efes-slate);
+    transition: all 0.15s;
 }
 
 .efes-filter-actions button:hover {
-    background: #fed7d7;
-    border-color: #fc8181;
+    background: #fde8e8;
+    border-color: #e53e3e;
     color: #c53030;
 }
 

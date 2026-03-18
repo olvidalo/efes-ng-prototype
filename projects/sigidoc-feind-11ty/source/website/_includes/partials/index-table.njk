@@ -19,7 +19,7 @@
 
     {# Macro for rendering a table with entries #}
     {% macro renderTable(entries, columns) %}
-    <table class="index-table">
+    <table class="data-table index-table">
         <thead>
             <tr>
                 {% for col in columns %}
@@ -48,7 +48,7 @@
                             <div class="reference-group">
                                 <span class="collection-label">{{ collectionName }}:</span>
                                 {%- for ref in refs %}
-                                <a href="/{{ langCode }}/seals/{{ ref.inscriptionId }}.html">{{ ref.invNr or ref.inscriptionId }}</a>
+                                <a href="/{{ langCode }}/seals/{{ ref.inscriptionId }}/">{{ ref.invNr or ref.inscriptionId }}</a>
                                 {%- endfor %}
                             </div>
                             {%- endfor %}

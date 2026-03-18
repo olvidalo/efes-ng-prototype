@@ -1,9 +1,8 @@
 ---
 pagination:
-  data: languages
+  data: languages.codes
   size: 1
   alias: langCode
-languages: ["en", "de", "el"]
 permalink: "{{ langCode }}/bibliography/index.html"
 layout: layouts/base.njk
 eleventyComputed:
@@ -15,7 +14,7 @@ eleventyComputed:
 
 <p>{{ indices.bibliography.entries | length }} bibliography entries cited in the seals.</p>
 
-<table class="index-table">
+<table class="data-table index-table">
     <thead>
         <tr>
             <th>Short Citation</th>
@@ -25,7 +24,7 @@ eleventyComputed:
     <tbody>
     {% for entry in indices.bibliography.entries %}
         <tr>
-            <td><a href="/en/bibliography/{{ entry.bibRef }}/">{{ entry.shortCitation or entry.bibRef }}</a></td>
+            <td><a href="/{{ langCode }}/bibliography/{{ entry.bibRef }}/">{{ entry.shortCitation or entry.bibRef }}</a></td>
             <td>{{ entry.fullCitation or '-' }}</td>
         </tr>
     {% endfor %}

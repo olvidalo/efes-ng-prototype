@@ -1,9 +1,8 @@
 ---
 pagination:
-  data: languages
+  data: languages.codes
   size: 1
   alias: langCode
-languages: ["en", "de", "el"]
 permalink: "{{ langCode }}/search/index.html"
 layout: layouts/base.njk
 eleventyComputed:
@@ -66,19 +65,3 @@ eleventyComputed:
         </efes-results>
     </div>
 </efes-search>
-
-<style>
-/* Page-level overrides */
-main { margin-top: 0.5rem !important; padding-top: 0.5rem !important; }
-
-.doc-id {
-    display: inline-block;
-    background: #edf2f7;
-    color: #4a5568;
-    padding: 0.1rem 0.4rem;
-    border-radius: 3px;
-    font-family: monospace;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-</style>

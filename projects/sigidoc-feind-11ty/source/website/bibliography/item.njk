@@ -1,36 +1,9 @@
 ---
-pagination:
-  data: indices.bibliography.entries
-  size: 1
-  alias: item
-permalink: "en/bibliography/{{ item.bibRef }}/index.html"
 layout: layouts/base.njk
+permalink: "{{ item.lang }}/bibliography/{{ item.bibRef }}/index.html"
 eleventyComputed:
   title: "Bibliography: {{ item.shortCitation }}"
-  language: "en"
+  language: "{{ item.lang }}"
 ---
-
-<p class="full-citation">{{ item.fullCitation }}</p>
-
-<p><a href="/en/bibliography/">&larr; Back to bibliography</a></p>
-
-<table class="index-table">
-    <thead>
-        <tr>
-            <th>Cited Range</th>
-            <th>Seals</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for ref in item.references %}
-        <tr>
-            <td>{{ ref.citedRange | default('-') }}</td>
-            <td class="references">
-                <a href="/en/seals/{{ ref.inscriptionId }}.html"><strong>{{ ref.inscriptionId }}</strong></a>
-            </td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
-
-{% include "partials/index-table-styles.njk" %}
+{% set langCode = item.lang %}
+{% include "partials/bibliography-item.njk" %}

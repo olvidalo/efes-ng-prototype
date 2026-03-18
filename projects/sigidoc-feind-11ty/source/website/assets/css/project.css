@@ -1,0 +1,19 @@
+/*
+ * Project-specific CSS overrides.
+ *
+ * Rules here override base.css by source order (loaded after it).
+ * Use the same or higher specificity to override specific rules.
+ *
+ * To change the theme, override CSS custom properties:
+ *
+ *   :root {
+ *     --gold: #cc9900;
+ *     --font-body: 'Your Font', sans-serif;
+ *   }
+ *
+ * To override specific rules:
+ *
+ *   .seal-table th { text-transform: none; }
+ *
+ * See base.css :root for all available variables.
+ */

@@ -50,6 +50,11 @@
       "metrical": "Metrical",
       "monogram": "Monogram"
     },
+    "bibliography": {
+      "backToList": "Back to bibliography",
+      "citedRange": "Cited Range",
+      "seals": "Seals"
+    },
     "nav": {
       "backToIndex": "Back to Seal Index",
       "previous": "Previous",
@@ -111,6 +116,11 @@
       "metrical": "Metrisch",
       "monogram": "Monogramm"
     },
+    "bibliography": {
+      "backToList": "Zurück zur Bibliographie",
+      "citedRange": "Zitatbereich",
+      "seals": "Siegel"
+    },
     "nav": {
       "backToIndex": "Zurück zum Siegelindex",
       "previous": "Vorheriges",
@@ -171,6 +181,11 @@
       "collection": "Συλλογή",
       "metrical": "Μετρικό",
       "monogram": "Μονόγραμμα"
+    },
+    "bibliography": {
+      "backToList": "Επιστροφή στη βιβλιογραφία",
+      "citedRange": "Εύρος αναφοράς",
+      "seals": "Σφραγίδες"
     },
     "nav": {
       "backToIndex": "Επιστροφή στο ευρετήριο σφραγίδων",

@@ -1,0 +1,27 @@
+{# Bibliography item detail — shared across language variants.
+   Expects: item (bibliography entry), langCode (language code) #}
+
+{% set t = translations[langCode].bibliography %}
+
+<p class="full-citation">{{ item.fullCitation }}</p>
+
+<p><a href="/{{ langCode }}/bibliography/">&larr; {{ t.backToList }}</a></p>
+
+<table class="data-table index-table">
+    <thead>
+        <tr>
+            <th>{{ t.citedRange }}</th>
+            <th>{{ t.seals }}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ref in item.references %}
+        <tr>
+            <td>{{ ref.citedRange | default('-') }}</td>
+            <td class="references">
+                <a href="/{{ langCode }}/seals/{{ ref.inscriptionId }}/"><strong>{{ ref.inscriptionId }}</strong></a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
