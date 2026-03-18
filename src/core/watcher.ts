@@ -2,10 +2,13 @@ import chokidar from 'chokidar';
 import path from 'node:path';
 import { stat } from 'node:fs/promises';
 import { Pipeline } from './pipeline';
+import { discoverPipeline } from './discoverPipelineFile';
 
 /**
  * Watches a pipeline's input files and triggers rebuilds on changes.
  * Uses chokidar for efficient native filesystem event monitoring.
+ * If the pipeline config file itself changes, the pipeline is destroyed
+ * and recreated from the updated config before rebuilding.
  */
 export class PipelineWatcher {
     private watcher: chokidar.FSWatcher | null = null;
@@ -15,18 +18,30 @@ export class PipelineWatcher {
     private buildCancelled = false;
     private lastMtimes = new Map<string, number>();
     private changedFiles = new Set<string>();
+    private pipeline: Pipeline;
+    private configPath: string;
+    private configRelPath: string;
+    private projectDir: string;
+    private verbose: boolean;
 
     constructor(
-        private pipeline: Pipeline,
+        pipeline: Pipeline,
+        configPath: string,
         private debounceMs: number = 300
-    ) {}
+    ) {
+        this.pipeline = pipeline;
+        this.configPath = configPath;
+        this.configRelPath = path.relative(pipeline.projectDir, configPath);
+        this.projectDir = pipeline.projectDir;
+        this.verbose = pipeline.verbose;
+    }
 
     async start(): Promise<void> {
         // Initial full build
         await this.pipeline.run();
 
-        // Collect paths to watch from node configs
-        const watchPaths = this.collectWatchPaths();
+        // Collect paths to watch from node configs + discovered dependencies
+        const watchPaths = [...this.collectWatchPaths(), this.configPath];
 
         if (watchPaths.length === 0) {
             console.log('No input paths found to watch.');
@@ -43,7 +58,7 @@ export class PipelineWatcher {
         // could fall inside watched trees, causing feedback loops. Possible fix: scan
         // node outputConfigs to build an ignore list dynamically.
         this.watcher = chokidar.watch(watchPaths, {
-            cwd: this.pipeline.projectDir,
+            cwd: this.projectDir,
             ignoreInitial: true,
             ignored: [
                 '**/node_modules/**',
@@ -62,7 +77,7 @@ export class PipelineWatcher {
                 for (const [dir, names] of Object.entries(watched)) {
                     for (const name of names) {
                         const relPath = path.join(dir, name);
-                        const absPath = path.resolve(this.pipeline.projectDir, relPath);
+                        const absPath = path.resolve(this.projectDir, relPath);
                         statPromises.push(
                             stat(absPath).then(s => {
                                 if (s.isFile()) this.lastMtimes.set(absPath, s.mtimeMs);
@@ -93,7 +108,7 @@ export class PipelineWatcher {
     }
 
     private async onFileEvent(event: string, filePath: string): Promise<void> {
-        const absPath = path.resolve(this.pipeline.projectDir, filePath);
+        const absPath = path.resolve(this.projectDir, filePath);
 
         // For change events, skip if mtime hasn't actually changed
         // (OS and editors can trigger ctime-only changes via xattrs, locks, etc.)
@@ -108,7 +123,7 @@ export class PipelineWatcher {
             }
         }
 
-        const relPath = path.relative(this.pipeline.projectDir, absPath);
+        const relPath = path.relative(this.projectDir, absPath);
         this.pipeline.emit('watch:change', { event, path: absPath });
         console.log(`  [watch] ${event}: ${relPath}`);
         this.changedFiles.add(relPath);
@@ -127,20 +142,31 @@ export class PipelineWatcher {
                 this.pipeline.cancel();
                 return;
             }
-            await this.rebuild();
+            const reload = this.changedFiles.has(this.configRelPath);
+            await this.rebuild(reload);
         }, this.debounceMs);
     }
 
-    private async rebuild(): Promise<void> {
+    private async rebuild(reloadPipeline = false): Promise<void> {
         this.isRunning = true;
         this.buildCancelled = false;
         const files = [...this.changedFiles];
         this.changedFiles.clear();
         const start = performance.now();
         this.pipeline.emit('watch:rebuild:start', { files });
-        console.log(`\n--- Rebuild triggered by ${files.length} file(s): ${files.join(', ')} ---\n`);
+
+        if (reloadPipeline) {
+            console.log(`\n--- Pipeline config changed, reloading ---\n`);
+        } else {
+            console.log(`\n--- Rebuild triggered by ${files.length} file(s): ${files.join(', ')} ---\n`);
+        }
 
         try {
+            if (reloadPipeline) {
+                await this.pipeline.shutdown();
+                this.pipeline = await discoverPipeline(this.projectDir);
+                this.pipeline.verbose = this.verbose;
+            }
             await this.pipeline.run();
             if (this.buildCancelled) {
                 console.log(`\n--- Rebuild cancelled, restarting ---\n`);
@@ -148,11 +174,11 @@ export class PipelineWatcher {
                 this.updateWatchPaths();
                 const durationMs = performance.now() - start;
                 this.pipeline.emit('watch:rebuild:done', { durationMs });
-                console.log(`\n--- Rebuild complete (${(durationMs / 1000).toFixed(2)}s) ---\n`);
+                console.log(`\n--- ${reloadPipeline ? 'Reload' : 'Rebuild'} complete (${(durationMs / 1000).toFixed(2)}s) ---\n`);
             }
         } catch (err) {
             this.pipeline.emit('watch:rebuild:error', { error: err });
-            console.error('\n--- Rebuild failed ---\n', err);
+            console.error(`\n--- ${reloadPipeline ? 'Reload' : 'Rebuild'} failed ---\n`, err);
         } finally {
             this.isRunning = false;
             if (this.pendingRebuild) {

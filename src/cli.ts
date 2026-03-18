@@ -2,32 +2,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { Command } from 'commander';
-import { Pipeline } from './core/pipeline';
-import { discoverPipelineFile } from './core/discoverPipelineFile';
-import { loadPipelineFromXml } from './core/xmlPipelineLoader';
-
-// --- Pipeline discovery ---
-
-async function discoverPipeline(dir: string): Promise<Pipeline> {
-    const { filePath, format } = discoverPipelineFile(dir);
-    const absDir = path.resolve(dir);
-
-    if (format === 'xml') {
-        const pipeline = await loadPipelineFromXml(filePath);
-        pipeline.projectDir = absDir;
-        return pipeline;
-    }
-
-    const mod = await import(filePath);
-    const pipeline = mod.default;
-
-    if (!(pipeline instanceof Pipeline)) {
-        throw new Error(`${path.basename(filePath)} must export default a Pipeline instance`);
-    }
-
-    pipeline.projectDir = absDir;
-    return pipeline;
-}
+import { discoverPipeline, discoverPipelineFile } from './core/discoverPipelineFile';
 
 // --- CLI ---
 
@@ -121,10 +96,11 @@ program
     .option('--project <path>', 'Project directory', '.')
     .option('--verbose', 'Show debug-level log messages')
     .action(async (opts) => {
+        const { filePath } = discoverPipelineFile(opts.project);
         const pipeline = await discoverPipeline(opts.project);
         pipeline.verbose = opts.verbose ?? false;
         const { PipelineWatcher } = await import('./core/watcher');
-        const watcher = new PipelineWatcher(pipeline);
+        const watcher = new PipelineWatcher(pipeline, filePath);
         await watcher.start();
     });
 

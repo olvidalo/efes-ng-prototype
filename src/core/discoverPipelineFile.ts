@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { Pipeline } from './pipeline';
+import { loadPipelineFromXml } from './xmlPipelineLoader';
 
 export interface PipelineFileInfo {
     filePath: string;
@@ -62,4 +64,30 @@ export function discoverPipelineFile(dir: string): PipelineFileInfo {
     }
 
     throw new Error(`No pipeline definition found in ${absDir}`);
+}
+
+/**
+ * Discover and load a pipeline from a project directory.
+ * Returns the Pipeline instance with projectDir set.
+ */
+export async function discoverPipeline(dir: string): Promise<Pipeline> {
+    const { filePath, format } = discoverPipelineFile(dir);
+    const absDir = path.resolve(dir);
+
+    if (format === 'xml') {
+        const pipeline = await loadPipelineFromXml(filePath);
+        pipeline.projectDir = absDir;
+        return pipeline;
+    }
+
+    const mod = await import(filePath);
+    const pipeline = mod.default;
+
+    const { Pipeline: PipelineClass } = await import('./pipeline');
+    if (!(pipeline instanceof PipelineClass)) {
+        throw new Error(`${path.basename(filePath)} must export default a Pipeline instance`);
+    }
+
+    pipeline.projectDir = absDir;
+    return pipeline;
 }

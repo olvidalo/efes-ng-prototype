@@ -19,6 +19,7 @@ export interface NodeInfo {
 export class PipelineManager {
   private pipeline: any = null
   private watcher: any = null
+  private configPath: string = ''
   private tsxRegistered = false
   private devServer: DevServer | null = null
 
@@ -45,6 +46,7 @@ export class PipelineManager {
     await this.ensureTsxLoader()
     const { discoverPipelineFile, loadPipelineFromXml } = require('efes-ng-phase-2-poc')
     const { filePath, format } = discoverPipelineFile(absDir)
+    this.configPath = filePath
 
     if (format === 'xml') {
       this.pipeline = await loadPipelineFromXml(filePath)
@@ -72,7 +74,7 @@ export class PipelineManager {
     await this.ensureTsxLoader()
     const { PipelineWatcher } = require('efes-ng-phase-2-poc')
 
-    this.watcher = new PipelineWatcher(this.pipeline)
+    this.watcher = new PipelineWatcher(this.pipeline, this.configPath)
     // Fire-and-forget — watcher.start() never resolves (keeps process alive via await)
     this.watcher.start().catch((err: any) => {
       this.send('pipeline:event', { type: 'watch:error', error: err.message })
