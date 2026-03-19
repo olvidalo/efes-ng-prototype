@@ -1,0 +1,144 @@
+---
+pagination:
+  data: languages.codes
+  size: 1
+  alias: langCode
+permalink: "{{ langCode }}/index.html"
+layout: layouts/base.njk
+suppressTitle: true
+eleventyComputed:
+  title: "{{ translations[langCode].home.title }}"
+  language: "{{ langCode }}"
+---
+
+{% set t = translations[langCode].home %}
+
+<div class="home-notice">
+    <p><strong>EFES-NG Demo:</strong> {{ t.demo | safe }}</p>
+</div>
+
+<div class="home-hero">
+    <h1 class="home-title">{{ t.title }}</h1>
+    <p class="home-location">{{ t.location }}</p>
+    <div class="home-editors">
+        <p><strong>{{ t.sealEditorLabel }}:</strong>
+            <a href="https://ifa.phil-fak.uni-koeln.de/mitarbeiterinnen/nach-abteilungen-einrichtungen/byzantinistik-und-neugriechische-philologie/filosa" target="_blank">Martina Filosa</a>,
+            <a href="https://ifa.phil-fak.uni-koeln.de/mitarbeiterinnen/nach-abteilungen-einrichtungen/byzantinistik-und-neugriechische-philologie/catalano" target="_blank">Maria Teresa Catalano</a>,
+            <a href="https://ifa.phil-fak.uni-koeln.de/en/mitarbeiterinnen/nach-abteilungen-einrichtungen/byzantinistik-und-neugriechische-philologie/sode" target="_blank">Claudia Sode</a>
+        </p>
+        <p><strong>{{ t.digiEditorLabel }}:</strong>
+            <a href="https://ifa.phil-fak.uni-koeln.de/mitarbeiterinnen/nach-abteilungen-einrichtungen/byzantinistik-und-neugriechische-philologie/evening" target="_blank">Pia Tabea Charlene Evening</a>,
+            <a href="https://ifa.phil-fak.uni-koeln.de/mitarbeiterinnen/nach-abteilungen-einrichtungen/byzantinistik-und-neugriechische-philologie/efthymoglou" target="_blank">Sofia Efthymoglou</a>
+        </p>
+    </div>
+</div>
+
+<a href="/{{ langCode }}/seals/" class="home-image-link">
+    <img class="home-image" src="/assets/images/seal.png" alt="Byzantine seals from the Feind collection">
+</a>
+
+<section class="home-panel">
+    <h2>{{ t.missionTitle }}</h2>
+    <p>{{ t.missionP1 }}</p>
+    <p>{{ t.missionP2 }}</p>
+    <p>{{ t.missionP3 }}</p>
+    <p>{{ t.missionP4 }}</p>
+</section>
+
+<section class="home-panel">
+    <h2>{{ t.gettingStartedTitle }}</h2>
+    <p>{{ t.gettingStartedP1 }}</p>
+    <p>{{ t.gettingStartedP2 }}</p>
+    <p>{{ t.gettingStartedP3 }}</p>
+</section>
+
+<section class="home-panel home-panel--subtle">
+    <p>{{ t.citation | safe }}</p>
+    <p>{{ t.github | safe }}</p>
+    <p>
+        <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+            <img alt="Creative Commons License" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png">
+        </a>
+        {{ t.license | safe }}
+    </p>
+</section>
+
+<style>
+.home-notice {
+    background: var(--gold-faint);
+    border-left: 3px solid var(--gold);
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 2rem;
+    font-size: 0.875rem;
+}
+.home-notice p { margin: 0; color: var(--slate); }
+
+.home-hero { text-align: center; margin-bottom: 1.5rem; }
+
+.home-title {
+    font-family: var(--font-display);
+    color: #8b3a3a;
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    padding: 0;
+    border: none;
+}
+
+.home-location {
+    font-family: var(--font-display);
+    color: var(--slate);
+    font-size: 1.375rem;
+    margin: 0 0 1rem;
+}
+
+.home-editors {
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.home-editors p { margin: 0.25rem 0; font-size: 0.9375rem; }
+.home-editors a { color: #8b3a3a; }
+
+.home-image-link { display: block; text-align: center; }
+.home-image {
+    display: inline-block;
+    max-width: 600px;
+    width: 100%;
+    margin: 1.5rem 0;
+}
+
+.home-panel {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+}
+
+.home-panel h2 {
+    font-family: var(--font-display);
+    color: var(--ink);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    padding-bottom: 0.375rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.home-panel p {
+    color: var(--ink);
+    line-height: 1.7;
+    margin: 0.75rem 0;
+}
+
+.home-panel--subtle {
+    background: var(--parchment);
+}
+.home-panel--subtle p { font-size: 0.9375rem; }
+.home-panel--subtle img { margin-right: 0.5rem; vertical-align: middle; }
+
+@media (max-width: 768px) {
+    .home-title { font-size: 1.75rem; }
+    .home-panel { padding: 1rem 1.25rem; }
+}
+</style>

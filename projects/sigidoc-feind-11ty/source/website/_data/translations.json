@@ -1,5 +1,24 @@
 {
   "en": {
+    "home": {
+      "title": "The Byzantine Seals of the Robert Feind Collection",
+      "location": "Cologne",
+      "sealEditorLabel": "Edition of the seals",
+      "digiEditorLabel": "Digital edition",
+      "demo": "This is a re-implementation of the <a href=\"https://feind.sigidoc.cceh.uni-koeln.de\">SigiDoc Feind collection</a> using the EFES-NG static generation pipeline, for demonstration purposes only. All content, images, and intellectual property remain with the original creators.",
+      "missionTitle": "Mission Statement",
+      "missionP1": "Over 100,000 Byzantine seals are housed in a wide array of collections, many of which are only partially published or presented across scattered books, articles or platforms. For the first time, this Portal offers a unified entry point, allowing these dispersed holdings to be comprehensively searched—and unlocking new avenues for research.",
+      "missionP2": "The lack of publicly accessible information on seals has long been a major gap in Byzantine sigillography. This initiative responds to that need by offering a user-friendly and pragmatic platform for sharing data, with minimal requirements for participation.",
+      "missionP3": "Every seal description remains clearly credited to its respective contributor, who retains full responsibility for the content.",
+      "missionP4": "With CSÆB, you can search a metacorpus comprising potentially tens of thousands of seals from various collections—all in a single click.",
+      "gettingStartedTitle": "Getting started",
+      "gettingStartedP1": "Get in touch with the DigiByzSeal project team.",
+      "gettingStartedP2": "We will support you in exploring the most suitable option and guide you in preparing your data to meet the minimal participation standards.",
+      "gettingStartedP3": "Our goal is to make contributing as easy and accessible as possible.",
+      "citation": "This edition should be cited as <strong>Sammlung Feind, Köln</strong>, available at <a target=\"_blank\" href=\"https://feind.sigidoc.cceh.uni-koeln.de/en/\">https://feind.sigidoc.cceh.uni-koeln.de/en/</a>.",
+      "github": "GitHub repository available <a href=\"https://github.com/byzantinistik-koeln/EFES-SigiDoc-feind\" target=\"_blank\">https://github.com/byzantinistik-koeln/EFES-SigiDoc-feind</a>.",
+      "license": "Authorship remains fully attributed to the original author(s). The content is shared under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\">CC-BY-NC-SA License</a>."
+    },
     "seals": {
       "pageTitle": "Browse all seals",
       "intro": "seals in the collection",
@@ -66,6 +85,25 @@
     }
   },
   "de": {
+    "home": {
+      "title": "Die byzantinischen Siegel der Sammlung Robert Feind",
+      "location": "Köln",
+      "sealEditorLabel": "Edition der Siegel",
+      "digiEditorLabel": "Digitale Edition",
+      "demo": "Dies ist eine Neuimplementierung der <a href=\"https://feind.sigidoc.cceh.uni-koeln.de\">SigiDoc-Feind-Sammlung</a> mit der statischen EFES-NG-Pipeline, nur zu Demonstrationszwecken. Alle Inhalte, Bilder und geistigen Eigentumsrechte verbleiben bei den ursprünglichen Urhebern.",
+      "missionTitle": "Leitbild",
+      "missionP1": "Über 100.000 byzantinische Siegel befinden sich in einer Vielzahl von Sammlungen, von denen viele nur teilweise veröffentlicht oder in verstreuten Büchern, Artikeln oder Plattformen präsentiert werden. Dieses Portal bietet erstmals einen einheitlichen Zugang, der es ermöglicht, diese verstreuten Bestände umfassend zu durchsuchen — und neue Forschungswege zu erschließen.",
+      "missionP2": "Der Mangel an öffentlich zugänglichen Informationen über Siegel ist seit langem eine große Lücke in der byzantinischen Sigillographie. Diese Initiative begegnet diesem Bedarf, indem sie eine benutzerfreundliche und pragmatische Plattform zum Datenaustausch anbietet, mit minimalen Anforderungen an die Teilnahme.",
+      "missionP3": "Jede Siegelbeschreibung wird klar dem jeweiligen Beiträger zugeordnet, der die volle Verantwortung für den Inhalt behält.",
+      "missionP4": "Mit CSÆB können Sie ein Metakorpus durchsuchen, das potenziell Zehntausende von Siegeln aus verschiedenen Sammlungen umfasst — alles mit einem einzigen Klick.",
+      "gettingStartedTitle": "Erste Schritte",
+      "gettingStartedP1": "Nehmen Sie Kontakt mit dem DigiByzSeal-Projektteam auf.",
+      "gettingStartedP2": "Wir unterstützen Sie bei der Auswahl der am besten geeigneten Option und begleiten Sie bei der Aufbereitung Ihrer Daten gemäß den minimalen Teilnahmestandards.",
+      "gettingStartedP3": "Unser Ziel ist es, die Mitwirkung so einfach und zugänglich wie möglich zu gestalten.",
+      "citation": "Diese Edition sollte zitiert werden als <strong>Sammlung Feind, Köln</strong>, verfügbar unter <a target=\"_blank\" href=\"https://feind.sigidoc.cceh.uni-koeln.de/en/\">https://feind.sigidoc.cceh.uni-koeln.de/en/</a>.",
+      "github": "GitHub-Repository verfügbar unter <a href=\"https://github.com/byzantinistik-koeln/EFES-SigiDoc-feind\" target=\"_blank\">https://github.com/byzantinistik-koeln/EFES-SigiDoc-feind</a>.",
+      "license": "Die Urheberschaft verbleibt vollständig bei den ursprünglichen Autoren. Der Inhalt wird unter einer <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\">CC-BY-NC-SA Lizenz</a> geteilt."
+    },
     "seals": {
       "pageTitle": "Alle Siegel durchsuchen",
       "intro": "Siegel in der Sammlung",
@@ -132,6 +170,25 @@
     }
   },
   "el": {
+    "home": {
+      "title": "Οι βυζαντινές σφραγίδες της συλλογής Robert Feind",
+      "location": "Κολωνία",
+      "sealEditorLabel": "Έκδοση σφραγίδων",
+      "digiEditorLabel": "Ψηφιακή έκδοση",
+      "demo": "Αυτή είναι μια επανυλοποίηση της <a href=\"https://feind.sigidoc.cceh.uni-koeln.de\">συλλογής SigiDoc Feind</a> χρησιμοποιώντας τον στατικό αγωγό EFES-NG, μόνο για σκοπούς επίδειξης. Όλο το περιεχόμενο, οι εικόνες και τα πνευματικά δικαιώματα παραμένουν στους αρχικούς δημιουργούς.",
+      "missionTitle": "Δήλωση αποστολής",
+      "missionP1": "Πάνω από 100.000 βυζαντινές σφραγίδες φυλάσσονται σε μια ευρεία σειρά συλλογών, πολλές από τις οποίες είναι μόνο εν μέρει δημοσιευμένες ή παρουσιάζονται σε διάσπαρτα βιβλία, άρθρα ή πλατφόρμες. Για πρώτη φορά, αυτή η Πύλη προσφέρει ένα ενιαίο σημείο εισόδου.",
+      "missionP2": "Η έλλειψη δημόσια προσβάσιμων πληροφοριών για τις σφραγίδες αποτελεί εδώ και καιρό μεγάλο κενό στη βυζαντινή σφραγιδογραφία.",
+      "missionP3": "Κάθε περιγραφή σφραγίδας πιστώνεται σαφώς στον αντίστοιχο συνεισφέροντα.",
+      "missionP4": "Με το CSÆB, μπορείτε να αναζητήσετε ένα μετασώμα που περιλαμβάνει δυνητικά δεκάδες χιλιάδες σφραγίδες από διάφορες συλλογές — με ένα μόνο κλικ.",
+      "gettingStartedTitle": "Ξεκινώντας",
+      "gettingStartedP1": "Επικοινωνήστε με την ομάδα του έργου DigiByzSeal.",
+      "gettingStartedP2": "Θα σας υποστηρίξουμε στην εξερεύνηση της καταλληλότερης επιλογής και θα σας καθοδηγήσουμε στην προετοιμασία των δεδομένων σας.",
+      "gettingStartedP3": "Στόχος μας είναι να κάνουμε τη συνεισφορά όσο το δυνατόν πιο εύκολη και προσβάσιμη.",
+      "citation": "Αυτή η έκδοση πρέπει να αναφέρεται ως <strong>Sammlung Feind, Köln</strong>, διαθέσιμη στο <a target=\"_blank\" href=\"https://feind.sigidoc.cceh.uni-koeln.de/en/\">https://feind.sigidoc.cceh.uni-koeln.de/en/</a>.",
+      "github": "Αποθετήριο GitHub διαθέσιμο στο <a href=\"https://github.com/byzantinistik-koeln/EFES-SigiDoc-feind\" target=\"_blank\">https://github.com/byzantinistik-koeln/EFES-SigiDoc-feind</a>.",
+      "license": "Η συγγραφή παραμένει πλήρως αποδοτέα στον/στους αρχικό/ούς συγγραφέα/είς. Το περιεχόμενο μοιράζεται υπό την άδεια <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-nc-sa/4.0/\">CC-BY-NC-SA</a>."
+    },
     "seals": {
       "pageTitle": "Περιήγηση όλων των σφραγίδων",
       "intro": "σφραγίδες στη συλλογή",
