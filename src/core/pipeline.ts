@@ -395,6 +395,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                 this.emit('pipeline:cancelled', { name: this.name });
                 return;
             }
+            this.emit('pipeline:error', { name: this.name, error: err });
             throw err;
         } finally {
             this.abortController = null;

@@ -272,6 +272,7 @@ export class PipelineManager {
             case 'watch:rebuild:done':
               this.devServer.broadcast({ type: 'done' })
               break
+            case 'pipeline:error':
             case 'node:error':
             case 'watch:rebuild:error':
               this.devServer.broadcast({
