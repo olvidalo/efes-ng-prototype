@@ -2,7 +2,7 @@
     <div class="header-inner">
         <div class="header-content">
             <h1 id="site-title">
-                <a href="/" class="site-title-link">
+                <a href="/en/" class="site-title-link">
                     <span class="site-title-abbr">IRCyr</span>
                     <span class="title-separator"></span>
                     <span class="site-title-full">Inscriptions of Roman Cyrenaica</span>
@@ -10,6 +10,18 @@
             </h1>
 
             <nav class="site-nav">
+                <div class="nav-dropdown">
+                   <a href="/en/" class="nav-link nav-dropdown-toggle">Home</a>
+                   {% if collections.texts and collections.texts | length > 0 %}
+                        <ul class="nav-dropdown-menu">
+                           {% set sortedTexts = collections.texts | sort(false, false, "data.order") %}
+                           {% for text in sortedTexts %}
+                             <li><a href="/en/texts/{{ text.fileSlug }}/">{{ text.data.title }}</a></li>
+                           {% endfor %}
+                        </ul>
+                  {% endif %}
+                </div>
+
                 <a href="/en/inscriptions/" class="nav-link">Inscriptions</a>
                 <a href="/en/search/" class="nav-link">Search</a>
                 <div class="nav-dropdown">

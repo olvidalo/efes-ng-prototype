@@ -114,7 +114,7 @@ a:hover {
 
 /* ── Header ── */
 
-header {
+body > header {
     background: var(--header-bg);
     color: var(--header-text);
     border-bottom: 3px solid var(--gold);

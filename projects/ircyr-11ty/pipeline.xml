@@ -72,6 +72,24 @@
     <output to="_assembly/search-data" filename="documents.json"/>
   </xsltTransform>
 
+  <xsltTransform name="transform-texts">
+    <sourceFiles><files>source/texts/*.xml</files></sourceFiles>
+    <stylesheet><files>source/stylesheets/lib/tei-to-html-11ty.xsl</files></stylesheet>
+    <stylesheetParams>
+      <!-- Eleventy page routing -->
+      <param name="layout">layouts/base.njk</param>
+      <param name="tags">texts</param>
+      <!-- TEI rendering options -->
+      <param name="divOffset">3</param>
+      <param name="autoToc">false</param>
+      <param name="numberHeadings">false</param>
+      <param name="topNavigationPanel">false</param>
+      <param name="bottomNavigationPanel">false</param>
+      <param name="footnoteBackLink">true</param>
+    </stylesheetParams>
+    <output to="_assembly/en/texts" stripPrefix="source/texts" extension=".html"/>
+  </xsltTransform>
+
   <eleventyBuild name="eleventy-build">
     <sourceDir><collect>_assembly</collect></sourceDir>
     <passthroughCopy>
