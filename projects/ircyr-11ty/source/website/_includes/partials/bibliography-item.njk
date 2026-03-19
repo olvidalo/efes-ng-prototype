@@ -1,0 +1,25 @@
+{# Bibliography item detail — shared across language variants.
+   Expects: item (bibliography entry), langCode (language code) #}
+
+<p class="full-citation">{{ item.fullCitation }}</p>
+
+<p><a href="/{{ langCode }}/concordances/bibliography/">&larr; Back to bibliography concordance</a></p>
+
+<table class="data-table index-table">
+    <thead>
+        <tr>
+            <th>Cited Range</th>
+            <th>Inscriptions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ref in item.references %}
+        <tr>
+            <td>{{ ref.citedRange | default('-') }}</td>
+            <td class="references">
+                <a href="/{{ langCode }}/inscriptions/{{ ref.inscriptionId }}/"><strong>{{ ref.inscriptionId }}</strong></a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

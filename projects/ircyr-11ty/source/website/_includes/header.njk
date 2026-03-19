@@ -1,166 +1,35 @@
 <header>
-    <div class="row">
-        <div class="large-12 columns">
+    <div class="header-inner">
+        <div class="header-content">
             <h1 id="site-title">
                 <a href="/" class="site-title-link">
-                    <span id="site-title-abbr">IRCyr</span>
+                    <span class="site-title-abbr">IRCyr</span>
                     <span class="title-separator"></span>
-                    <span id="site-title-full">Inscriptions of Roman Cyrenaica</span>
+                    <span class="site-title-full">Inscriptions of Roman Cyrenaica</span>
                 </a>
             </h1>
+
+            <nav class="site-nav">
+                <a href="/en/inscriptions/" class="nav-link">Inscriptions</a>
+                <a href="/en/search/" class="nav-link">Search</a>
+                <div class="nav-dropdown">
+                    <a href="/en/indices/" class="nav-link nav-dropdown-toggle">Indices</a>
+                    <ul class="nav-dropdown-menu">
+                        {% if indices and indices._summary and indices._summary.indices %}
+                            {% for idx in indices._summary.indices %}
+                            {% if idx.nav == "indices" or not idx.nav %}
+                            <li><a href="/en/indices/{{ idx.id }}/">{{ idx.title }}</a></li>
+                            {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <li><a href="/en/indices/persons/">People</a></li>
+                            <li><a href="/en/indices/abbreviations/">Abbreviations</a></li>
+                            <li><a href="/en/indices/findspots/">Findspots</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <a href="/en/concordances/bibliography/" class="nav-link">Bibliography</a>
+            </nav>
         </div>
     </div>
 </header>
-
-<nav class="top-bar" data-topbar role="navigation">
-    <ul class="title-area">
-        <li class="name"></li>
-        <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
-    </ul>
-
-    <section class="top-bar-section">
-        <ul class="left">
-            <li><a href="/">Home</a></li>
-            <li><a href="/en/inscriptions/">Inscriptions</a></li>
-            <li><a href="/en/search/">Search</a></li>
-            <li class="has-dropdown">
-                <a href="/en/indices/">Indices</a>
-                <ul class="dropdown">
-                    {% if indices and indices._summary and indices._summary.indices %}
-                        {% for idx in indices._summary.indices %}
-                        {% if idx.nav == "indices" or not idx.nav %}
-                        <li><a href="/en/indices/{{ idx.id }}/">{{ idx.title }}</a></li>
-                        {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <li><a href="/en/indices/persons/">People</a></li>
-                        <li><a href="/en/indices/abbreviations/">Abbreviations</a></li>
-                        <li><a href="/en/indices/findspots/">Findspots</a></li>
-                    {% endif %}
-                </ul>
-            </li>
-            <li><a href="/en/concordances/bibliography/">Bibliography</a></li>
-        </ul>
-    </section>
-</nav>
-
-<style>
-    header {
-        background: linear-gradient(135deg, #2c5282 0%, #2d3748 100%);
-        color: white;
-        padding: 2rem 0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        margin-bottom: 0;
-    }
-
-    #site-title {
-        margin: 0;
-        padding: 0;
-        font-size: 2rem;
-        font-weight: 700;
-        border: none;
-    }
-
-    .site-title-link {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .site-title-link:hover {
-        opacity: 0.9;
-    }
-
-    #site-title-abbr {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #fff;
-        letter-spacing: 0.05em;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-
-    .title-separator {
-        width: 2px;
-        height: 2rem;
-        background: rgba(255,255,255,0.4);
-        display: inline-block;
-    }
-
-    #site-title-full {
-        font-size: 1.25rem;
-        font-weight: 400;
-        color: #e2e8f0;
-        letter-spacing: 0.025em;
-    }
-
-    /* Navigation styles */
-    .top-bar {
-        background: #1a365d;
-        height: auto;
-        line-height: normal;
-        margin-bottom: 0;
-    }
-
-    .top-bar-section ul li > a {
-        color: #e2e8f0;
-        font-size: 0.95rem;
-        padding: 0.75rem 1rem;
-        background: transparent;
-        transition: background 0.2s;
-    }
-
-    .top-bar-section ul li > a:hover {
-        background: rgba(255,255,255,0.1);
-        color: #fff;
-    }
-
-    .top-bar-section .dropdown {
-        background: #2d3748;
-        border-top: 2px solid var(--accent-color, #0066cc);
-    }
-
-    .top-bar-section .dropdown li a {
-        color: #e2e8f0;
-        background: transparent;
-    }
-
-    .top-bar-section .dropdown li a:hover {
-        background: rgba(255,255,255,0.1);
-        color: #fff;
-    }
-
-    .top-bar-section .has-dropdown > a:after {
-        border-color: #e2e8f0 transparent transparent;
-    }
-
-    @media (max-width: 768px) {
-        header {
-            padding: 1.5rem 0;
-        }
-
-        .site-title-link {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-
-        #site-title-abbr {
-            font-size: 2rem;
-        }
-
-        #site-title-full {
-            font-size: 1.125rem;
-        }
-
-        .title-separator {
-            display: none;
-        }
-
-        .top-bar-section ul li > a {
-            padding: 0.5rem 1rem;
-        }
-    }
-</style>

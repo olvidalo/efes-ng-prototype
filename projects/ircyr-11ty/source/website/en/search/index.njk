@@ -34,7 +34,7 @@ permalink: en/search/index.html
 
         <efes-active-filters></efes-active-filters>
 
-        <efes-results result-url="../../en/inscriptions/{documentId}.html">
+        <efes-results result-url="/en/inscriptions/{documentId}/">
             <template>
                 <a>
                     <span class="doc-id" data-field="documentId"></span>
@@ -49,24 +49,3 @@ permalink: en/search/index.html
         </efes-results>
     </div>
 </efes-search>
-
-<style>
-/* Page-level overrides */
-main { margin-top: 0.5rem !important; padding-top: 0.5rem !important; }
-
-.doc-id {
-    display: inline-block;
-    background: #edf2f7;
-    color: #4a5568;
-    padding: 0.1rem 0.4rem;
-    border-radius: 3px;
-    font-family: monospace;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-/* IRCyr-specific: emoji icons for result details */
-[data-field="origDate"]::before { content: '\1F4C5 '; }
-[data-field="findspot"]::before { content: '\1F4CD '; }
-[data-field="material"]::before { content: '\1F9F1 '; }
-</style>

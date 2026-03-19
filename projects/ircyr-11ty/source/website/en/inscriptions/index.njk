@@ -1,0 +1,38 @@
+---
+layout: layouts/base.njk
+title: Inscriptions
+---
+
+<p class="index-intro">Browse all {{ collections.inscriptions | length | default(0) }} inscriptions in the
+    collection.</p>
+
+<table class="data-table inscription-table">
+    <thead>
+    <tr>
+        <th>Document ID</th>
+        <th>Title</th>
+        <th>Findspot</th>
+        <th>Dating</th>
+        <th>Source File</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if collections.inscriptions and collections.inscriptions | length > 0 %}
+        {# Sort by sortKey for natural ordering (A.1, A.2, ..., A.9, A.10, A.11...) #}
+        {% set sortedInscriptions = collections.inscriptions | sort(false, false, "data.sortKey") %}
+        {% for inscription in sortedInscriptions %}
+            <tr>
+                <td><a href="{{ inscription.url }}">{{ inscription.data.documentId }}</a></td>
+                <td>{{ inscription.data.title }}</td>
+                <td>{{  inscription.data.findspot }}</td>
+                <td>{{ inscription.data.origDate }}</td>
+                <td><code>{{ inscription.data.sourceFile }}</code></td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="4">No inscriptions available.</td>
+        </tr>
+    {% endif %}
+    </tbody>
+</table>

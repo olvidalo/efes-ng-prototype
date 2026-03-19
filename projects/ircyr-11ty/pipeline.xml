@@ -20,6 +20,8 @@
       <param name="line-inc">5</param>
       <param name="verse-lines">on</param>
       <param name="image-loc">https://ircyr2020.inslib.kcl.ac.uk/images/</param>
+      <param name="bibloc"><files>source/authority/bibliography.xml</files></param>
+      <param name="bib-link-template">../../concordances/bibliography/$1/</param>
     </stylesheetParams>
     <output to="_assembly/en/inscriptions"
             stripPrefix="source/inscriptions"

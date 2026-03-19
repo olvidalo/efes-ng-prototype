@@ -18,7 +18,7 @@
 
     {# Macro for rendering a table with entries #}
     {% macro renderTable(entries, columns) %}
-    <table class="index-table">
+    <table class="data-table index-table">
         <thead>
             <tr>
                 {% for col in columns %}
@@ -44,7 +44,7 @@
                         <td class="references">
                             {% for ref in entry.references %}
                                 {%- if ref.isRestored %}[{% endif -%}
-                                <a href="/en/inscriptions/{{ ref.inscriptionId }}.html"><strong>{{ ref.inscriptionId }}</strong></a>
+                                <a href="/en/inscriptions/{{ ref.inscriptionId }}/"><strong>{{ ref.inscriptionId }}</strong></a>
                                 {%- if ref.isRestored %}]{% endif -%}
                                 {%- if not loop.last %} {% endif %}
                             {% endfor %}
@@ -81,5 +81,3 @@
 {% else %}
     <p>No index data available.</p>
 {% endif %}
-
-{% include "partials/index-table-styles.njk" %}
