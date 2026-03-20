@@ -1,8 +1,7 @@
 import type { WorkloadModule, WorkerLog } from "../core/resolveWorkloadPath";
 import { spawn } from "child_process";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import fs from "node:fs";
+import { createRequire } from "node:module";
 
 export interface CompileJob {
     nodeName: string;
@@ -15,28 +14,25 @@ export interface CompileResult {
     outputPath: string;
 }
 
-// Resolve xslt3-he binary path
-function resolveXslt3Binary(): string {
-    // Try to find in node_modules/.bin relative to this file
-    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+// Resolve xslt3-he script path by finding xslt3.js directly in the package.
+// Avoids .bin symlinks which don't exist in packaged Electron apps or on Windows.
+function resolveXslt3Script(): string {
+    // Use Node's module resolution to find xslt3-he regardless of hoisting
+    const require = createRequire(import.meta.url);
+    let resolved = path.join(path.dirname(require.resolve('xslt3-he/package.json')), 'xslt3.js');
 
-    // When running in dev: src/xml/compileWorkload.ts -> ../../node_modules/.bin/xslt3-he
-    // When running built: dist/xml/compileWorkload.js -> ../../node_modules/.bin/xslt3-he
-    const devPath = path.resolve(currentDir, '../../node_modules/.bin/xslt3-he');
+    // In packaged Electron: rewrite asar paths to unpacked directory
+    // Use word boundary to avoid double-rewriting app.asar.unpacked
+    resolved = resolved.replace(/app\.asar(?!\.unpacked)/, 'app.asar.unpacked');
 
-    if (fs.existsSync(devPath)) {
-        return devPath;
-    }
-
-    // Fallback to PATH lookup (for built/installed versions)
-    return 'xslt3-he';
+    return resolved;
 }
 
 export async function performWork(job: CompileJob, log: WorkerLog): Promise<CompileResult> {
     return new Promise<CompileResult>((resolve, reject) => {
-        // Use spawn instead of fork since xslt3-he is a binary, not a Node script
-        const xslt3Binary = resolveXslt3Binary();
+        const xslt3Script = resolveXslt3Script();
         const args = [
+            xslt3Script,
             `-xsl:${job.xsltPath}`,
             `-export:${job.outputPath}`,
         ];
@@ -48,8 +44,9 @@ export async function performWork(job: CompileJob, log: WorkerLog): Promise<Comp
 
         args.push('-nogo');
 
-        const child = spawn(xslt3Binary, args, {
-            stdio: ['ignore', 'pipe', 'pipe'] // Capture stdout and stderr
+        const child = spawn(process.execPath, args, {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
         });
 
         let stdout = '';

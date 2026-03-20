@@ -2,19 +2,19 @@ appId: com.efes-ng.app
 productName: EFES-NG
 directories:
   buildResources: build
+# Core library: only ship dist/ (electron-builder follows workspace symlinks,
+# ignoring package.json "files" field, so we filter explicitly)
 files:
-  # Default: include out/, package.json, node_modules (automatic)
-  # Core library: only ship the built dist/
   - from: .
     filter:
       - "**/*"
-      - "!node_modules/efes-ng-phase-2-poc/**"
-      - node_modules/efes-ng-phase-2-poc/dist/**
-      - node_modules/efes-ng-phase-2-poc/package.json
+      - "!node_modules/@efes-ng/core/**"
+      - node_modules/@efes-ng/core/dist/**
+      - node_modules/@efes-ng/core/package.json
 asarUnpack:
   - resources/**
   # Worker threads and child processes need real file paths, not asar
-  - node_modules/efes-ng-phase-2-poc/**
+  - node_modules/@efes-ng/core/**
   - node_modules/saxonjs-he/**
   - node_modules/xslt3-he/**
   # Native modules
@@ -24,7 +24,7 @@ asarUnpack:
 win:
   executableName: efes-ng
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: ${productName}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
@@ -36,7 +36,7 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${productName}-${version}.${ext}
 linux:
   target:
     - AppImage
@@ -45,7 +45,8 @@ linux:
   maintainer: efes-ng
   category: Utility
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${productName}-${version}.${ext}
+electronVersion: "40.8.3"
 npmRebuild: false
 publish:
   provider: generic

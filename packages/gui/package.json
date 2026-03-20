@@ -1,5 +1,5 @@
 {
-  "name": "gui",
+  "name": "@efes-ng/gui",
   "version": "1.0.0",
   "description": "An Electron application with Svelte and TypeScript",
   "main": "./out/main/index.js",
@@ -14,7 +14,6 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
@@ -23,7 +22,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "efes-ng-phase-2-poc": "file:..",
+    "@efes-ng/core": "*",
     "sirv": "^3.0.2",
     "tsx": "^4.21.0",
     "ws": "^8.19.0"

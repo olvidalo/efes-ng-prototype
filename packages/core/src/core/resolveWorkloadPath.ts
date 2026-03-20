@@ -21,9 +21,8 @@ export function resolveWorkloadPath(metaUrl: string, devRelative: string, prodRe
     let dir = path.dirname(fileURLToPath(metaUrl));
 
     // In packaged Electron: rewrite asar paths to unpacked directory
-    if (dir.includes('app.asar')) {
-        dir = dir.replace('app.asar', 'app.asar.unpacked');
-    }
+    // Negative lookahead avoids double-rewriting app.asar.unpacked
+    dir = dir.replace(/app\.asar(?!\.unpacked)/, 'app.asar.unpacked');
 
     const prodPath = path.resolve(dir, prodRelative);
     return existsSync(prodPath) ? prodPath : path.resolve(dir, devRelative);

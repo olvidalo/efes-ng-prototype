@@ -1,5 +1,8 @@
 node_modules/
 dist/
+packages/core/dist/
+packages/gui/out/
+packages/gui/dist/
 *.log
 .DS_Store
 .env
@@ -11,6 +14,7 @@ CLAUDE.md
 .efes-build
 test/**/.test-temp
 .profile-temp/
+.playwright-cli
 
 projects/*/.efes-build/
 projects/*/.efes-cache/

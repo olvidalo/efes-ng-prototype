@@ -2,8 +2,8 @@ import { BrowserWindow } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import { DevServer } from './dev-server'
-import { NodeRegistry } from '../../../src/core/nodeRegistry'
-import type { DescribedNode } from '../../../src/core/nodeConfigSchema'
+import { NodeRegistry } from '@efes-ng/core'
+import type { DescribedNode } from '@efes-ng/core'
 
 export interface NodeInfo {
   outputKeys: string[]
@@ -49,7 +49,7 @@ export class PipelineManager {
     // chdir for node compat (nodes may use relative paths with fs)
     process.chdir(absDir)
 
-    const { discoverPipelineFile, loadPipelineFromXml } = await import('efes-ng-phase-2-poc')
+    const { discoverPipelineFile, loadPipelineFromXml } = await import('@efes-ng/core')
     const { filePath, format } = discoverPipelineFile(absDir)
     this.configPath = filePath
 
@@ -77,7 +77,7 @@ export class PipelineManager {
     if (!this.pipeline) throw new Error('No pipeline loaded')
 
     await this.ensureTsxLoader()
-    const { PipelineWatcher } = await import('efes-ng-phase-2-poc')
+    const { PipelineWatcher } = await import('@efes-ng/core')
 
     this.watcher = new PipelineWatcher(this.pipeline, this.configPath)
     this.watcher.on('reload', (newPipeline: any) => {

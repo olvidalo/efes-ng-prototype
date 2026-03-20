@@ -1,44 +1,17 @@
 {
-  "name": "efes-ng-phase-2-poc",
-  "version": "1.0.0",
-  "description": "",
+  "name": "efes-ng",
+  "private": true,
+  "workspaces": ["packages/*"],
   "scripts": {
-    "build": "tsup",
-    "efes": "tsx src/cli.ts",
-    "build:ircyr-11ty": "tsx src/cli.ts run --project projects/ircyr-11ty",
-    "build:sigidoc-feind-11ty": "tsx src/cli.ts run --project projects/sigidoc-feind-11ty",
+    "build": "npm -w @efes-ng/core run build",
+    "efes": "tsx packages/core/src/cli.ts",
+    "build:ircyr-11ty": "tsx packages/core/src/cli.ts run --project projects/ircyr-11ty",
+    "build:sigidoc-feind-11ty": "tsx packages/core/src/cli.ts run --project projects/sigidoc-feind-11ty",
     "build:all": "npm run build:ircyr-11ty && npm run build:sigidoc-feind-11ty",
-    "clean:ircyr-11ty": "tsx src/cli.ts clean --project projects/ircyr-11ty",
-    "clean:sigidoc-feind-11ty": "tsx src/cli.ts clean --project projects/sigidoc-feind-11ty",
-    "clean:all": "npm run clean:ircyr-11ty && npm run clean:sigidoc-feind-11ty",
-    "assemble": "rm -rf pages/ircyr-11ty pages/sigidoc-feind-11ty && mkdir -p pages && cp -r projects/ircyr-11ty/3-output pages/ircyr-11ty && cp -r projects/sigidoc-feind-11ty/3-output pages/sigidoc-feind-11ty",
-    "relativize": "cd pages/ircyr-11ty && npx all-relative . && cd ../sigidoc-feind-11ty && npx all-relative ."
+    "clean:ircyr-11ty": "tsx packages/core/src/cli.ts clean --project projects/ircyr-11ty",
+    "clean:sigidoc-feind-11ty": "tsx packages/core/src/cli.ts clean --project projects/sigidoc-feind-11ty"
   },
   "devDependencies": {
-    "@types/node": "22.16.0",
-    "tsup": "^8.5.1",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.2"
-  },
-  "dependencies": {
-    "@11ty/eleventy": "^3.1.2",
-    "chokidar": "^3.6.0",
-    "commander": "^14.0.3",
-    "dependency-graph": "^1.0.0",
-    "fflate": "^0.8.2",
-    "flexsearch": "^0.8.212",
-    "glob": "^11.0.3",
-    "leven": "^4.1.0",
-    "saxonjs-he": "^3.0.0-beta2",
-    "slimdom": "^4.3.5",
-    "xslt3-he": "^3.0.0-beta2"
-  },
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
-    }
-  },
-  "author": "Marcel Schaeben",
-  "license": "MIT"
+    "tsx": "^4.20.6"
+  }
 }
