@@ -1,4 +1,6 @@
 import { Worker } from "node:worker_threads";
+import { pathToFileURL } from "node:url";
+import path from "node:path";
 
 interface WorkerJob {
     job: any;
@@ -26,7 +28,10 @@ export class WorkerPool {
     }
 
     private spawnWorker(id: number): void {
-        const worker = new Worker(new URL(this.workerPath, import.meta.url), {
+        const workerUrl = path.isAbsolute(this.workerPath)
+            ? pathToFileURL(this.workerPath)
+            : new URL(this.workerPath, import.meta.url);
+        const worker = new Worker(workerUrl, {
             execArgv: ['--experimental-strip-types']
         });
 

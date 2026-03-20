@@ -1,4 +1,5 @@
-import type { WorkloadModule, WorkerLog } from "../core/resolveWorkloadPath";
+import type { WorkloadModule, WorkerLog } from "../core/runtimeHelpers";
+import { electronSafeEnv } from "../core/runtimeHelpers.ts";
 import { spawn } from "child_process";
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -31,22 +32,24 @@ function resolveXslt3Script(): string {
 export async function performWork(job: CompileJob, log: WorkerLog): Promise<CompileResult> {
     return new Promise<CompileResult>((resolve, reject) => {
         const xslt3Script = resolveXslt3Script();
+        // xslt3-he needs forward slashes on Windows (backslashes cause path parsing issues)
+        const toXslt3Path = (p: string) => p.replaceAll('\\', '/');
         const args = [
             xslt3Script,
-            `-xsl:${job.xsltPath}`,
-            `-export:${job.outputPath}`,
+            `-xsl:${toXslt3Path(job.xsltPath)}`,
+            `-export:${toXslt3Path(job.outputPath)}`,
         ];
 
         // Only add stublib if provided
         if (job.stubLibPath) {
-            args.push(`-stublib:${job.stubLibPath}`);
+            args.push(`-stublib:${toXslt3Path(job.stubLibPath)}`);
         }
 
         args.push('-nogo');
 
         const child = spawn(process.execPath, args, {
             stdio: ['ignore', 'pipe', 'pipe'],
-            env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+            env: electronSafeEnv()
         });
 
         let stdout = '';

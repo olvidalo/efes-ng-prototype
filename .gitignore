@@ -9,6 +9,7 @@ packages/gui/dist/
 .env.local
 *.tsbuildinfo
 scratch
+docs/
 CLAUDE.md
 .efes-cache
 .efes-build

@@ -1,0 +1,53 @@
+name: Build Electron App
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+          - os: ubuntu-latest
+            platform: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build core
+        run: npm run build
+
+      - name: Build Electron app
+        run: npm -w @efes-ng/gui run build:${{ matrix.platform }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: efes-ng-${{ matrix.platform }}
+          path: |
+            packages/gui/dist/*.dmg
+            packages/gui/dist/*.zip
+            packages/gui/dist/*.exe
+            packages/gui/dist/*.AppImage
+            packages/gui/dist/*.deb
+          if-no-files-found: ignore

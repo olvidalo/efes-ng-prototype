@@ -4,7 +4,7 @@ import type {NodeConfigSchema, ConfigFromSchema} from "../../core/nodeConfigSche
 import path from "node:path";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
-import { resolveWorkloadPath } from "../../core/resolveWorkloadPath";
+import { resolveWorkloadPath } from "../../core/runtimeHelpers";
 
 // @ts-ignore
 import SaxonJS from 'saxonjs-he';

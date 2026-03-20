@@ -4,8 +4,9 @@ import { CacheManager } from "./cache";
 import { glob } from "glob";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { resolveWorkloadPath } from "./resolveWorkloadPath";
+import { resolveWorkloadPath } from "./runtimeHelpers";
 import { EventEmitter } from "node:events";
+import { availableParallelism } from "node:os";
 import { WorkerPool } from "../xml/workerPool";
 import { PipelineNode, isInput, type Input, type CollectRef, type NodeOutput } from "./pipelineNode";
 
@@ -49,7 +50,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         public readonly cacheDir: string = '.efes-cache',
         public readonly executionMode: 'sequential' | 'parallel' = 'sequential',
         public projectDir: string = process.cwd(),
-        public workerThreads: number = 8,
+        public workerThreads: number = availableParallelism(),
         public verbose: boolean = false
     ) {
         super();
@@ -176,7 +177,10 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     getNodeOutputDir(name: string): string {
         const node = this.graph.getNodeData(name);
         const to = (node.config.outputConfig as any)?.to;
-        return path.resolve(this.projectDir, to ?? path.join(this.buildDir, name));
+        // Replace ':' with '__' for Windows filesystem compatibility
+        // (node names like 'transform:compile' contain ':' which is invalid in Windows paths)
+        const safeName = name.replaceAll(':', '__');
+        return path.resolve(this.projectDir, to ?? path.join(this.buildDir, safeName));
     }
 
     /**

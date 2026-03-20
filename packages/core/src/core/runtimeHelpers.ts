@@ -27,3 +27,12 @@ export function resolveWorkloadPath(metaUrl: string, devRelative: string, prodRe
     const prodPath = path.resolve(dir, prodRelative);
     return existsSync(prodPath) ? prodPath : path.resolve(dir, devRelative);
 }
+
+/**
+ * Environment for child processes spawned from Electron.
+ * Sets ELECTRON_RUN_AS_NODE so the Electron binary behaves as plain Node.js.
+ * Safe to use outside Electron — the env var is simply ignored.
+ */
+export function electronSafeEnv(): Record<string, string | undefined> {
+    return { ...process.env, ELECTRON_RUN_AS_NODE: '1' };
+}

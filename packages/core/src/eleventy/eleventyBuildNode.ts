@@ -2,7 +2,7 @@ import {PipelineNode, type PipelineNodeConfig, type OutputConfig, type CollectRe
 import type {PipelineContext} from "../core/pipeline";
 import path from "node:path";
 import fs from "node:fs/promises";
-import {resolveWorkloadPath} from "../core/resolveWorkloadPath";
+import {resolveWorkloadPath} from "../core/runtimeHelpers";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {

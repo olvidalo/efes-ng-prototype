@@ -3,7 +3,7 @@ import type { PipelineContext } from "../../core/pipeline";
 import type {NodeConfigSchema, ConfigFromSchema} from "../../core/nodeConfigSchema";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
-import { resolveWorkloadPath } from "../../core/resolveWorkloadPath";
+import { resolveWorkloadPath } from "../../core/runtimeHelpers";
 
 const configSchema = {
     sourceFiles:         { type: 'input', optional: true, description: 'Source XML files to transform. If omitted, the stylesheet runs in no-source mode (e.g. using document() for input).' },

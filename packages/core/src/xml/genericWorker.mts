@@ -1,4 +1,6 @@
 import { parentPort } from "node:worker_threads";
+import { pathToFileURL } from "node:url";
+import path from "node:path";
 
 if (!parentPort) {
     throw new Error("genericWorker must be run as a worker thread");
@@ -12,9 +14,13 @@ parentPort.on("message", async (message) => {
         }
 
         // Dynamic import based on workload script specified in job
-        const workloadModule = await import(message.workloadScript);
+        // On Windows, absolute paths must be file:// URLs for ESM import()
+        const scriptUrl = path.isAbsolute(message.workloadScript)
+            ? pathToFileURL(message.workloadScript).href
+            : message.workloadScript;
+        const workloadModule = await import(scriptUrl);
 
-        // All workloads must satisfy WorkloadModule (see resolveWorkloadPath.ts)
+        // All workloads must satisfy WorkloadModule (see runtimeHelpers.ts)
         if (typeof workloadModule.performWork !== 'function') {
             throw new Error(`Workload module ${message.workloadScript} must export a 'performWork' function`);
         }

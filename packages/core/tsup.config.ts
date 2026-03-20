@@ -29,6 +29,7 @@ export default defineConfig([
             'xml/saxonWorkload': 'src/xml/saxonWorkload.mts',
             'xml/compileWorkload': 'src/xml/compileWorkload.mts',
             'eleventy/eleventyWorkload': 'src/eleventy/eleventyWorkload.mts',
+            'eleventy/eleventyRunner': 'src/eleventy/eleventyRunner.mts',
         },
         format: ['esm'],
         platform: 'node',
@@ -40,6 +41,6 @@ export default defineConfig([
         clean: true,
         treeshake: true,
         outDir: 'dist',
-        external: ['saxonjs-he', 'xslt3-he'],
+        external: ['saxonjs-he', 'xslt3-he', '@11ty/eleventy', '@11ty/eleventy-utils'],
     },
 ]);

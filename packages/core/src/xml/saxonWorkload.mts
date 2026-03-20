@@ -1,7 +1,8 @@
-import type { WorkloadModule, WorkerLog } from "../core/resolveWorkloadPath";
+import type { WorkloadModule, WorkerLog } from "../core/runtimeHelpers";
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
+import { pathToFileURL, fileURLToPath } from "node:url";
 // @ts-ignore
 import SaxonJS from "saxonjs-he";
 
@@ -80,17 +81,16 @@ export async function performWork(job: TransformJob, log: WorkerLog): Promise<Tr
         destination: "serialized",
         // Handle XSLT collection() function calls
         collectionFinder: (uri: string) => {
-            let collectionPath = decodeURI(uri);
-            if (collectionPath.startsWith('file:')) {
-                collectionPath = collectionPath.substring(5);
-            }
+            const collectionPath = uri.startsWith('file:')
+                ? fileURLToPath(uri)
+                : decodeURI(uri);
             const files = fsSync.globSync(collectionPath, { cwd: job.baseDir });
             return files.map(file => {
                 const absFile = path.resolve(job.baseDir, file);
                 const content = fsSync.readFileSync(absFile, 'utf-8');
                 const doc = platform.parseXmlFromString(content);
                 // Set the document URI property that SaxonJS uses for document-uri()
-                (doc as any)._saxonDocUri = `file://${absFile}`;
+                (doc as any)._saxonDocUri = pathToFileURL(absFile).href;
                 return doc;
             });
         },
@@ -104,7 +104,7 @@ export async function performWork(job: TransformJob, log: WorkerLog): Promise<Tr
     // Add source file if not no-source mode
     if (job.sourcePath) {
         const sourceNode = await SaxonJS.getResource({
-            location: job.sourcePath, type: 'xml'
+            location: pathToFileURL(job.sourcePath).href, type: 'xml'
         })
         transformOptions.sourceNode = sourceNode;
     }
@@ -126,7 +126,7 @@ export async function performWork(job: TransformJob, log: WorkerLog): Promise<Tr
     if (result.resultDocuments) {
         for (const [uri, content] of Object.entries(result.resultDocuments)) {
             // uri contains XSLT-relative path
-            const relativePath = uri.startsWith('file://') ? uri.substring(7) : uri;
+            const relativePath = uri.startsWith('file:') ? fileURLToPath(uri) : uri;
             const docPath = path.normalize(path.join(job.baseDir, relativePath));
 
             // Security: ensure result stays within node's build directory
