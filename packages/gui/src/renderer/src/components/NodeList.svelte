@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { ChevronRight, FolderOpen } from 'lucide-svelte'
+
   interface NodeState {
     name: string
     status: 'pending' | 'running' | 'done' | 'error'
@@ -19,6 +21,7 @@
   let { nodes, refreshTrigger = 0, selectedNode = null, onSelectNode }: Props = $props()
 
   let outputExists: Record<string, boolean> = $state({})
+  let collapsed: Record<string, boolean> = $state({})
 
   async function refreshOutputExists(): Promise<void> {
     const result: Record<string, boolean> = {}
@@ -36,6 +39,15 @@
       void doneCount
       void refreshTrigger
       refreshOutputExists()
+    }
+  })
+
+  // Initialize collapsed state for composite nodes (collapsed by default)
+  $effect(() => {
+    for (const node of nodes) {
+      if (hasChildren(node.name) && !(node.name in collapsed)) {
+        collapsed[node.name] = true
+      }
     }
   })
 
@@ -63,6 +75,93 @@
     return null
   }
 
+  /** Check if a node has children */
+  function hasChildren(name: string): boolean {
+    for (const n of nodes) {
+      if (getParent(n.name) === name) return true
+    }
+    return false
+  }
+
+  /** Get all descendants of a node (recursive) */
+  function getDescendants(name: string): NodeState[] {
+    const result: NodeState[] = []
+    for (const n of nodes) {
+      if (n.name !== name && n.name.startsWith(name + ':') && getParent(n.name) !== null) {
+        // Verify it's actually a descendant by walking up
+        let current = n.name
+        while (current) {
+          const parent = getParent(current)
+          if (parent === name) { result.push(n); break }
+          if (!parent) break
+          current = parent
+        }
+      }
+    }
+    return result
+  }
+
+  /**
+   * Summary for a collapsed composite node — picks the most relevant child status:
+   * - If any child is running: show that child's progress/status
+   * - If any child errored: show the error
+   * - If all done: show combined duration
+   * - Otherwise: pending
+   */
+  function getChildSummary(name: string): {
+    status: NodeState['status']
+    error?: string
+    itemCompleted?: number
+    itemTotal?: number
+    durationMs?: number
+    activeChildName?: string
+  } | null {
+    if (!collapsed[name]) return null
+    const descendants = getDescendants(name)
+    if (descendants.length === 0) return null
+
+    // Running child takes priority
+    const running = descendants.find(d => d.status === 'running')
+    if (running) {
+      return {
+        status: 'running',
+        itemCompleted: running.itemCompleted,
+        itemTotal: running.itemTotal,
+        activeChildName: displayName(running.name)
+      }
+    }
+
+    // Error takes next priority
+    const errored = descendants.find(d => d.status === 'error')
+    if (errored) {
+      return {
+        status: 'error',
+        error: errored.error,
+        activeChildName: displayName(errored.name)
+      }
+    }
+
+    // All done — sum durations
+    const allDone = descendants.every(d => d.status === 'done')
+    if (allDone) {
+      const totalMs = descendants.reduce((sum, d) => sum + (d.durationMs ?? 0), 0)
+      return { status: 'done', durationMs: totalMs }
+    }
+
+    return { status: 'pending' }
+  }
+
+  /** Check if a node or any ancestor is collapsed */
+  function isHidden(name: string): boolean {
+    let current = name
+    while (true) {
+      const parent = getParent(current)
+      if (!parent) return false
+      if (collapsed[parent]) return true
+      current = parent
+    }
+  }
+
   /** Compute nesting depth: count how many colon-delimited prefixes exist as actual nodes */
   function getDepth(name: string): number {
     const parts = name.split(':')
@@ -80,6 +179,11 @@
     if (depth === 0) return name
     const parts = name.split(':')
     return parts[parts.length - 1]
+  }
+
+  function toggleCollapse(name: string, e: Event) {
+    e.stopPropagation()
+    collapsed[name] = !collapsed[name]
   }
 
   /**
@@ -148,39 +252,64 @@
     {/if}
     {#each displayNodes as node}
       {@const depth = getDepth(node.name)}
-      <div
-        class="node"
-        class:running={node.status === 'running'}
-        class:done={node.status === 'done'}
-        class:error={node.status === 'error'}
-        class:selected={selectedNode === node.name}
-        class:nested={depth > 0}
-        style:padding-left="{4 + depth * 16}px"
-        onclick={() => onSelectNode?.(selectedNode === node.name ? null : node.name)}
-        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectNode?.(selectedNode === node.name ? null : node.name) }}}
-        role="button"
-        tabindex="0"
-      >
-        <span class="status-dot" class:status-pending={node.status === 'pending'} class:status-running={node.status === 'running'} class:status-done={node.status === 'done'} class:status-error={node.status === 'error'} class:cached={node.fullyCached}></span>
-        <span class="name">{displayName(node.name)}</span>
-        {#if node.status === 'running' && node.itemTotal}
-          <span class="item-progress">{node.itemCompleted} / {node.itemTotal}</span>
-        {/if}
-        <span class="spacer"></span>
-        {#if outputExists[node.name]}
-          <button class="open-output" title={`Open output directory: ${node.name}`} onclick={(e) => { e.stopPropagation(); window.api.openNodeOutput(node.name) }}>
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M1.5 3.5C1.5 2.95 1.95 2.5 2.5 2.5H6L7.5 4H13.5C14.05 4 14.5 4.45 14.5 5V12.5C14.5 13.05 14.05 13.5 13.5 13.5H2.5C1.95 13.5 1.5 13.05 1.5 12.5V3.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        {/if}
-        {#if node.durationMs !== undefined}
-          <span class="duration">{(node.durationMs / 1000).toFixed(2)}s</span>
-        {/if}
-        {#if node.error}
-          <span class="error-msg">{node.error}</span>
-        {/if}
-      </div>
+      {@const isComposite = hasChildren(node.name)}
+      {#if !isHidden(node.name)}
+        {@const summary = isComposite ? getChildSummary(node.name) : null}
+        {@const effectiveStatus = summary?.status ?? node.status}
+        <div
+          class="node"
+          class:running={effectiveStatus === 'running'}
+          class:done={effectiveStatus === 'done'}
+          class:error={effectiveStatus === 'error'}
+          class:selected={selectedNode === node.name}
+          class:nested={depth > 0}
+          class:composite={isComposite}
+          style:padding-left="{4 + depth * 16}px"
+          onclick={() => onSelectNode?.(selectedNode === node.name ? null : node.name)}
+          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectNode?.(selectedNode === node.name ? null : node.name) }}}
+          role="button"
+          tabindex="0"
+        >
+          {#if isComposite}
+            <button
+              class="collapse-toggle"
+              class:expanded={!collapsed[node.name]}
+              onclick={(e) => toggleCollapse(node.name, e)}
+              title={collapsed[node.name] ? 'Expand' : 'Collapse'}
+            >
+              <ChevronRight size={14} />
+            </button>
+          {:else}
+            <span class="toggle-spacer"></span>
+          {/if}
+          <span class="status-dot" class:status-pending={effectiveStatus === 'pending'} class:status-running={effectiveStatus === 'running'} class:status-done={effectiveStatus === 'done'} class:status-error={effectiveStatus === 'error'} class:cached={node.fullyCached && !summary}></span>
+          <span class="name">{displayName(node.name)}</span>
+          {#if summary?.status === 'running' && summary.activeChildName}
+            <span class="child-label">{summary.activeChildName}</span>
+          {/if}
+          {#if summary?.status === 'running' && summary.itemTotal}
+            <span class="item-progress">{summary.itemCompleted} / {summary.itemTotal}</span>
+          {:else if node.status === 'running' && node.itemTotal}
+            <span class="item-progress">{node.itemCompleted} / {node.itemTotal}</span>
+          {/if}
+          <span class="spacer"></span>
+          {#if outputExists[node.name]}
+            <button class="open-output" title={`Open output directory: ${node.name}`} onclick={(e) => { e.stopPropagation(); window.api.openNodeOutput(node.name) }}>
+              <FolderOpen size={14} />
+            </button>
+          {/if}
+          {#if summary?.durationMs !== undefined}
+            <span class="duration">{(summary.durationMs / 1000).toFixed(2)}s</span>
+          {:else if node.durationMs !== undefined}
+            <span class="duration">{(node.durationMs / 1000).toFixed(2)}s</span>
+          {/if}
+          {#if summary?.error}
+            <span class="error-msg">{summary.error}</span>
+          {:else if node.error}
+            <span class="error-msg">{node.error}</span>
+          {/if}
+        </div>
+      {/if}
     {/each}
   {/if}
 </div>
@@ -231,6 +360,41 @@
 
   .node.selected {
     background: var(--ev-c-accent-selection);
+  }
+
+  /* ── Collapse toggle ── */
+
+  .collapse-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0 -2px;
+    background: none;
+    border: none;
+    border-radius: 3px;
+    color: var(--color-text-3);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.1s, transform 0.15s ease;
+    transform: rotate(0deg);
+  }
+
+  .collapse-toggle.expanded {
+    transform: rotate(90deg);
+  }
+
+  .collapse-toggle:hover {
+    color: var(--color-text);
+    background: var(--color-background-mute);
+  }
+
+  .toggle-spacer {
+    width: 18px;
+    flex-shrink: 0;
+    margin: 0 -2px;
   }
 
   /* ── Status dot ── */
@@ -287,8 +451,23 @@
     font-size: 12px;
   }
 
+  .composite .name {
+    font-weight: 500;
+  }
+
   .running .name {
     color: var(--ev-c-yellow);
+  }
+
+  .child-label {
+    color: var(--color-text-3);
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  .running .child-label {
+    color: var(--ev-c-yellow);
+    opacity: 0.7;
   }
 
   .item-progress {

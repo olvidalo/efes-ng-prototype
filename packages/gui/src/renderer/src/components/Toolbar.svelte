@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { FolderOpen, Play, Square, X, Trash2, ExternalLink, Eye } from 'lucide-svelte'
+
   interface Props {
     phase: 'idle' | 'ready' | 'building' | 'watching'
     pipelineName: string
@@ -25,20 +27,36 @@
 </script>
 
 <div class="toolbar">
-  <button onclick={onOpenProject}>Open Project</button>
+  <button onclick={onOpenProject} title="Open Project">
+    <FolderOpen size={15} />
+    <span>Open Project</span>
+  </button>
 
   {#if phase === 'building'}
-    <button onclick={onCancel}>Cancel</button>
+    <button onclick={onCancel} title="Cancel Build">
+      <X size={15} />
+      <span>Cancel</span>
+    </button>
   {:else if phase === 'watching'}
-    <button onclick={onStop}>Stop</button>
+    <button onclick={onStop} title="Stop Watching">
+      <Square size={15} />
+      <span>Stop</span>
+    </button>
   {:else}
-    <button onclick={onStart} disabled={phase === 'idle'}>Start</button>
+    <button onclick={onStart} disabled={phase === 'idle'} title="Start Build & Watch">
+      <Play size={15} />
+      <span>Start</span>
+    </button>
   {/if}
 
-  <button onclick={onClean} disabled={phase !== 'ready'}>Clean</button>
+  <button onclick={onClean} disabled={phase !== 'ready'} title="Clean Build Outputs">
+    <Trash2 size={15} />
+    <span>Clean</span>
+  </button>
 
-  <button onclick={onOpenPreview} disabled={!serverUrl}>
-    Preview
+  <button onclick={onOpenPreview} disabled={!serverUrl} title="Open Preview in Browser">
+    <Eye size={15} />
+    <span>Preview</span>
   </button>
 
   {#if pipelineName}
@@ -54,20 +72,24 @@
   .toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     padding: 8px 12px;
     border-bottom: 1px solid var(--color-border);
     background: var(--color-background-soft);
   }
 
   button {
-    padding: 6px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
     border: 1px solid var(--color-border);
     border-radius: 4px;
     background: var(--color-background-mute);
     color: var(--color-text);
     cursor: pointer;
     font-size: 13px;
+    transition: background 0.1s;
   }
 
   button:hover:not(:disabled) {

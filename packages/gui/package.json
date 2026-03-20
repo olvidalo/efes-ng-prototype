@@ -20,9 +20,10 @@
     "build:linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
+    "@efes-ng/core": "*",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "@efes-ng/core": "*",
+    "lucide-svelte": "^0.577.0",
     "sirv": "^3.0.2",
     "tsx": "^4.21.0",
     "ws": "^8.19.0"
