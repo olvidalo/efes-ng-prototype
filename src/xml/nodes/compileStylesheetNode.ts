@@ -7,7 +7,8 @@ import fs from "node:fs/promises";
 import { resolveWorkloadPath } from "../../core/resolveWorkloadPath";
 
 // @ts-ignore
-import {getResource, XPath} from 'saxonjs-he';
+import SaxonJS from 'saxonjs-he';
+const { getResource, XPath } = SaxonJS;
 
 const configSchema = {
     stylesheets: { type: 'input', description: 'XSLT files to compile to SEF format.' },
@@ -76,7 +77,7 @@ export class CompileStylesheetNode extends PipelineNode<CompileStylesheetConfig,
                 this.log(context, `Found ${discoveredDependencies.length} dependencies: ${JSON.stringify(discoveredDependencies)}`);
 
                 try {
-                    const workloadScript = resolveWorkloadPath(import.meta.url, '../compileWorkload.mts', 'xml/compileWorkload.js');
+                    const workloadScript = resolveWorkloadPath(import.meta.url, '../compileWorkload.mts', 'xml/compileWorkload.mjs');
 
                     // Execute compilation in worker thread
                     const result = await context.workerPool.execute<{

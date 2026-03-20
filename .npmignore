@@ -1,0 +1,4 @@
+# Only ship dist/ and package.json
+*
+!dist/**
+!package.json

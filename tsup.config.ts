@@ -28,6 +28,7 @@ export default defineConfig([
             genericWorker: 'src/xml/genericWorker.mts',
             'xml/saxonWorkload': 'src/xml/saxonWorkload.mts',
             'xml/compileWorkload': 'src/xml/compileWorkload.mts',
+            'eleventy/eleventyWorkload': 'src/eleventy/eleventyWorkload.mts',
         },
         format: ['esm'],
         platform: 'node',

@@ -1,9 +1,4 @@
 import { Worker } from "node:worker_threads";
-import { createRequire } from 'node:module';
-import { pathToFileURL } from 'node:url';
-
-const require = createRequire(import.meta.url);
-const tsxEsm = require.resolve('tsx/esm'); // absolute path
 
 interface WorkerJob {
     job: any;
@@ -21,7 +16,7 @@ export class WorkerPool {
     private terminated = false;
 
     constructor(
-        private poolSize: number,
+        poolSize: number,
         private workerPath: string,
         private onLog?: (nodeName: string, message: string) => void,
     ) {

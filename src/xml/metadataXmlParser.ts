@@ -6,7 +6,8 @@
  * across all aggregation and data-generation nodes.
  */
 // @ts-ignore
-import { getResource, XPath } from 'saxonjs-he';
+import SaxonJS from 'saxonjs-he';
+const { getResource, XPath } = SaxonJS;
 import fs from 'node:fs/promises';
 
 /**

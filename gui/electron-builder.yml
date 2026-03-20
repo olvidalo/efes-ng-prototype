@@ -1,29 +1,37 @@
-appId: com.electron.app
-productName: gui
+appId: com.efes-ng.app
+productName: EFES-NG
 directories:
   buildResources: build
 files:
-  - '!**/.vscode/*'
-  - '!src/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!svelte.config.mjs'
-  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  # Default: include out/, package.json, node_modules (automatic)
+  # Core library: only ship the built dist/
+  - from: .
+    filter:
+      - "**/*"
+      - "!node_modules/efes-ng-phase-2-poc/**"
+      - node_modules/efes-ng-phase-2-poc/dist/**
+      - node_modules/efes-ng-phase-2-poc/package.json
 asarUnpack:
   - resources/**
+  # Worker threads and child processes need real file paths, not asar
+  - node_modules/efes-ng-phase-2-poc/**
+  - node_modules/saxonjs-he/**
+  - node_modules/xslt3-he/**
+  # Native modules
+  - node_modules/fsevents/**
+  - node_modules/esbuild/**
+  - node_modules/@esbuild/**
 win:
-  executableName: gui
+  executableName: efes-ng
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  identity: null
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
@@ -34,7 +42,7 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: electronjs.org
+  maintainer: efes-ng
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}

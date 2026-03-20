@@ -25,12 +25,18 @@ export class PipelineManager {
 
   constructor(private mainWindow: BrowserWindow) {}
 
-  /** Register tsx CJS loader once so require() resolves .ts files */
+  /** Register tsx CJS loader once so require() resolves .ts files.
+   *  May fail in packaged app if esbuild binary paths are invalid — that's
+   *  acceptable since packaged apps only support XML pipelines. */
   private async ensureTsxLoader(): Promise<void> {
     if (this.tsxRegistered) return
-    const tsx = await import('tsx/cjs/api')
-    tsx.register()
-    this.tsxRegistered = true
+    try {
+      const tsx = await import('tsx/cjs/api')
+      tsx.register()
+      this.tsxRegistered = true
+    } catch {
+      // tsx unavailable (e.g. packaged app) — .ts pipelines won't work
+    }
   }
 
   async openProject(projectDir: string): Promise<{ name: string; nodeNames: string[]; serverUrl: string }> {
@@ -43,14 +49,15 @@ export class PipelineManager {
     // chdir for node compat (nodes may use relative paths with fs)
     process.chdir(absDir)
 
-    await this.ensureTsxLoader()
-    const { discoverPipelineFile, loadPipelineFromXml } = require('efes-ng-phase-2-poc')
+    const { discoverPipelineFile, loadPipelineFromXml } = await import('efes-ng-phase-2-poc')
     const { filePath, format } = discoverPipelineFile(absDir)
     this.configPath = filePath
 
     if (format === 'xml') {
       this.pipeline = await loadPipelineFromXml(filePath)
     } else {
+      // .ts pipelines need tsx loader for require() to handle TypeScript
+      await this.ensureTsxLoader()
       const mod = require(filePath)
       this.pipeline = mod.default
     }
@@ -70,7 +77,7 @@ export class PipelineManager {
     if (!this.pipeline) throw new Error('No pipeline loaded')
 
     await this.ensureTsxLoader()
-    const { PipelineWatcher } = require('efes-ng-phase-2-poc')
+    const { PipelineWatcher } = await import('efes-ng-phase-2-poc')
 
     this.watcher = new PipelineWatcher(this.pipeline, this.configPath)
     this.watcher.on('reload', (newPipeline: any) => {

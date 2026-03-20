@@ -99,7 +99,7 @@ export class SefTransformNode extends PipelineNode<SefTransformConfig, typeof ou
                 };
 
                 // Execute transform in worker thread
-                const workloadScript = resolveWorkloadPath(import.meta.url, '../saxonWorkload.mts', 'xml/saxonWorkload.js');
+                const workloadScript = resolveWorkloadPath(import.meta.url, '../saxonWorkload.mts', 'xml/saxonWorkload.mjs');
 
                 const workerStartTime = Date.now();
                 const result = await context.workerPool.execute<{

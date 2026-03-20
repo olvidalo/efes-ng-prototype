@@ -72,7 +72,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     }
 
     async resolveInput(input: Input): Promise<string[]> {
-        const cacheKey = JSON.stringify(input, (key, value) => {
+        const cacheKey = JSON.stringify(input, (_key, value) => {
             if (value && typeof value === 'object' && 'node' in value && 'output' in value) {
                 const nodeName = typeof value.node === 'string' ? value.node : value.node.name;
                 return `NodeRef:${nodeName}:${value.output}:${value.glob || ''}`;
@@ -134,7 +134,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
 
     private getOrCreateWorkerPool(): WorkerPool {
         if (!this._workerPool) {
-            const workerPath = resolveWorkloadPath(import.meta.url, '../xml/genericWorker.mts', 'genericWorker.js');
+            const workerPath = resolveWorkloadPath(import.meta.url, '../xml/genericWorker.mts', 'genericWorker.mjs');
             this._workerPool = new WorkerPool(this.workerThreads, workerPath, (nodeName, message) => {
                 console.log(`  [${this.name}]   [${nodeName}] ${message}`);
             });
