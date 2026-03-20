@@ -11,7 +11,7 @@ const OVERLAY_CSS = `
 
   /* Banner overlays (building, stopped) */
   .efes-banner { position: fixed; top: 0; left: 0; right: 0 }
-  .efes-bar { height: 3px }
+  .efes-bar { height: 12px }
   .efes-bar--blue {
     background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
     background-size: 200% 100%;
@@ -23,7 +23,7 @@ const OVERLAY_CSS = `
     100% { background-position: -200% 0 }
   }
   .efes-label {
-    display: inline-block; margin: 8px 12px; padding: 4px 12px;
+    display: inline-block; padding: 4px 12px; float: right; margin: 8px 12px;
     background: #1e1e1e; font: 600 13px/1 system-ui, sans-serif; border-radius: 4px;
   }
   .efes-label--blue  { color: #93c5fd; border: 1px solid #3b82f6 }
