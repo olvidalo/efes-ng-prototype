@@ -1,5 +1,5 @@
 appId: com.efes-ng.app
-productName: EFES-NG
+productName: EFES-NG Prototype
 directories:
   buildResources: build
 # Core library: only ship dist/ (electron-builder follows workspace symlinks,

@@ -9,7 +9,7 @@ let manager: PipelineManager | null = null
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
-    title: 'EFES-NG',
+    title: 'EFES-NG Prototype',
     width: 1000,
     height: 700,
     show: false,

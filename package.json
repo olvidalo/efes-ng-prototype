@@ -1,5 +1,5 @@
 {
-  "name": "efes-ng",
+  "name": "efes-ng-prototype",
   "private": true,
   "workspaces": ["packages/*"],
   "scripts": {
