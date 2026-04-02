@@ -17,6 +17,7 @@
     exclude-result-prefixes="i18n xs">
 
     <xsl:import href="../sigidoc/start-edition.xsl"/>
+    <xsl:import href="../overrides.xsl"/>
 
     <xsl:output method="xml" encoding="UTF-8" indent="no"/>
 
@@ -35,6 +36,11 @@
     <xsl:param name="bib"/>
     <xsl:param name="bibloc"/>
     <xsl:param name="bib-link-template" select="()"/>
+    <xsl:param name="authority-dir" select="''"/>
+    <xsl:param name="symbols-file" select="''"/>
+    <xsl:param name="places-file" select="''"/>
+    <xsl:param name="institutions-file" select="''"/>
+    <xsl:param name="glyph-variant" select="''"/>
 
     <!-- If set, translations are loaded and i18n:text elements replaced. -->
     <xsl:param name="language" select="''"/>
@@ -62,6 +68,11 @@
                 <xsl:with-param name="parm-bib" select="$bib" tunnel="yes"/>
                 <xsl:with-param name="parm-bibloc" select="$bibloc" tunnel="yes"/>
                 <xsl:with-param name="parm-bib-link-template" select="$bib-link-template" tunnel="yes"/>
+                <xsl:with-param name="parm-authority-dir" select="$authority-dir" tunnel="yes"/>
+                <xsl:with-param name="parm-symbols-file" select="$symbols-file" tunnel="yes"/>
+                <xsl:with-param name="parm-places-file" select="$places-file" tunnel="yes"/>
+                <xsl:with-param name="parm-institutions-file" select="$institutions-file" tunnel="yes"/>
+                <xsl:with-param name="parm-glyph-variant" select="$glyph-variant" tunnel="yes"/>
             </xsl:call-template>
         </xsl:variable>
 
