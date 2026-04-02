@@ -585,7 +585,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                         const resolved = path.resolve(this.projectDir, pattern);
                         const isDir = await fs.stat(resolved).then(s => s.isDirectory(), () => false);
                         if (isDir) {
-                            throw new Error(`files() resolved to a directory: ${pattern}. Use absolutePath() for directory paths or add a glob pattern (e.g., "${pattern}/**/*").`);
+                            throw new Error(`files() resolved to a directory: ${pattern}. Use dir() for directory paths or add a glob pattern (e.g., "${pattern}/**/*").`);
                         }
                         throw new Error(`No files found for pattern: ${pattern}`);
                     }
@@ -597,6 +597,15 @@ export class Pipeline extends EventEmitter implements PipelineContext {
             case 'collect': {
                 const matches = await glob(path.join(input.dir, '**/*'), { nodir: true, cwd: this.projectDir });
                 return matches.map(m => path.resolve(this.projectDir, m));
+            }
+
+            case 'dir': {
+                const resolved = path.resolve(this.projectDir, input.path);
+                const isDir = await fs.stat(resolved).then(s => s.isDirectory(), () => false);
+                if (!isDir) {
+                    throw new Error(`dir() path is not a directory: ${input.path}`);
+                }
+                return [resolved.endsWith('/') ? resolved : resolved + '/'];
             }
 
             default:

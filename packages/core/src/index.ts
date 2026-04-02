@@ -1,6 +1,6 @@
 // Core
-export { PipelineNode, from, files, collect, absolutePath, isInput, isAbsolutePath } from './core/pipelineNode';
-export type { Input, NodeOutput, NodeOutputReference, FilesRef, CollectRef, AbsolutePath, OutputConfig, PipelineNodeConfig } from './core/pipelineNode';
+export { PipelineNode, from, files, collect, dir, absolutePath, isInput, isAbsolutePath } from './core/pipelineNode';
+export type { Input, NodeOutput, NodeOutputReference, FilesRef, CollectRef, DirRef, AbsolutePath, OutputConfig, PipelineNodeConfig } from './core/pipelineNode';
 export { Pipeline } from './core/pipeline';
 export type { PipelineContext } from './core/pipeline';
 export { PipelineWatcher } from './core/watcher';

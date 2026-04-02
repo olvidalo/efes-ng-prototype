@@ -130,6 +130,11 @@
       <span class="config-ref-label">collect</span>
       <span class="config-ref-detail">{value.dir}</span>
     </span>
+  {:else if isTagged(value) && value.tag === 'dir'}
+    <span class="config-ref">
+      <span class="config-ref-label">dir</span>
+      <span class="config-ref-detail">{value.path}</span>
+    </span>
   {:else if isTagged(value) && value.tag === 'absolute'}
     <span class="config-ref">
       <span class="config-ref-label">path</span>

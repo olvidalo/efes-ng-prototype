@@ -1,6 +1,7 @@
 import path from "node:path";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
+import { glob } from "glob";
 import { CacheManager } from "./cache";
 import type { Pipeline, PipelineContext } from "./pipeline";
 
@@ -9,20 +10,25 @@ import type { Pipeline, PipelineContext } from "./pipeline";
 export type FilesRef = { type: 'files', patterns: string[] };
 export type NodeOutputReference = { type: 'from', node: PipelineNode<any, any> | string, output: string, glob?: string };
 export type CollectRef = { type: 'collect', dir: string };
-export type Input = FilesRef | NodeOutputReference | CollectRef;
+export type DirRef = { type: 'dir', path: string };
+export type Input = FilesRef | NodeOutputReference | CollectRef | DirRef;
 
 /** Check whether a value is a pipeline Input reference. */
 export function isInput(value: any): value is Input {
     return typeof value === 'object' && value !== null
-        && (value.type === 'files' || value.type === 'from' || value.type === 'collect');
+        && (value.type === 'files' || value.type === 'from' || value.type === 'collect' || value.type === 'dir');
 }
 
 export function files(...patterns: string[]): FilesRef {
     return { type: 'files', patterns };
 }
 
-export function collect(dir: string): CollectRef {
-    return { type: 'collect', dir };
+export function collect(dirPath: string): CollectRef {
+    return { type: 'collect', dir: dirPath };
+}
+
+export function dir(dirPath: string): DirRef {
+    return { type: 'dir', path: dirPath };
 }
 
 // AbsolutePath: a project-relative path that should be resolved to an absolute path at runtime.
@@ -156,6 +162,8 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             const resolved = await context.resolveInput(value);
             if (value.type === 'files') {
                 for (const pattern of value.patterns) this.rootDependencies.add(pattern);
+            } else if (value.type === 'dir') {
+                this.rootDependencies.add(value.path);
             }
             return resolved;
         }
@@ -277,6 +285,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                     return `from(${nodeName}:${value.output}${globPart})`;
                 }
                 case 'collect': return `collect(${value.dir})`;
+                case 'dir':     return `dir(${value.path})`;
                 default: value satisfies never;
             }
         }
@@ -449,6 +458,7 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
                 switch (rawValue.type) {
                     case 'files':
                     case 'collect':
+                    case 'dir':
                         configDependencyPaths.push(...paths);
                         break;
                     case 'from': {
@@ -499,14 +509,26 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             this.debug(context, `Pre-computing hashes for ${sharedDependencyPaths.length} shared dependencies`);
             await Promise.all(sharedDependencyPaths.map(async (filePath) => {
                 try {
-                    const producer = pathToProducer.get(filePath);
-                    const [hash, stats] = await Promise.all([
-                        producer ? producer.hashOutputFile(filePath) : context.cache.computeFileHash(filePath),
-                        fs.stat(filePath)
-                    ]);
-                    sharedFileHashes.set(filePath, { hash, timestamp: stats.mtimeMs });
+                    const stats = await fs.stat(filePath);
+                    if (stats.isDirectory()) {
+                        // Directory input (<dir>): hash all files inside for change detection
+                        const dirFiles = await glob('**/*', { cwd: filePath, nodir: true, absolute: true });
+                        await Promise.all(dirFiles.map(async (f) => {
+                            try {
+                                const [hash, fstats] = await Promise.all([
+                                    context.cache.computeFileHash(f),
+                                    fs.stat(f)
+                                ]);
+                                sharedFileHashes.set(f, { hash, timestamp: fstats.mtimeMs });
+                            } catch { /* skip */ }
+                        }));
+                    } else {
+                        const producer = pathToProducer.get(filePath);
+                        const hash = producer ? await producer.hashOutputFile(filePath) : await context.cache.computeFileHash(filePath);
+                        sharedFileHashes.set(filePath, { hash, timestamp: stats.mtimeMs });
+                    }
                 } catch {
-                    // File doesn't exist, skip
+                    // File/directory doesn't exist, skip
                 }
             }));
         }

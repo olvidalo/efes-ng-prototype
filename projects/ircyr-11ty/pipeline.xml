@@ -22,6 +22,7 @@
       <param name="image-loc">https://ircyr2020.inslib.kcl.ac.uk/images/</param>
       <param name="bibloc"><files>source/authority/bibliography.xml</files></param>
       <param name="bib-link-template">../../concordances/bibliography/$1/</param>
+      <param name="authority-dir"><dir>source/authority</dir></param>
     </stylesheetParams>
     <output to="_assembly/en/inscriptions"
             stripPrefix="source/inscriptions"

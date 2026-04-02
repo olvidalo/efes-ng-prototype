@@ -211,6 +211,7 @@ export class PipelineManager {
         // FilesRef, CollectRef, AbsolutePath: discriminated by type field
         if (value.type === 'files') return { tag: 'files', patterns: value.patterns }
         if (value.type === 'collect') return { tag: 'collect', dir: value.dir }
+        if (value.type === 'dir') return { tag: 'dir', path: value.path }
         if (value.type === 'absolute') return { tag: 'absolute', path: value.path }
         // Only recurse into plain objects — skip class instances (e.g. PipelineNode)
         if (Object.getPrototypeOf(value) !== Object.prototype) {
