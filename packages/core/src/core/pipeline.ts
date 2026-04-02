@@ -207,6 +207,9 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     /** Remove all build artifacts: buildDir, cacheDir, and all node output directories. */
     async clean(): Promise<void> {
         this.ensureReady();
+        // Shutdown worker pool first — workers may have cwd set to a directory
+        // we're about to delete, causing an infinite crash/respawn loop.
+        await this.shutdown();
         const dirs = new Set<string>();
         dirs.add(path.resolve(this.projectDir, this.buildDir));
         dirs.add(path.resolve(this.projectDir, this.cacheDir));

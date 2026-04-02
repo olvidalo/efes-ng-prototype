@@ -16,6 +16,7 @@ export class WorkerPool {
     private activeJobs = new Map<Worker, WorkerJob>();
 
     private terminated = false;
+    private crashCount = new Map<number, number>();
 
     constructor(
         poolSize: number,
@@ -68,14 +69,24 @@ export class WorkerPool {
         });
 
         worker.on("error", (error) => {
-            const id = this.workerIds.get(worker);
+            const id = this.workerIds.get(worker) ?? -1;
             const job = this.activeJobs.get(worker);
             if (job) {
                 this.activeJobs.delete(worker);
                 job.reject(error);
             }
-            console.error(`Worker ${id} crashed, spawning replacement:`, error.message);
-            this.replaceWorker(worker);
+            const crashes = (this.crashCount.get(id) ?? 0) + 1;
+            this.crashCount.set(id, crashes);
+            if (crashes <= 3) {
+                console.error(`Worker ${id} crashed, spawning replacement:`, error.message);
+                this.replaceWorker(worker);
+            } else {
+                console.error(`Worker ${id} crashed ${crashes} times, not respawning:`, error.message);
+                const idx = this.workers.indexOf(worker);
+                if (idx !== -1) this.workers.splice(idx, 1);
+                this.workerIds.delete(worker);
+                worker.terminate();
+            }
         });
 
         this.workers.push(worker);
