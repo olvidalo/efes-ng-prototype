@@ -26,11 +26,15 @@ export class SearchEngine extends EventTarget {
     #error = null;
     #url;
     #textFields;
+    #matchMode;
 
-    constructor({ url, textFields = ['fullText', 'title'] }) {
+    static #matchModes = { exact: 'strict', prefix: 'forward', substring: 'full' };
+
+    constructor({ url, textFields = ['fullText', 'title'], matchMode = 'prefix' }) {
         super();
         this.#url = url;
         this.#textFields = textFields;
+        this.#matchMode = SearchEngine.#matchModes[matchMode] || 'forward';
     }
 
     // --- Public read-only properties ---
@@ -55,6 +59,7 @@ export class SearchEngine extends EventTarget {
             this.#documents = await res.json();
 
             this.#index = new Document({
+                tokenize: this.#matchMode,
                 document: { id: 'documentId', index: this.#textFields },
             });
             for (const doc of this.#documents) {

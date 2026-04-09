@@ -6,6 +6,7 @@ import { SearchEngine } from './engine.js';
  * Attributes:
  *   data-url      — URL to documents.json (required)
  *   text-fields   — comma-separated fields to index (default: "fullText,title")
+ *   match-mode    — "exact", "prefix", or "substring" (default: "prefix")
  *
  * Children access the engine via: this.closest('efes-search').engine
  *
@@ -23,8 +24,9 @@ export class EfesSearch extends HTMLElement {
         const textFields = this.getAttribute('text-fields')
             ?.split(',').map(s => s.trim())
             || ['fullText', 'title'];
+        const matchMode = this.getAttribute('match-mode') || 'prefix';
 
-        this.#engine = new SearchEngine({ url, textFields });
+        this.#engine = new SearchEngine({ url, textFields, matchMode });
 
         // Reflect engine status as data attribute for CSS targeting
         this.#engine.addEventListener('status-change', (e) => {

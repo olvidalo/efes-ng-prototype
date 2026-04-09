@@ -31,7 +31,7 @@ var require_worker_threads = __commonJS({
   }
 });
 
-// node_modules/flexsearch/dist/flexsearch.bundle.module.min.mjs
+// ../../node_modules/flexsearch/dist/flexsearch.bundle.module.min.mjs
 var w;
 function H(a, c, b) {
   const e = typeof b, d = typeof a;
@@ -2287,7 +2287,7 @@ function Z(a, c) {
 var Document = Na;
 
 // client/efes-search/engine.js
-var SearchEngine = class extends EventTarget {
+var SearchEngine = class _SearchEngine extends EventTarget {
   #documents = [];
   #index = null;
   #query = "";
@@ -2304,10 +2304,13 @@ var SearchEngine = class extends EventTarget {
   #error = null;
   #url;
   #textFields;
-  constructor({ url, textFields = ["fullText", "title"] }) {
+  #matchMode;
+  static #matchModes = { exact: "strict", prefix: "forward", substring: "full" };
+  constructor({ url, textFields = ["fullText", "title"], matchMode = "prefix" }) {
     super();
     this.#url = url;
     this.#textFields = textFields;
+    this.#matchMode = _SearchEngine.#matchModes[matchMode] || "forward";
   }
   // --- Public read-only properties ---
   get status() {
@@ -2345,6 +2348,7 @@ var SearchEngine = class extends EventTarget {
       if (!res.ok) throw new Error(`Failed to fetch ${this.#url}: ${res.status}`);
       this.#documents = await res.json();
       this.#index = new Document({
+        tokenize: this.#matchMode,
         document: { id: "documentId", index: this.#textFields }
       });
       for (const doc of this.#documents) {
@@ -2510,7 +2514,8 @@ var EfesSearch = class extends HTMLElement {
     const url = this.getAttribute("data-url");
     if (!url) throw new Error("<efes-search>: data-url attribute is required");
     const textFields = this.getAttribute("text-fields")?.split(",").map((s) => s.trim()) || ["fullText", "title"];
-    this.#engine = new SearchEngine({ url, textFields });
+    const matchMode = this.getAttribute("match-mode") || "prefix";
+    this.#engine = new SearchEngine({ url, textFields, matchMode });
     this.#engine.addEventListener("status-change", (e) => {
       this.setAttribute("data-status", e.detail.status);
     });
