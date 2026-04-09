@@ -1,0 +1,38 @@
+{
+  "name": "create-efes-ng",
+  "version": "1.0.0",
+  "description": "Scaffold a new EFES-NG collection project",
+  "bin": {
+    "create-efes-ng": "./dist/cli.mjs"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./questions": {
+      "import": "./dist/questions.mjs",
+      "default": "./dist/questions.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "templates",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "ejs": "^3.1.10",
+    "isomorphic-git": "^1.37.4"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/node": "22.16.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.2"
+  },
+  "license": "MIT"
+}

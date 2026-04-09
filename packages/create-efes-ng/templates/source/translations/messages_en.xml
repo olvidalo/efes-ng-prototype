@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Translation Messages (English)
+
+    This file provides translations for UI labels in the XSLT output.
+    The EpiDoc/SigiDoc stylesheets output <i18n:text i18n:key="..."/> placeholder
+    elements instead of hardcoded text. The epidoc-to-html.xsl wrapper resolves
+    these placeholders using the translations in this file.
+
+    How it works:
+    1. The XSLT stylesheet outputs: <i18n:text i18n:key="material"/>
+    2. The wrapper looks up the key "material" in this file
+    3. If found, the placeholder is replaced with the message text ("Material")
+    4. If not found, the key is shown in brackets: [material]
+
+    To add a translation, add a <message> element with the matching key:
+        <message key="my-key">My Label</message>
+
+    The keys used depend on your XSLT stylesheets. Check the stylesheet output
+    (or look for i18n:text elements in the generated HTML) to find which keys
+    are needed. Your stylesheet project (e.g. SigiDoc, EpiDoc) may provide a
+    complete translation file — copy it here to get full label support.
+
+    For multi-language support, create additional files:
+        messages_de.xml (German)
+        messages_el.xml (Greek)
+        messages_fr.xml (French)
+    and pass the corresponding language parameter in the pipeline.
+-->
+<catalogue xml:lang="en">
+    <!-- Example translations — replace with keys from your stylesheet -->
+    <message key="edition">Edition</message>
+    <message key="translation">Translation</message>
+    <message key="commentary">Commentary</message>
+    <message key="apparatus">Apparatus</message>
+    <message key="bibliography">Bibliography</message>
+    <message key="footnotes">Footnotes</message>
+</catalogue>

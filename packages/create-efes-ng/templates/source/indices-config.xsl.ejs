@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Index configuration for <%= projectName %>.
+
+    This stylesheet defines page metadata and indices to extract from your
+    EpiDoc/TEI XML documents. It imports the generic extract-metadata.xsl
+    library and provides project-specific extraction logic.
+-->
+<xsl:stylesheet version="3.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:tei="http://www.tei-c.org/ns/1.0"
+    xmlns:idx="http://efes.info/indices"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    exclude-result-prefixes="#all">
+
+    <xsl:import href="stylesheets/lib/extract-metadata.xsl"/>
+
+    <!-- ═══════════════════════════════════════════════
+         PAGE METADATA
+         Fields used for page display, sorting, and the
+         document list. Customize these to match your
+         TEI encoding.
+         ═══════════════════════════════════════════════ -->
+
+    <xsl:template match="tei:TEI" mode="extract-metadata">
+        <!-- Title: first <title> in titleStmt, falls back to filename -->
+        <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
+        <title>
+            <xsl:choose>
+                <xsl:when test="string-length($tei-title) > 0">
+                    <xsl:value-of select="$tei-title"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$filename"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </title>
+
+        <!-- Sort key: splits filename on letter/number boundaries, zero-pads numbers -->
+        <sortKey>
+            <xsl:analyze-string select="$filename" regex="([a-zA-Z]+)|([0-9]+)">
+                <xsl:matching-substring>
+                    <xsl:choose>
+                        <xsl:when test="regex-group(2)">
+                            <xsl:value-of select="format-number(xs:integer(regex-group(2)), '00000')"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="regex-group(1)"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:text>.</xsl:text>
+                </xsl:matching-substring>
+            </xsl:analyze-string>
+        </sortKey>
+
+        <!-- Uncomment to add more page metadata fields:
+        <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
+        <category><xsl:value-of select="string-join(//tei:msContents/tei:summary/normalize-space(.), ', ')"/></category>
+        -->
+    </xsl:template>
+
+    <!-- ═══════════════════════════════════════════════
+         INDEX DEFINITIONS
+         Add your project's indices below.
+         ═══════════════════════════════════════════════ -->
+
+    <!--
+    Example: Persons index
+    Uncomment the index definition, extraction template, and the
+    apply-templates call in extract-all-entities below.
+    Adapt the XPath in extract-persons to match your TEI encoding.
+
+    <idx:index id="persons" title="Persons" nav="indices" order="10">
+        <idx:description>Persons attested in the collection.</idx:description>
+        <idx:columns>
+            <idx:column key="name">Name</idx:column>
+            <idx:column key="references" type="references">References</idx:column>
+        </idx:columns>
+    </idx:index>
+    -->
+
+    <!-- ═══════════════════════════════════════════════
+         EXTRACTION TEMPLATES
+         Implement extract-{id} templates for each index.
+         ═══════════════════════════════════════════════ -->
+
+    <!--
+    <xsl:template match="tei:TEI" mode="extract-persons">
+        <xsl:for-each select=".//tei:persName[normalize-space()]">
+            <xsl:variable name="displayName" select="normalize-space(.)"/>
+            <entity indexType="persons">
+                <name><xsl:value-of select="$displayName"/></name>
+                <sortKey><xsl:value-of select="lower-case($displayName)"/></sortKey>
+            </entity>
+        </xsl:for-each>
+    </xsl:template>
+    -->
+
+    <xsl:template match="tei:TEI" mode="extract-all-entities">
+        <!-- Uncomment to enable persons index extraction -->
+        <!-- <xsl:apply-templates select="." mode="extract-persons"/> -->
+    </xsl:template>
+
+    <!-- ═══════════════════════════════════════════════
+         SEARCH FIELDS
+         Define which fields are searchable and displayed
+         in search results. Fields become properties in
+         documents.json, consumed by the search component.
+         ═══════════════════════════════════════════════ -->
+
+    <xsl:template match="tei:TEI" mode="extract-search">
+        <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
+        <title><xsl:value-of select="if (string-length($tei-title) > 0)
+            then $tei-title else $filename"/></title>
+        <material><xsl:value-of select="normalize-space(//tei:material)"/></material>
+
+        <!-- Uncomment to add more search/filter fields:
+        <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
+        -->
+
+        <fullText><xsl:value-of select="normalize-space(string-join(
+            //tei:div[@type='edition']//text(), ' '))"/></fullText>
+    </xsl:template>
+
+</xsl:stylesheet>

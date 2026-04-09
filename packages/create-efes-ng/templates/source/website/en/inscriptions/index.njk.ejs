@@ -1,0 +1,34 @@
+---
+layout: layouts/base.njk
+title: Inscriptions
+---
+
+<%- '{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}' %>
+<%- '{% set documents = collections.inscriptions %}' %>
+
+<p class="index-intro">Browse all <%- '{{ documents | length | default(0) }}' %> documents in the collection.</p>
+
+<table class="data-table">
+    <thead>
+    <tr>
+        <th>Document ID</th>
+        <th>Title</th>
+        <%- '{# To add a column, uncomment below and add the corresponding field to indices-config.xsl #}' %>
+        <%- '{# <th>Dating</th> #}' %>
+    </tr>
+    </thead>
+    <tbody>
+    <%- '{% if documents and documents | length > 0 %}' %>
+        <%- '{% set sorted = documents | sort(false, false, "data.sortKey") %}' %>
+        <%- '{% for document in sorted %}' %>
+            <tr>
+                <td><a href="{{ document.url }}"><%- '{{ document.data.documentId }}' %></a></td>
+                <td><%- '{{ document.data.title }}' %></td>
+                <%- '{# <td>{{ document.data.origDate }}</td> #}' %>
+            </tr>
+        <%- '{% endfor %}' %>
+    <%- '{% else %}' %>
+        <tr><td colspan="2">No documents available.</td></tr>
+    <%- '{% endif %}' %>
+    </tbody>
+</table>

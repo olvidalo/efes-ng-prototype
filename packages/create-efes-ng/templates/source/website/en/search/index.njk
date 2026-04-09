@@ -1,0 +1,46 @@
+---
+layout: layouts/base.njk
+title: Search
+permalink: en/search/index.html
+---
+
+<link rel="stylesheet" href="/assets/efes-search/efes-search.css">
+<script type="module" src="/assets/efes-search/efes-search.js"></script>
+
+<efes-search data-url="/search-data/documents.json" text-fields="fullText,title" match-mode="prefix">
+    <aside class="efes-facet-sidebar">
+        <h2>Filter Results</h2>
+        <efes-search-input placeholder="Search..."></efes-search-input>
+
+        <!-- FACET FILTERS -->
+        <!-- Add/uncomment efes-facet elements to add filter facets (field must exist in extract-search) -->
+
+        <!-- <efes-facet field="material" label="Material" expanded></efes-facet> -->
+
+        <div class="efes-filter-actions">
+            <button data-action="clear-all">Clear All Filters</button>
+        </div>
+    </aside>
+
+    <div class="efes-search-main">
+        <efes-active-filters></efes-active-filters>
+
+        <efes-results result-url="/en/inscriptions/{documentId}/">
+            <template>
+                <a>
+                    <div class="efes-result-title">
+                        <span class="doc-id" data-field="documentId"></span>
+                        <span data-field="title"></span>
+                    </div>
+                    <!-- Uncomment to show additional fields below each result
+                         (fields must be enabled in extract-search):
+                    <div class="efes-result-details">
+                        <span data-field="origDate"></span>
+                        <span data-field="material"></span>
+                    </div>
+                    -->
+                </a>
+            </template>
+        </efes-results>
+    </div>
+</efes-search>

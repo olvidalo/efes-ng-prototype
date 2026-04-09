@@ -1,0 +1,47 @@
+---
+layout: layouts/base.njk
+title: <%= projectName %>
+permalink: en/index.html
+suppressTitle: true
+---
+
+<div class="home-hero">
+    <h1 class="home-title"><%= projectName %></h1>
+    <p class="home-subtitle">Digital Collection</p>
+</div>
+
+<div class="home-section">
+    <p>Welcome to <%= projectName %>. This site is built with
+    <a href="https://github.com/CCeH" target="_blank">EFES-NG</a>.</p>
+
+    <p>To get started, add your EpiDoc/TEI XML documents to
+    <code>source/inscriptions/</code> and uncomment the pipeline nodes
+    in <code>pipeline.xml</code>.</p>
+</div>
+
+<style>
+.home-hero { margin-bottom: 2rem; }
+.home-title {
+    color: var(--primary);
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    padding: 0;
+    border: none;
+}
+.home-subtitle {
+    color: var(--slate);
+    font-size: 1.25rem;
+    margin: 0;
+}
+.home-section {
+    line-height: 1.7;
+}
+.home-section code {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    background: var(--accent-faint);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+}
+</style>

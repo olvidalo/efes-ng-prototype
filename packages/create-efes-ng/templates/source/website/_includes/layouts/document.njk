@@ -1,0 +1,58 @@
+---
+layout: layouts/base.njk
+suppressTitle: true
+---
+
+{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
+{% set documents = collections.inscriptions | sort(false, false, "data.sortKey") %}
+
+{# Find current item's index in sorted array #}
+{% set currentIndex = -1 %}
+{% for item in documents %}
+  {% if item.url == page.url %}
+    {% set currentIndex = loop.index0 %}
+  {% endif %}
+{% endfor %}
+
+{# Get previous and next items based on sorted order #}
+{% set previousPost = documents[currentIndex - 1] if currentIndex > 0 else null %}
+{% set nextPost = documents[currentIndex + 1] if currentIndex < (documents | length - 1) else null %}
+
+<nav class="doc-nav">
+  <a href="/en/inscriptions/" class="doc-nav-back">&#8592; Back to Index</a>
+
+  <div class="doc-nav-pager">
+    {% if previousPost %}
+      <a href="{{ previousPost.url }}" class="doc-nav-link">&#8592; {{ previousPost.data.documentId }}</a>
+    {% else %}
+      <span class="doc-nav-disabled">&#8592; Previous</span>
+    {% endif %}
+
+    {% if nextPost %}
+      <a href="{{ nextPost.url }}" class="doc-nav-link">{{ nextPost.data.documentId }} &#8594;</a>
+    {% else %}
+      <span class="doc-nav-disabled">Next &#8594;</span>
+    {% endif %}
+  </div>
+</nav>
+
+<article class="document">
+  <h1 class="doc-title">{{ title }}</h1>
+  {{ content | safe }}
+</article>
+
+<nav class="doc-nav doc-nav--bottom">
+  <div class="doc-nav-pager">
+    {% if previousPost %}
+      <a href="{{ previousPost.url }}" class="doc-nav-link">&#8592; {{ previousPost.data.documentId }}</a>
+    {% else %}
+      <span class="doc-nav-disabled">&#8592; Previous</span>
+    {% endif %}
+
+    {% if nextPost %}
+      <a href="{{ nextPost.url }}" class="doc-nav-link">{{ nextPost.data.documentId }} &#8594;</a>
+    {% else %}
+      <span class="doc-nav-disabled">Next &#8594;</span>
+    {% endif %}
+  </div>
+</nav>
