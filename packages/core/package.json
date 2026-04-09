@@ -11,7 +11,10 @@
   "bin": {
     "efes-ng": "./dist/cli.mjs"
   },
-  "files": ["dist", "package.json"],
+  "files": [
+    "dist",
+    "package.json"
+  ],
   "scripts": {
     "build": "tsup"
   },

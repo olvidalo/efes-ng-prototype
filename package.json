@@ -1,7 +1,9 @@
 {
   "name": "efes-ng-prototype",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "npm -w @efes-ng/core run build",
     "efes": "tsx packages/core/src/cli.ts",
@@ -9,9 +11,20 @@
     "build:sigidoc-feind-11ty": "tsx packages/core/src/cli.ts run --project projects/sigidoc-feind-11ty",
     "build:all": "npm run build:ircyr-11ty && npm run build:sigidoc-feind-11ty",
     "clean:ircyr-11ty": "tsx packages/core/src/cli.ts clean --project projects/ircyr-11ty",
-    "clean:sigidoc-feind-11ty": "tsx packages/core/src/cli.ts clean --project projects/sigidoc-feind-11ty"
+    "clean:sigidoc-feind-11ty": "tsx packages/core/src/cli.ts clean --project projects/sigidoc-feind-11ty",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "overrides": {
+    "vitepress-plugin-mermaid": {
+      "vitepress": "$vitepress"
+    }
   },
   "devDependencies": {
-    "tsx": "^4.20.6"
+    "mermaid": "^11.14.0",
+    "tsx": "^4.20.6",
+    "vitepress": "^2.0.0-alpha.17",
+    "vitepress-plugin-mermaid": "^2.0.17"
   }
 }
