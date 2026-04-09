@@ -12,6 +12,7 @@ eleventyComputed:
 
 {% set t = translations[langCode].seals %}
 
+{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
 {% set langSeals = [] %}
 {% for seal in collections.seals %}
   {% if seal.data.language == langCode %}

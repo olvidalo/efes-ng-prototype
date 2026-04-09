@@ -10,5 +10,6 @@ eleventyComputed:
   language: "{{ langCode }}"
 ---
 
+{% set documentBasePath = "/" + langCode + "/seals" %}
 {% set indexData = indices.persons %}
 {% include "partials/index-table.njk" %}

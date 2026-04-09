@@ -3,7 +3,10 @@ layout: layouts/base.njk
 title: Inscriptions
 ---
 
-<p class="index-intro">Browse all {{ collections.inscriptions | length | default(0) }} inscriptions in the
+{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
+{% set documents = collections.inscriptions %}
+
+<p class="index-intro">Browse all {{ documents | length | default(0) }} inscriptions in the
     collection.</p>
 
 <table class="data-table inscription-table">
@@ -17,16 +20,16 @@ title: Inscriptions
     </tr>
     </thead>
     <tbody>
-    {% if collections.inscriptions and collections.inscriptions | length > 0 %}
+    {% if documents and documents | length > 0 %}
         {# Sort by sortKey for natural ordering (A.1, A.2, ..., A.9, A.10, A.11...) #}
-        {% set sortedInscriptions = collections.inscriptions | sort(false, false, "data.sortKey") %}
-        {% for inscription in sortedInscriptions %}
+        {% set sorted = documents | sort(false, false, "data.sortKey") %}
+        {% for document in sorted %}
             <tr>
-                <td><a href="{{ inscription.url }}">{{ inscription.data.documentId }}</a></td>
-                <td>{{ inscription.data.title }}</td>
-                <td>{{  inscription.data.findspot }}</td>
-                <td>{{ inscription.data.origDate }}</td>
-                <td><code>{{ inscription.data.sourceFile }}</code></td>
+                <td><a href="{{ document.url }}">{{ document.data.documentId }}</a></td>
+                <td>{{ document.data.title }}</td>
+                <td>{{ document.data.findspot }}</td>
+                <td>{{ document.data.origDate }}</td>
+                <td><code>{{ document.data.sourceFile }}</code></td>
             </tr>
         {% endfor %}
     {% else %}

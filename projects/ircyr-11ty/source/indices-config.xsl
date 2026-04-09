@@ -27,6 +27,23 @@
 
     <xsl:import href="stylesheets/lib/extract-metadata.xsl"/>
 
+    <!-- Sort key: used by page metadata and entity records -->
+    <xsl:variable name="sortKey">
+        <xsl:analyze-string select="$filename" regex="([a-zA-Z]+)|([0-9]+)">
+            <xsl:matching-substring>
+                <xsl:choose>
+                    <xsl:when test="regex-group(2)">
+                        <xsl:value-of select="format-number(xs:integer(regex-group(2)), '00000')"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="regex-group(1)"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <xsl:text>.</xsl:text>
+            </xsl:matching-substring>
+        </xsl:analyze-string>
+    </xsl:variable>
+
     <!-- ================================================================== -->
     <!-- CONFIGURATION                                                       -->
     <!-- ================================================================== -->
@@ -690,7 +707,8 @@
     <!-- Search facet and filter fields for FlexSearch index -->
     <xsl:template match="tei:TEI" mode="extract-search">
         <!-- Fields shown in search result display -->
-        <title><xsl:value-of select="$title"/></title>
+        <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
+        <title><xsl:value-of select="if (string-length($tei-title) > 0) then $tei-title else $filename"/></title>
         <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
         <findspot><xsl:value-of select="string-join(.//tei:placeName[@type='ancientFindspot'], ', ')"/></findspot>
 
@@ -719,8 +737,24 @@
         <fullText><xsl:value-of select="normalize-space(string-join(.//tei:div[@type='edition']//text(), ' '))"/></fullText>
     </xsl:template>
 
-    <!-- Project-specific page display fields (added to <page> in metadata output) -->
+    <!-- Page display fields (added to <page> in metadata output) -->
     <xsl:template match="tei:TEI" mode="extract-metadata">
+        <!-- Title: first <title> in titleStmt, falls back to filename -->
+        <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
+        <title>
+            <xsl:choose>
+                <xsl:when test="string-length($tei-title) > 0">
+                    <xsl:value-of select="$tei-title"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$filename"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </title>
+
+        <sortKey><xsl:value-of select="$sortKey"/></sortKey>
+
+        <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
         <findspot><xsl:value-of select="string-join(.//tei:placeName[@type='ancientFindspot'], ', ')"/></findspot>
     </xsl:template>
 

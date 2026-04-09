@@ -6,7 +6,7 @@ suppressTitle: true
 {# Get translations for current language #}
 {% set t = translations[language].nav %}
 
-{# Filter seals by current language and sort by sortKey #}
+{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
 {% set langSeals = [] %}
 {% for seal in collections.seals %}
   {% if seal.data.language == language %}

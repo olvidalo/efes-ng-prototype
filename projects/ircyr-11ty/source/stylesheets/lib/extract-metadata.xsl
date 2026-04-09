@@ -3,13 +3,13 @@
     Generic Metadata Extraction
 
     Shared boilerplate for extracting XML metadata from TEI XML documents.
-    Project-specific logic is provided via three hook template modes,
+    Project-specific logic is provided via four hook template modes,
     implemented in each project's indices-config.xsl:
 
     - extract-all-entities: dispatches to individual extraction templates
     - extract-search: returns search facet data as XML elements
       (multi-valued fields using <item> children are automatically deduped)
-    - extract-metadata: returns project-specific page display fields
+    - extract-metadata: returns additional project-specific page display fields
 -->
 <xsl:stylesheet version="3.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -27,36 +27,6 @@
     <xsl:variable name="filename">
         <xsl:variable name="full-name" select="tokenize($source-file, '/')[last()]"/>
         <xsl:value-of select="substring-before($full-name, '.xml')"/>
-    </xsl:variable>
-
-    <!-- Extract title from TEI header -->
-    <xsl:variable name="title">
-        <xsl:variable name="tei-title" select="//*:titleStmt/*:title[1]/normalize-space(.)"/>
-        <xsl:choose>
-            <xsl:when test="string-length($tei-title) > 0">
-                <xsl:value-of select="$tei-title"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="$filename"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:variable>
-
-    <!-- SortKey: split on letter/number boundaries, zero-pad numbers -->
-    <xsl:variable name="sortKey">
-        <xsl:analyze-string select="$filename" regex="([a-zA-Z]+)|([0-9]+)">
-            <xsl:matching-substring>
-                <xsl:choose>
-                    <xsl:when test="regex-group(2)">
-                        <xsl:value-of select="format-number(xs:integer(regex-group(2)), '00000')"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="regex-group(1)"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-                <xsl:text>.</xsl:text>
-            </xsl:matching-substring>
-        </xsl:analyze-string>
     </xsl:variable>
 
     <!-- Default hooks (overridden by indices-config via import precedence) -->
@@ -84,12 +54,9 @@
 
             <page>
                 <language><xsl:value-of select="$language"/></language>
-                <title><xsl:value-of select="$title"/></title>
                 <sourceFile><xsl:value-of select="concat($filename, '.xml')"/></sourceFile>
-                <sortKey><xsl:value-of select="$sortKey"/></sortKey>
-                <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
 
-                <!-- Project-specific page display fields -->
+                <!-- Project-specific page fields (title, sortKey, origDate, etc.) -->
                 <xsl:apply-templates select="/tei:TEI" mode="extract-metadata"/>
             </page>
 
