@@ -1,11 +1,11 @@
 {# Data-driven index table partial
    Usage:
-     {% set documentBasePath = "/en/inscriptions" %}
+     {% set documentBasePath = "/" + page.lang + "/inscriptions" %}
      {% set indexData = indices.persons %}
      {% include "partials/index-table.njk" %}
    Requires:
      indexData — object with { columns, entries, description }
-     documentBasePath — base URL for document links (e.g. "/en/seals", "/de/seals")
+     documentBasePath — base URL for document links (e.g. "/" + page.lang + "/seals")
 #}
 
 {% if indexData %}

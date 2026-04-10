@@ -2,7 +2,7 @@
     <div class="header-inner">
         <div class="header-content">
             <h1 id="site-title">
-                <a href="/en/" class="site-title-link">
+                <a href="<%- '/{{ page.lang }}/' %>" class="site-title-link">
                     <!-- Website Title -->
                     <span class="site-title-full"><%= projectName %></span>
                 </a>
@@ -10,21 +10,21 @@
 
             <!-- Navigation Menu -->
             <nav class="site-nav">
-                <a href="/en/inscriptions/" class="nav-link">Inscriptions</a>
-                <a href="/en/search/" class="nav-link">Search</a>
+                <a href="<%- '/{{ page.lang }}/inscriptions/' %>" class="nav-link">Inscriptions</a>
+                <a href="<%- '/{{ page.lang }}/search/' %>" class="nav-link">Search</a>
                 <div class="nav-dropdown">
-                    <a href="/en/indices/" class="nav-link nav-dropdown-toggle">Indices</a>
+                    <a href="<%- '/{{ page.lang }}/indices/' %>" class="nav-link nav-dropdown-toggle">Indices</a>
                     <ul class="nav-dropdown-menu">
                         <%- '{% if indices and indices._summary and indices._summary.indices %}' %>
                             <%- '{% for idx in indices._summary.indices %}' %>
                             <%- '{% if idx.nav == "indices" or not idx.nav %}' %>
-                            <li><a href="/en/indices/<%- '{{ idx.id }}' %>/"><%- '{{ idx.title }}' %></a></li>
+                            <li><a href="<%- '/{{ page.lang }}/indices/{{ idx.id }}/' %>"><%- '{{ idx.title }}' %></a></li>
                             <%- '{% endif %}' %>
                             <%- '{% endfor %}' %>
                         <%- '{% endif %}' %>
                     </ul>
                 </div>
-                <a href="/en/concordances/bibliography/" class="nav-link">Bibliography</a>
+                <a href="<%- '/{{ page.lang }}/concordances/bibliography/' %>" class="nav-link">Bibliography</a>
             </nav>
         </div>
     </div>

@@ -19,7 +19,7 @@ suppressTitle: true
 {% set nextPost = documents[currentIndex + 1] if currentIndex < (documents | length - 1) else null %}
 
 <nav class="doc-nav">
-  <a href="/en/inscriptions/" class="doc-nav-back">&#8592; Back to Index</a>
+  <a href="/{{ page.lang }}/inscriptions/" class="doc-nav-back">&#8592; Back to Index</a>
 
   <div class="doc-nav-pager">
     {% if previousPost %}

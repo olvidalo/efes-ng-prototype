@@ -9,7 +9,7 @@ permalink: en/indices/index.html
 <div class="indices-grid">
 {% if indices._summary and indices._summary.indices %}
     {% for idx in indices._summary.indices %}
-    <a href="/en/indices/{{ idx.id }}/" class="index-card">
+    <a href="/{{ page.lang }}/indices/{{ idx.id }}/" class="index-card">
         <h3>{{ idx.title }}</h3>
         {% if idx.description %}
         <p>{{ idx.description }}</p>
