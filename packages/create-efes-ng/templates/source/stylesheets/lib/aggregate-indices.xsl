@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    XSLT-based Index Aggregation for SigiDoc
+    XSLT-based Index Aggregation
 
     Reads per-document metadata XML files and produces:
     - One JSON file per index type ({indexType}.json)
     - A summary file (_summary.json)
+
+    Supports multilingual entities: fields are output as language-keyed objects
+    (e.g., {"en": "Cephalonia", "de": "Kephalonia"}).
 
     Parameters:
     - metadata-files: space-separated list of absolute paths to metadata XML files
@@ -31,17 +34,24 @@
     <xsl:variable name="config-doc" select="doc('file://' || $indices-config)"/>
     <xsl:variable name="index-configs" select="$config-doc//idx:index"/>
 
+    <!-- Discover all languages from metadata -->
+    <xsl:variable name="all-languages" select="distinct-values($all-docs/metadata/entities/@xml:lang)"/>
+
     <xsl:template name="aggregate" match="/">
-        <!-- Collect all entities from all documents, grouped by index type -->
+        <!-- Collect all entities from all documents AND all languages -->
         <xsl:variable name="all-entities" as="element()*">
             <xsl:for-each select="$all-docs">
                 <xsl:variable name="doc-id" select="string(/metadata/documentId)"/>
-                <xsl:for-each select="/metadata/entities[1]/*/entity">
-                    <entity-with-ref>
-                        <xsl:copy-of select="@*"/>
-                        <inscriptionId><xsl:value-of select="$doc-id"/></inscriptionId>
-                        <xsl:copy-of select="*"/>
-                    </entity-with-ref>
+                <xsl:for-each select="/metadata/entities">
+                    <xsl:variable name="lang" select="string(@xml:lang)"/>
+                    <xsl:for-each select="*/entity">
+                        <entity-with-ref>
+                            <xsl:copy-of select="@*"/>
+                            <xsl:attribute name="xml:lang" select="$lang"/>
+                            <inscriptionId><xsl:value-of select="$doc-id"/></inscriptionId>
+                            <xsl:copy-of select="*"/>
+                        </entity-with-ref>
+                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
@@ -89,7 +99,7 @@
             <xsl:variable name="index-entities"
                 select="$all-entities[@indexType = $index-id]"/>
 
-            <!-- Group by sortKey -->
+            <!-- Group by sortKey (across all languages) -->
             <xsl:variable name="grouped-entries" as="element(fn:array)">
                 <fn:array key="entries">
                     <xsl:for-each-group select="$index-entities"
@@ -99,40 +109,33 @@
                             then string-join(for $k in $sort-key-fields return string(current-group()[1]/*[local-name() = $k]), '|')
                             else current-grouping-key()"/>
 
-                        <xsl:variable name="first" select="current-group()[1]"/>
+                        <xsl:variable name="group" select="current-group()"/>
                         <fn:map>
-                            <!-- Copy all fields from first entity (excluding inscriptionId, indexType) -->
-                            <xsl:for-each select="$first/*[not(local-name() = ('inscriptionId', 'indexType'))]">
-                                <xsl:variable name="field-name" select="local-name()"/>
-                                <xsl:choose>
-                                    <xsl:when test=". = 'true' or . = 'false'">
-                                        <fn:boolean key="{$field-name}"><xsl:value-of select="."/></fn:boolean>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <fn:string key="{$field-name}"><xsl:value-of select="."/></fn:string>
-                                    </xsl:otherwise>
-                                </xsl:choose>
+                            <!-- For each field (excluding meta fields), collect per-language values -->
+                            <xsl:variable name="first" select="$group[1]"/>
+                            <xsl:for-each select="distinct-values($first/*/local-name()[not(. = ('inscriptionId', 'indexType'))])">
+                                <xsl:variable name="field-name" select="."/>
+                                <fn:map key="{$field-name}">
+                                    <xsl:for-each select="$all-languages">
+                                        <xsl:variable name="lang" select="."/>
+                                        <xsl:variable name="lang-entity" select="$group[@xml:lang = $lang][1]"/>
+                                        <xsl:if test="$lang-entity">
+                                            <fn:string key="{$lang}">
+                                                <xsl:value-of select="$lang-entity/*[local-name() = $field-name]"/>
+                                            </fn:string>
+                                        </xsl:if>
+                                    </xsl:for-each>
+                                </fn:map>
                             </xsl:for-each>
 
-                            <!-- References array -->
+                            <!-- References array (language-independent) -->
                             <fn:array key="references">
-                                <xsl:for-each select="current-group()">
-                                    <xsl:sort select="string(inscriptionId)"/>
+                                <xsl:for-each-group select="$group" group-by="string(inscriptionId)">
+                                    <xsl:sort select="current-grouping-key()"/>
                                     <fn:map>
-                                        <fn:string key="inscriptionId"><xsl:value-of select="inscriptionId"/></fn:string>
-                                        <xsl:for-each select="*[not(local-name() = ('inscriptionId', 'indexType', 'sortKey'))]">
-                                            <xsl:variable name="field-name" select="local-name()"/>
-                                            <xsl:choose>
-                                                <xsl:when test=". = 'true' or . = 'false'">
-                                                    <fn:boolean key="{$field-name}"><xsl:value-of select="."/></fn:boolean>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    <fn:string key="{$field-name}"><xsl:value-of select="."/></fn:string>
-                                                </xsl:otherwise>
-                                            </xsl:choose>
-                                        </xsl:for-each>
+                                        <fn:string key="inscriptionId"><xsl:value-of select="current-grouping-key()"/></fn:string>
                                     </fn:map>
-                                </xsl:for-each>
+                                </xsl:for-each-group>
                             </fn:array>
                         </fn:map>
                     </xsl:for-each-group>
@@ -171,7 +174,7 @@
                             select="$all-entities[@indexType = $index-id]"/>
                         <xsl:variable name="unique-count">
                             <xsl:value-of select="count(distinct-values(
-                                $index-entities/(sortKey, name, abbr, location)[normalize-space()][1]
+                                $index-entities/sortKey[normalize-space()]
                             ))"/>
                         </xsl:variable>
                         <fn:map>

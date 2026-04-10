@@ -1,11 +1,11 @@
 {# Data-driven index table partial
    Usage:
-     {% set documentBasePath = "/" + page.lang + "/inscriptions" %}
+     {% set documentBasePath = "/en/inscriptions" %}
      {% set indexData = indices.persons %}
      {% include "partials/index-table.njk" %}
    Requires:
      indexData — object with { columns, entries, description }
-     documentBasePath — base URL for document links (e.g. "/" + page.lang + "/seals")
+     documentBasePath — base URL for document links (e.g. "/en/seals", "/de/seals")
 #}
 
 {% if indexData %}
@@ -34,7 +34,8 @@
                             {% endfor %}
                         </td>
                     {% else %}
-                        <td>{{ entry[col.key] | default('-') }}</td>
+                        {% set val = entry[col.key] %}
+                        <td>{{ val[page.lang] | default(val.en) | default(val) | default('-') }}</td>
                     {% endif %}
                 {% endfor %}
             </tr>
