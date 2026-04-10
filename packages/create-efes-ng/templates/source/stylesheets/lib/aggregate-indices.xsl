@@ -36,7 +36,7 @@
         <xsl:variable name="all-entities" as="element()*">
             <xsl:for-each select="$all-docs">
                 <xsl:variable name="doc-id" select="string(/metadata/documentId)"/>
-                <xsl:for-each select="/metadata/entities/*/entity">
+                <xsl:for-each select="/metadata/entities[1]/*/entity">
                     <entity-with-ref>
                         <xsl:copy-of select="@*"/>
                         <inscriptionId><xsl:value-of select="$doc-id"/></inscriptionId>

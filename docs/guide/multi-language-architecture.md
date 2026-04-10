@@ -62,7 +62,7 @@ Each layer is handled at a different stage. For each language, the pipeline hand
 
 For each additional language, you need:
 
-1. **Pipeline nodes** — a set of prune → transform → extract → generate-data nodes with the language parameter
+1. **Pipeline nodes** — prune → transform nodes per language (for HTML rendering), a shared metadata extraction node (just add the language code to its `languages` parameter), and per-language sidecar data generation
 2. **XSLT message file** — `source/translations/messages_xx.xml` with translated UI labels
 3. **Eleventy translations** — language-specific data for the website shell (menu items, page titles, etc.)
 4. **Template updates** — templates use `permalink` pagination to generate pages per language

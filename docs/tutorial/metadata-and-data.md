@@ -23,20 +23,20 @@ We'll configure the first two nodes now. Index aggregation and search come later
 
 The `extract-epidoc-metadata` node reads each XML source file and extracts structured metadata — title, sort key, document ID, and other fields — into intermediate XML files.
 
-Uncomment this node in `pipeline.xml`, after `transform-epidoc`. The scaffold has it configured with `<files>source/inscriptions/*.xml</files>` — replace that with `<from>` to read the pruned English XML, just like we did for `transform-epidoc`:
+Uncomment this node in `pipeline.xml`, after `transform-epidoc`. Adapt `source/inscriptions` to `source/seals` to match our project:
 
 ```xml
 <xsltTransform name="extract-epidoc-metadata">
-  <sourceFiles>
-    <from node="prune-epidoc-english" output="transformed"/>
-  </sourceFiles>
+  <sourceFiles><files>source/seals/*.xml</files></sourceFiles>
   <stylesheet><files>source/indices-config.xsl</files></stylesheet>
+  <stylesheetParams>
+    <param name="languages">en</param>
+  </stylesheetParams>
 </xsltTransform>
 ```
 
-This is simpler than the transform node — no `<output>` configuration and no stylesheet parameters:
+Unlike `transform-epidoc`, this node reads the **raw source XML** directly — no pruning needed. The extraction templates use the `languages` parameter to select the right language content internally.
 
-- It uses `<from>` to read pruned input — just like `transform-epidoc` does (we introduced this in the [previous step](./adding-content#connecting-the-nodes-with-from))
 - It transforms each file with **`indices-config.xsl`** — your project's metadata configuration stylesheet, which defines which fields to extract from the XML
 - **No `<output>`** — this node's results are only consumed by other pipeline nodes via `<from>`, so the default build directory (`.efes-build/extract-epidoc-metadata/`) is fine
 
@@ -64,18 +64,18 @@ After the build, you can inspect the generated metadata files: in the GUI, click
 ```xml
 <metadata>
   <documentId>Feind_Kr1</documentId>
-  <page>
+  <sourceFile>Feind_Kr1.xml</sourceFile>
+  <page xml:lang="en">
     <language>en</language>
-    <sourceFile>Feind_Kr1.xml</sourceFile>
     <title>Seal of N. imperial protospatharios ...</title>
     <sortKey>Feind.Kr.00001.</sortKey>
   </page>
-  <entities/>
-  <search/>
+  <entities xml:lang="en"/>
+  <search xml:lang="en"/>
 </metadata>
 ```
 
-Notice how the structure reflects what's configured: `documentId`, `language`, and `sourceFile` come from the provided `extract-metadata.xsl` automatically, while `title` and `sortKey` come from the extraction templates you can see in `indices-config.xsl`. The `entities` and `search` sections are empty for now — we'll populate them when we add indices and search later.
+Notice how the structure reflects what's configured: `documentId` and `sourceFile` come from the framework automatically. The `<page>` section (tagged with `xml:lang`) contains fields from your `indices-config.xsl` — here `title` and `sortKey`. The `entities` and `search` sections are empty for now — we'll populate them when we add indices and search later.
 
 ## Generating Sidecar Files
 
@@ -94,6 +94,7 @@ Uncomment it (after `extract-epidoc-metadata`) and adapt the configuration — c
   <stylesheetParams>
     <param name="layout">layouts/document.njk</param>
     <param name="tags">seals</param>
+    <param name="language">en</param>
   </stylesheetParams>
   <output to="_assembly/en/seals"
           stripPrefix="source/seals"
@@ -101,7 +102,7 @@ Uncomment it (after `extract-epidoc-metadata`) and adapt the configuration — c
 </xsltTransform>
 ```
 
-This node uses `<from>` to read the metadata XML produced by `extract-epidoc-metadata` — the same pattern we've been using since the [prune step](./adding-content#connecting-the-nodes-with-from).
+This node uses `<from>` to read the metadata XML produced by `extract-epidoc-metadata` — the same pattern we introduced in the [previous step](./adding-content#connecting-the-nodes-with-from). The `language` parameter tells it which language's page data to pick from the metadata.
 
 The stylesheet parameters control the sidecar content:
 
@@ -186,8 +187,8 @@ flowchart TD
   output(["_output/"])
 
   seals --> prune --> pruned
+  seals --> extract --> meta
   pruned --> transform --> html
-  pruned --> extract --> meta
   meta --> data --> json
   templates --> copy --> site
 

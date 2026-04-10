@@ -43,7 +43,7 @@ This works just like `aggregate-indices` — it uses `<initialTemplate>` to proc
 > 1. The `extract-search` template in `indices-config.xsl` outputs `<title>`, `<material>`, `<fullText>` etc. for each document
 > 2. These end up in the `<search>` section of each metadata XML file (inspect them via `extract-epidoc-metadata`'s folder icon):
 >    ```xml
->    <search>
+>    <search xml:lang="en">
 >        <title>Seal of Manouel Mandromenos ...</title>
 >        <material>Lead</material>
 >        <fullText>Κύριε βοήθει τῷ σῷ δούλῳ Μανουὴλ ...</fullText>
@@ -177,12 +177,6 @@ For single-valued fields, the extraction is straightforward:
 
 ```xml
 <objectType><xsl:value-of select="normalize-space(//tei:objectType)"/></objectType>
-```
-
-Then add the corresponding `<efes-facet>` to the search page:
-
-```html
-<efes-facet field="objectType" label="Object Type"></efes-facet>
 ```
 
 For multi-valued fields (like our `milieu` example), use `<item>` children — the search component automatically treats these as multi-select facets.

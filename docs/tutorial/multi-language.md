@@ -12,7 +12,29 @@ With a static site, each language version needs its own set of HTML pages. Remem
 
 ### Pipeline Nodes
 
-Add these nodes to `pipeline.xml`. The pattern mirrors the English chain — prune, transform, extract metadata, generate data — with German language settings:
+Two kinds of changes are needed in `pipeline.xml`:
+
+**First**, update the existing `extract-epidoc-metadata` node to extract both languages. Change the `languages` parameter from `en` to `en,de`:
+
+```xml
+<xsltTransform name="extract-epidoc-metadata">
+    <sourceFiles><files>source/seals/*.xml</files></sourceFiles>
+    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
+    <stylesheetParams>
+        <param name="languages">en,de</param>
+    </stylesheetParams>
+</xsltTransform>
+```
+
+This single node now extracts metadata for both languages at once — no separate German extraction node needed.
+
+Also update the existing `generate-eleventy-data` node's tags to include the language suffix:
+
+```xml
+<param name="tags">seals-en</param>
+```
+
+**Then**, add the new German nodes:
 
 ```xml
 <!-- ===== GERMAN ===== -->
@@ -49,23 +71,17 @@ Add these nodes to `pipeline.xml`. The pattern mirrors the English chain — pru
             extension=".html"/>
 </xsltTransform>
 
-<xsltTransform name="extract-epidoc-metadata-german">
-    <sourceFiles>
-        <from node="prune-epidoc-german" output="transformed"/>
-    </sourceFiles>
-    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
-</xsltTransform>
-
 <xsltTransform name="generate-eleventy-data-german">
     <sourceFiles>
-        <from node="extract-epidoc-metadata-german" output="transformed"/>
+        <from node="extract-epidoc-metadata" output="transformed"/>
     </sourceFiles>
     <stylesheet>
         <files>source/stylesheets/lib/create-11ty-data.xsl</files>
     </stylesheet>
     <stylesheetParams>
         <param name="layout">layouts/document.njk</param>
-        <param name="tags">seals</param>
+        <param name="tags">seals-de</param>
+        <param name="language">de</param>
     </stylesheetParams>
     <output to="_assembly/de/seals"
             stripPrefix="source/seals"
@@ -74,10 +90,9 @@ Add these nodes to `pipeline.xml`. The pattern mirrors the English chain — pru
 ```
 
 Notice:
-- Each node name uses a `-german` suffix
-- `<param name="language">de</param>` selects German content and UI labels
-- Output paths use `de/seals` instead of `en/seals`
-- The `tags` parameter stays `seals` — both languages contribute to the same collection, and the template will filter by language later
+- **No separate extraction node** — the existing `extract-epidoc-metadata` handles both languages. Only the HTML rendering (`prune` + `transform`) and sidecar generation (`generate-eleventy-data`) need per-language nodes
+- `generate-eleventy-data-german` reads from the **same** `extract-epidoc-metadata` as the English version
+- Tags use a language suffix (`seals-en`, `seals-de`) — this creates separate Eleventy collections per language
 
 ### German UI Labels
 
@@ -100,7 +115,7 @@ The German seal pages work, but the seal list at `/de/seals/` doesn't exist yet.
 The simplest approach: copy the English seal list template. Duplicate `source/website/en/seals/index.njk` to `source/website/de/seals/index.njk` and make two changes:
 
 1. Change the title to "Siegel"
-2. Change `documentBasePath` to `/de/seals`
+2. Change the collection from `collections.seals` to `collections["seals-de"]` — this matches the `tags: "seals-de"` we set in the German pipeline node
 
 ```nunjucks
 ---
@@ -108,29 +123,20 @@ layout: layouts/base.njk
 title: Siegel
 ---
 
-{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
-{% set documents = collections.seals %}
+{% set documents = collections["seals-de"] %}
 ```
 
-Wait — `collections.seals` now contains both English *and* German seals (they share the same `tags` value). We need to filter by language. The `language` field in each seal's sidecar JSON makes this possible:
+Because we used language-suffixed tags (`seals-en`, `seals-de`), each language has its own collection. No filtering needed — `collections["seals-de"]` contains only German seals.
 
-```nunjucks
-{% set langSeals = [] %}
-{% for seal in collections.seals %}
-    {% if seal.data.language == "de" %}
-        {% set langSeals = (langSeals.push(seal), langSeals) %}
-    {% endif %}
-{% endfor %}
-{% set sorted = langSeals | sort(false, false, "data.sortKey") %}
-```
+Do the same for `document.njk` — update `collections.seals` to `collections["seals-" + page.lang]`. Since `page.lang` is auto-detected from the `/en/` or `/de/` directory, this one change makes the layout work for both languages.
 
-Do the same for `document.njk` — copy `source/website/_includes/layouts/document.njk` or update it to filter by language. Rebuild, and the German seal list at `/de/seals/` shows only German seals.
+Rebuild, and the German seal list at `/de/seals/` shows only German seals.
 
 ### This Works — But Doesn't Scale
 
 We now have a working German seal list. You could stop here for a two-language project — it's simple and explicit.
 
-But notice what happened: we copied a template file and hardcoded `"de"` in it. If we add Greek, we copy again. Every change to the table layout needs updating in all copies. For three or more languages, this becomes tedious and error-prone.
+But notice what happened: we copied a template file. If we add Greek, we copy again. Every change to the table layout needs updating in all copies. For three or more languages, this becomes tedious and error-prone.
 
 If you want a more maintainable approach, read on. Otherwise, skip to [Adding More Languages](#adding-more-languages).
 
@@ -164,15 +170,10 @@ Eleventy evaluates the `langCode` variable for each language code and generates 
 | `en` | `/en/seals/` |
 | `de` | `/de/seals/` |
 
-The language filtering becomes generic too — using `langCode` instead of hardcoded `"de"`:
+The collection reference becomes generic too — using `page.lang` instead of hardcoded language:
 
 ```nunjucks
-{% set langSeals = [] %}
-{% for seal in collections.seals %}
-    {% if seal.data.language == langCode %}
-        {% set langSeals = (langSeals.push(seal), langSeals) %}
-    {% endif %}
-{% endfor %}
+{% set documents = collections["seals-" + page.lang] %}
 ```
 
 With this approach, the original `en/seals/index.njk` and the copied `de/seals/index.njk` are replaced by a single `seals.njk` at the root of `source/website/`. Adding Greek later is just adding `"el"` to `languages.json`.
@@ -217,10 +218,11 @@ For simpler projects, the copy-per-language approach works fine. The pagination 
 
 To add Greek (or any other language), repeat the same steps:
 
-1. Add pipeline nodes (`prune-epidoc-greek`, `transform-epidoc-greek`, `extract-epidoc-metadata-greek`, `generate-eleventy-data-greek`) with `language=el`
-2. Add `messages_el.xml` translation file
-3. If using the permalink approach: add `"el"` to `languages.json` and create `el.json` translation data
-4. If using the copy approach: duplicate templates with `el` paths and language filtering
+1. Add `el` to the `languages` param in `extract-epidoc-metadata`: `en,de,el`
+2. Add pipeline nodes: `prune-epidoc-greek`, `transform-epidoc-greek` (for HTML rendering), and `generate-eleventy-data-greek` (for sidecar data with `tags: "seals-el"`)
+3. Add `messages_el.xml` translation file
+4. If using the permalink approach: add `"el"` to `languages.json` and create `el.json` translation data
+5. If using the copy approach: duplicate templates with `el` paths
 
 ## What We've Built
 
@@ -232,16 +234,15 @@ flowchart TD
 
     prune_en["Node: prune-epidoc-english"]
     prune_de["Node: prune-epidoc-german"]
+    extract["Node: extract-epidoc-metadata\n(languages: en,de)"]
 
-    subgraph English
+    subgraph "English (rendering)"
         transform_en["transform-epidoc"]
-        extract_en["extract-epidoc-metadata"]
         data_en["generate-eleventy-data"]
     end
 
-    subgraph German
+    subgraph "German (rendering)"
         transform_de["transform-epidoc-german"]
-        extract_de["extract-epidoc-metadata-german"]
         data_de["generate-eleventy-data-german"]
     end
 
@@ -250,18 +251,13 @@ flowchart TD
     build["Node: eleventy-build"]
     output(["_output/"])
 
-    seals --> prune_en
-    seals --> prune_de
-
-    prune_en --> transform_en
-    prune_en --> extract_en
-    extract_en --> data_en
-    extract_en --> agg
-    extract_en --> search
-
-    prune_de --> transform_de
-    prune_de --> extract_de
-    extract_de --> data_de
+    seals --> prune_en --> transform_en
+    seals --> prune_de --> transform_de
+    seals --> extract
+    extract --> data_en
+    extract --> data_de
+    extract --> agg
+    extract --> search
 
     transform_en --> build
     data_en --> build
@@ -273,9 +269,8 @@ flowchart TD
 
     style prune_de stroke:#2563eb,stroke-width:3px
     style transform_de stroke:#2563eb,stroke-width:3px
-    style extract_de stroke:#2563eb,stroke-width:3px
     style data_de stroke:#2563eb,stroke-width:3px
     style output fill:#fff3e0,stroke:#ff9800
 ```
 
-The German pipeline chain (highlighted in blue) mirrors the English chain. Both feed into the same Eleventy build, which produces a unified multi-language site.
+The German nodes (highlighted in blue) add a prune + transform chain for HTML rendering, and a sidecar data node. The metadata extraction is **shared** — one node handles both languages, so adding German didn't require duplicating the extraction step.

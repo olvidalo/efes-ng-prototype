@@ -73,6 +73,7 @@ This works as a starting point, but for our SigiDoc project the person encoding 
 ```xml
 <!-- Adapted for SigiDoc seal issuers -->
 <xsl:template match="tei:TEI" mode="extract-persons">
+    <xsl:param name="language" tunnel="yes"/>
     <xsl:for-each select=".//tei:listPerson[@type='issuer']/tei:person">
         <xsl:variable name="name" select="(tei:persName[@xml:lang=$language], tei:persName)[1]"/>
         <xsl:variable name="forename" select="normalize-space($name/tei:forename)"/>
@@ -118,7 +119,7 @@ This tells the metadata extraction to run your persons template for each documen
 Rebuild and inspect a metadata XML file (click the **folder icon** next to `extract-epidoc-metadata`). The `<entities>` section that was empty before should now contain person data:
 
 ```xml
-<entities>
+<entities xml:lang="en">
     <persons>
         <entity indexType="persons">
             <forename>Manouel</forename>

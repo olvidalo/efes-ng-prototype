@@ -33,9 +33,8 @@ These extract two fields from each seal's XML:
 Rebuild and inspect the results. Open a metadata XML file (click the **folder icon** next to `extract-epidoc-metadata`) — you should see the new fields in the `<page>` section:
 
 ```xml
-<page>
+<page xml:lang="en">
     <language>en</language>
-    <sourceFile>Feind_Kr1.xml</sourceFile>
     <title>Seal of N. imperial protospatharios ...</title>
     <sortKey>Feind.Kr.00001.</sortKey>
     <origDate>mid-10th c.</origDate>

@@ -32,7 +32,7 @@
                 <xsl:for-each select="$all-docs">
                     <xsl:sort select="string(/metadata/documentId)"/>
                     <xsl:variable name="doc-id" select="string(/metadata/documentId)"/>
-                    <xsl:variable name="search" select="/metadata/search"/>
+                    <xsl:variable name="search" select="/metadata/search[1]"/>
 
                     <fn:map>
                         <fn:string key="documentId"><xsl:value-of select="$doc-id"/></fn:string>

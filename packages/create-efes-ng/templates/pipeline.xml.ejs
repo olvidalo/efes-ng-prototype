@@ -38,6 +38,9 @@
   <xsltTransform name="extract-epidoc-metadata">
     <sourceFiles><files>source/inscriptions/*.xml</files></sourceFiles>
     <stylesheet><files>source/indices-config.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="languages">en</param>
+    </stylesheetParams>
   </xsltTransform>
   -->
 
@@ -48,6 +51,7 @@
     <stylesheetParams>
       <param name="layout">layouts/document.njk</param>
       <param name="tags">inscriptions</param>
+      <param name="language">en</param>
     </stylesheetParams>
     <output to="_assembly/en/inscriptions"
             stripPrefix="source/inscriptions"

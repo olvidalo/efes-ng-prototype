@@ -2,22 +2,28 @@
 <!--
     Generic XML-to-JSON converter for Eleventy .11tydata.json files.
 
-    Reads /metadata/page/* and documentId, produces JSON via fn:xml-to-json().
+    Reads /metadata/page[@xml:lang=$language]/* and documentId,
+    produces JSON via fn:xml-to-json().
     No domain logic — all project customisation happens upstream in extract-metadata hook.
 
     SSG routing params (layout, tags) are passed from the pipeline XML.
 -->
 <xsl:stylesheet version="3.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:fn="http://www.w3.org/2005/xpath-functions">
+    xmlns:fn="http://www.w3.org/2005/xpath-functions"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
     <xsl:output method="text"/>
 
     <!-- SSG routing config, passed as stylesheet parameters from the pipeline -->
-    <xsl:param name="layout" as="xs:string" select="''" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
-    <xsl:param name="tags" as="xs:string" select="''" xmlns:xs="http://www.w3.org/2001/XMLSchema"/>
+    <xsl:param name="layout" as="xs:string" select="''"/>
+    <xsl:param name="tags" as="xs:string" select="''"/>
+    <xsl:param name="language" as="xs:string" select="'en'"/>
 
     <xsl:template match="/">
+        <!-- Select page data for the requested language -->
+        <xsl:variable name="page" select="(/metadata/page[@xml:lang=$language], /metadata/page)[1]"/>
+
         <xsl:variable name="json-data" as="element(fn:map)">
             <fn:map>
                 <xsl:if test="$layout != ''">
@@ -29,7 +35,7 @@
                 <fn:string key="documentId">
                     <xsl:value-of select="/metadata/documentId"/>
                 </fn:string>
-                <xsl:for-each select="/metadata/page/*">
+                <xsl:for-each select="$page/*">
                     <xsl:choose>
                         <xsl:when test="*">
                             <!-- Has child elements (e.g. <textType><item>a</item><item>b</item></textType>) -->

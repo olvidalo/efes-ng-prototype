@@ -47,7 +47,8 @@ my-sigidoc-project/
 │   │   │       ├── base.css
 │   │   │       ├── epidoc.css
 │   │   │       └── project.css
-│   │   └── index.njk               # Homepage
+│   │   ├── index.njk               # Homepage
+│   │   └── eleventy.config.js      # Static site generator config
 │   └── indices-config.xsl          # Index & search configuration
 ```
 
@@ -58,6 +59,7 @@ my-sigidoc-project/
 - **`source/stylesheets/overrides.xsl`** — a place for your project-specific XSLT overrides (empty by default)
 - **`source/translations/`** — translation files for UI labels in the EpiDoc/SigiDoc XSLT output (e.g., "Material", "Type", "Dating")
 - **`source/website/`** — the website template: HTML layouts, CSS, and the homepage
+- **`source/website/eleventy.config.js`** — configures the Eleventy static site generator (language detection, translation filter)
 - **`source/indices-config.xsl`** — configures which metadata fields to extract for indices and search
 - **`source/authority/`** — will hold your controlled vocabulary XML files (geography, bibliography, etc.)
 :::

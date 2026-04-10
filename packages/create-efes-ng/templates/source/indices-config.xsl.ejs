@@ -23,6 +23,7 @@
          ═══════════════════════════════════════════════ -->
 
     <xsl:template match="tei:TEI" mode="extract-metadata">
+        <!-- Uncomment for multi-language support: <xsl:param name="language" tunnel="yes"/> -->
         <!-- Title: first <title> in titleStmt, falls back to filename -->
         <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
         <title>
@@ -86,6 +87,7 @@
 
     <!--
     <xsl:template match="tei:TEI" mode="extract-persons">
+        <!-- Uncomment for multi-language support: <xsl:param name="language" tunnel="yes"/> -->
         <xsl:for-each select=".//tei:persName[normalize-space()]">
             <xsl:variable name="displayName" select="normalize-space(.)"/>
             <entity indexType="persons">
@@ -97,6 +99,7 @@
     -->
 
     <xsl:template match="tei:TEI" mode="extract-all-entities">
+        <!-- Uncomment for multi-language support: <xsl:param name="language" tunnel="yes"/> -->
         <!-- Uncomment to enable persons index extraction -->
         <!-- <xsl:apply-templates select="." mode="extract-persons"/> -->
     </xsl:template>
@@ -109,6 +112,7 @@
          ═══════════════════════════════════════════════ -->
 
     <xsl:template match="tei:TEI" mode="extract-search">
+        <!-- Uncomment for multi-language support: <xsl:param name="language" tunnel="yes"/> -->
         <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
         <title><xsl:value-of select="if (string-length($tei-title) > 0)
             then $tei-title else $filename"/></title>
