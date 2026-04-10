@@ -30,7 +30,7 @@ interface CacheEntry {
     [filePath: string]: {
       hash: string;
       timestamp: number;
-      source: 'item' | 'fileRef' | 'discovered';
+      source: 'item' | 'fileRef' | 'discovered' | 'output';
     }
   };
 
@@ -137,6 +137,7 @@ export class CacheManager {
       for (const [nodeName, upstreamInfo] of Object.entries(entry.upstreamOutputSignatures)) {
         // Reconstruct the NodeOutputReference from stored metadata
         const nodeRef = {
+          type: 'from' as const,
           node: { name: nodeName },
           output: upstreamInfo.outputKey,
           glob: upstreamInfo.glob,
@@ -180,16 +181,8 @@ export class CacheManager {
       }
     }
 
-    // 3. Check all output files exist (moved to end - if dependencies valid, outputs usually exist)
-    for (const paths of Object.values(entry.outputsByKey)) {
-      for (const outputPath of paths) {
-        try {
-          await fs.access(outputPath);
-        } catch {
-          return `output missing: ${path.basename(outputPath)}`;
-        }
-      }
-    }
+    // Output existence and content integrity are now checked by the tracked files loop above
+    // (output files are tracked with source: 'output')
 
     return null;
   }
@@ -288,6 +281,21 @@ export class CacheManager {
           trackedFiles[filePath] = { hash, timestamp: stats.mtimeMs, source: 'discovered' };
         } catch {
           // Skip missing discovered dependencies
+        }
+      }
+    }
+
+    // Track output files (detects overwrites by different config runs)
+    for (const paths of Object.values(outputsByKey)) {
+      for (const filePath of paths) {
+        try {
+          const [hash, stats] = await Promise.all([
+            this.computeFileHash(filePath),
+            fs.stat(filePath)
+          ]);
+          trackedFiles[filePath] = { hash, timestamp: stats.mtimeMs, source: 'output' };
+        } catch {
+          // Skip missing outputs
         }
       }
     }
