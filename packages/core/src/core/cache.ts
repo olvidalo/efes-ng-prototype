@@ -243,7 +243,7 @@ export class CacheManager {
     precomputedHashes?: Map<string, {hash: string, timestamp: number}>;
   }): Promise<CacheEntry> {
     const { itemPaths, outputsByKey, outputBaseDir, itemKey, discoveredDependencies, fileRefPaths, upstreamOutputSignatures, precomputedHashes } = options;
-    const trackedFiles: Record<string, {hash: string, timestamp: number, source: 'item' | 'fileRef' | 'discovered'}> = {};
+    const trackedFiles: Record<string, {hash: string, timestamp: number, source: 'item' | 'fileRef' | 'discovered' | 'output'}> = {};
 
     // Track items
     for (const filePath of itemPaths) {
