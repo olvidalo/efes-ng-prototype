@@ -42,8 +42,13 @@ export class PipelineWatcher extends EventEmitter {
     }
 
     async start(): Promise<void> {
-        // Initial full build
-        await this.pipeline.run();
+        // Initial full build — continue to watch even if it fails
+        try {
+            await this.pipeline.run();
+        } catch (err) {
+            this.pipeline.emit('watch:rebuild:error', { error: err });
+            console.error(`\n--- Initial build failed, watching for changes ---\n`, err);
+        }
 
         // Collect paths to watch from node configs + discovered dependencies
         const watchPaths = [...this.collectWatchPaths(), this.configPath];

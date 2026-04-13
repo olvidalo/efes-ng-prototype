@@ -159,12 +159,15 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     private async resolveConfigValue(context: PipelineContext, value: any): Promise<any> {
         if (value == null) return value;
         if (isInput(value)) {
-            const resolved = await context.resolveInput(value);
+            // Register watch paths before resolving — if resolution fails (e.g. file
+            // not found), the watcher still monitors the pattern so adding the file
+            // later triggers a rebuild.
             if (value.type === 'files') {
                 for (const pattern of value.patterns) this.rootDependencies.add(pattern);
             } else if (value.type === 'dir') {
                 this.rootDependencies.add(value.path);
             }
+            const resolved = await context.resolveInput(value);
             return resolved;
         }
         if (isAbsolutePath(value)) {
