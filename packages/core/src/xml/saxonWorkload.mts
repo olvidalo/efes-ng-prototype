@@ -88,7 +88,13 @@ export async function performWork(job: TransformJob, log: WorkerLog): Promise<Tr
             return files.map(file => {
                 const absFile = path.resolve(job.baseDir, file);
                 const content = fsSync.readFileSync(absFile, 'utf-8');
-                const doc = platform.parseXmlFromString(content);
+                let doc;
+                try {
+                    doc = platform.parseXmlFromString(content);
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    throw new Error(`Failed to parse ${path.basename(absFile)}: ${message}`);
+                }
                 // Set the document URI property that SaxonJS uses for document-uri()
                 (doc as any)._saxonDocUri = pathToFileURL(absFile).href;
                 return doc;
@@ -103,18 +109,26 @@ export async function performWork(job: TransformJob, log: WorkerLog): Promise<Tr
 
     // Add source file if not no-source mode
     if (job.sourcePath) {
-        const sourceNode = await SaxonJS.getResource({
-            location: pathToFileURL(job.sourcePath).href, type: 'xml'
-        })
-        transformOptions.sourceNode = sourceNode;
+        try {
+            const sourceNode = await SaxonJS.getResource({
+                location: pathToFileURL(job.sourcePath).href, type: 'xml'
+            })
+            transformOptions.sourceNode = sourceNode;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            throw new Error(`Failed to parse ${path.basename(job.sourcePath)}: ${message}`);
+        }
     }
 
     let result
     try {
         result = await SaxonJS.transform(transformOptions);
     } catch (error) {
-        log(`Error transforming ${job.sourcePath} with ${path.basename(job.sefStylesheetPath, ".sef.json")}`);
-        throw error;
+        const stylesheet = path.basename(job.sefStylesheetPath, ".sef.json");
+        const source = job.sourcePath ? path.basename(job.sourcePath) : null;
+        const context = source ? `${source} with ${stylesheet}` : stylesheet;
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`${context}: ${message}`);
     }
 
     // Write principal result
