@@ -303,12 +303,12 @@
           {:else if node.durationMs !== undefined}
             <span class="duration">{(node.durationMs / 1000).toFixed(2)}s</span>
           {/if}
-          {#if summary?.error}
-            <span class="error-msg">{summary.error}</span>
-          {:else if node.error}
-            <span class="error-msg">{node.error}</span>
-          {/if}
         </div>
+        {#if summary?.error}
+          <div class="error-msg" style:padding-left="{4 + depth * 16 + 35}px">{summary.error}</div>
+        {:else if node.error}
+          <div class="error-msg" style:padding-left="{4 + depth * 16 + 35}px">{node.error}</div>
+        {/if}
       {/if}
     {/each}
   {/if}
@@ -510,5 +510,9 @@
   .error-msg {
     color: var(--ev-c-red);
     font-size: 12px;
+    padding-right: 4px;
+    margin-top: -2px;
+    margin-bottom: 2px;
+    line-height: 1.4;
   }
 </style>
