@@ -1,4 +1,4 @@
-import { I18nPlugin } from '@11ty/eleventy';
+import { I18nPlugin, HtmlBasePlugin } from '@11ty/eleventy';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -8,6 +8,7 @@ export default function (eleventyConfig) {
         defaultLanguage: 'en',
         errorMode: 'allow-fallback',
     });
+    eleventyConfig.addPlugin(HtmlBasePlugin);
 
     // Load translation files from _data/translations/*.json
     const translationsDir = path.resolve('.', '_data', 'translations');
@@ -30,4 +31,6 @@ export default function (eleventyConfig) {
             ?? translations['en']?.[key]
             ?? `[${key}]`;
     });
+
+    return { pathPrefix: process.env.PATH_PREFIX || '/' };
 }

@@ -1,13 +1,15 @@
-import { I18nPlugin } from '@11ty/eleventy';
+import { I18nPlugin, HtmlBasePlugin } from '@11ty/eleventy';
 import fs from 'node:fs';
 import path from 'node:path';
 
 export default function (eleventyConfig) {
-    // Built-in i18n plugin: provides page.lang, locale_url, locale_links
     eleventyConfig.addPlugin(I18nPlugin, {
         defaultLanguage: 'en',
         errorMode: 'allow-fallback',
     });
+
+    // Rewrites absolute URLs in HTML output to respect pathPrefix (for subdirectory deployment)
+    eleventyConfig.addPlugin(HtmlBasePlugin);
 
     // Load flat translation files from _data/translations/*.json
     const translationsDir = path.resolve('.', '_data', 'translations');
@@ -30,4 +32,8 @@ export default function (eleventyConfig) {
             ?? translations['en']?.[key]
             ?? `[${key}]`;
     });
+
+    return {
+        pathPrefix: process.env.PATH_PREFIX || '/',
+    };
 }

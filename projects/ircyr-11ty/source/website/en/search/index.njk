@@ -7,7 +7,8 @@ permalink: en/search/index.html
 <link rel="stylesheet" href="/assets/efes-search/efes-search.css">
 <script type="module" src="/assets/efes-search/efes-search.js"></script>
 
-<efes-search data-url="/search-data/documents_{{ page.lang }}.json" text-fields="fullText,title" match-mode="substring">
+{% set searchDataUrl = "/search-data/documents_" + page.lang + ".json" %}
+<efes-search data-url="{{ searchDataUrl | url }}" text-fields="fullText,title" match-mode="substring">
     <aside class="efes-facet-sidebar">
         <h2>Filter Results</h2>
 
@@ -34,7 +35,8 @@ permalink: en/search/index.html
 
         <efes-active-filters></efes-active-filters>
 
-        <efes-results result-url="/en/inscriptions/{documentId}/">
+        {% set resultUrl = "/en/inscriptions/{documentId}/" %}
+        <efes-results result-url="{{ resultUrl | url }}">
             <template>
                 <a>
                     <span class="doc-id" data-field="documentId"></span>

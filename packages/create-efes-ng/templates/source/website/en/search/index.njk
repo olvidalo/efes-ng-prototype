@@ -6,7 +6,8 @@ title: Search
 <link rel="stylesheet" href="/assets/efes-search/efes-search.css">
 <script type="module" src="/assets/efes-search/efes-search.js"></script>
 
-<efes-search data-url="/search-data/documents_{{ page.lang }}.json" text-fields="fullText,title" match-mode="prefix">
+{% set searchDataUrl = "/search-data/documents_" + page.lang + ".json" %}
+<efes-search data-url="{{ searchDataUrl | url }}" text-fields="fullText,title" match-mode="prefix">
     <aside class="efes-facet-sidebar">
         <h2>Filter Results</h2>
         <efes-search-input placeholder="Search..."></efes-search-input>
@@ -24,7 +25,8 @@ title: Search
     <div class="efes-search-main">
         <efes-active-filters></efes-active-filters>
 
-        <efes-results result-url="/{{ page.lang }}/inscriptions/{documentId}/">
+        {% set resultUrl = "/" + page.lang + "/inscriptions/{documentId}/" %}
+        <efes-results result-url="{{ resultUrl | url }}">
             <template>
                 <a>
                     <div class="efes-result-title">
