@@ -95,7 +95,7 @@ body > header {
 
 .nav-link {
     display: flex; align-items: center; padding: 0 0.75rem;
-    font-size: 0.875rem; font-weight: 600; color: var(--header-text);
+    font-size: 0.85rem; font-weight: 600; color: var(--header-text);
     text-decoration: none; text-transform: uppercase; letter-spacing: 0.06em;
     border-bottom: 3px solid transparent; margin-bottom: -3px;
     transition: color 0.15s;
@@ -124,7 +124,7 @@ footer {
     padding: 1.5rem 0; margin-top: 3rem; border-top: 2px solid var(--accent);
 }
 .footer-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; text-align: center; }
-footer p { margin: 0; font-size: 0.8125rem; color: rgba(226,232,240,0.6); }
+footer p { margin: 0; font-size: 0.8rem; color: rgba(226,232,240,0.6); }
 footer a { color: var(--header-text); text-decoration: none; }
 
 /* Data tables */
@@ -141,7 +141,7 @@ footer a { color: var(--header-text); text-decoration: none; }
 .data-table tbody tr:last-child td { border-bottom: none; }
 
 /* Document navigation */
-.doc-nav { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.625rem 0; margin-bottom: 0.5rem; font-size: 0.8125rem; }
+.doc-nav { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.625rem 0; margin-bottom: 0.5rem; font-size: 0.8rem; }
 .doc-nav--bottom { margin-bottom: 0; margin-top: 1rem; justify-content: center; }
 .doc-nav-back { color: var(--slate); text-decoration: none; font-weight: 500; }
 .doc-nav-pager { display: flex; gap: 0.5rem; }
@@ -153,8 +153,30 @@ footer a { color: var(--header-text); text-decoration: none; }
 .document { background: var(--bg-light); border: 1px solid var(--border-color); padding: 2rem 2.5rem; margin-top: 1rem; line-height: 1.7; }
 .doc-title { color: var(--primary); font-weight: 600; font-size: 2rem; margin: 0 0 1.5rem; padding: 0; border: none; }
 
-/* Intro text */
-.index-intro { font-size: 0.9375rem; color: var(--slate); margin-bottom: 1.5rem; }
+/* Intro/summary text */
+.index-intro, .list-summary { font-size: 0.9rem; color: var(--slate); margin-bottom: 1.5rem; }
+.entry-count-info { color: var(--slate); font-size: 0.85rem; margin-bottom: 0.75rem; }
+
+/* Document list tables */
+.doc-list-id { white-space: nowrap; font-weight: 600; }
+.data-table td a { color: var(--ink); text-decoration: none; }
+.data-table td a:hover { color: var(--accent); }
+
+/* Index tables */
+.index-table { margin-bottom: 2rem; }
+.index-table td:first-child { font-weight: 500; color: var(--ink); }
+.index-table .references { font-size: 0.85rem; line-height: 1.6; }
+.index-table .references a { color: var(--accent); text-decoration: none; }
+.index-table .references a:hover { text-decoration: underline; }
+
+/* Index notes */
+.index-notes {
+    background: var(--accent-faint);
+    border-left: 3px solid var(--accent);
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.index-notes p { margin: 0; color: var(--slate); font-size: 0.9rem; }
 
 /* ── Index cards ── */
 
@@ -192,7 +214,7 @@ footer a { color: var(--header-text); text-decoration: none; }
 .index-card p {
     margin: 0 0 0.75rem;
     color: var(--slate);
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     line-height: 1.5;
 }
 
@@ -201,7 +223,7 @@ footer a { color: var(--header-text); text-decoration: none; }
     padding: 0.2rem 0.625rem;
     background: var(--accent-faint);
     color: var(--accent);
-    font-size: 0.8125rem;
+    font-size: 0.8rem;
     font-weight: 600;
     border-radius: 3px;
 }
@@ -244,8 +266,10 @@ footer a { color: var(--header-text); text-decoration: none; }
 
 @media (max-width: 768px) {
     .layout-grid { padding: 0 1.25rem; }
-    h1 { font-size: 1.875rem; }
+    h1 { font-size: 1.875rem; margin: 1.5rem 0 0.75rem; }
     .header-content { flex-wrap: wrap; gap: 0.75rem; padding: 1rem 0; }
     .site-nav { order: 3; width: 100%; flex-wrap: wrap; }
     .document { padding: 1.25rem; }
+    .doc-nav { flex-direction: column; align-items: flex-start; }
+    .doc-nav-pager { width: 100%; justify-content: space-between; }
 }

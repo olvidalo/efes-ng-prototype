@@ -14,7 +14,7 @@
     grid-template-columns: minmax(140px, auto) 1fr;
     gap: 0.5rem 1.25rem;
     margin: 0;
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
 }
 
 .document [id="stone"] dl.iospe dt,
@@ -22,7 +22,7 @@
 .document #bibliography dl.iospe dt {
     font-weight: 600;
     color: var(--slate);
-    font-size: 0.875rem;
+    font-size: 0.85rem;
 }
 
 .document [id="stone"] dl.iospe dd,
@@ -75,7 +75,7 @@
 
 .textpart[lang="grc"] {
     font-family: var(--font-greek);
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
 }
 
 .ab { display: block; }
@@ -132,7 +132,7 @@ dl.box img:hover {
 }
 
 dl.box dt {
-    font-size: 0.8125rem;
+    font-size: 0.8rem;
     color: var(--slate);
     font-style: italic;
     margin-top: 0.375rem;
