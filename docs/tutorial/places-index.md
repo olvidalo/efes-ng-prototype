@@ -169,7 +169,7 @@ eleventyComputed:
 ```
 
 If you're using the copy approach instead, create `source/website/en/indices/places.njk` (e. g. by copying from the existing persons index, and `de/indices/places.njk` for German) with the appropriate title.
-
+ 
 ## See It Work
 
 Rebuild and navigate to the Indices page — you should see a "Place Names" card alongside "Persons." Click it to see place names extracted from the seals, with links to the seal pages where each place appears.

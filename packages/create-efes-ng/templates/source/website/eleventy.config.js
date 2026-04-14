@@ -28,6 +28,6 @@ export default function (eleventyConfig) {
         const lang = this.page?.lang || 'en';
         return translations[lang]?.[key]
             ?? translations['en']?.[key]
-            ?? key;
+            ?? `[${key}]`;
     });
 }

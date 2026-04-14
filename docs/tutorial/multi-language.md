@@ -281,7 +281,7 @@ In a template, you use it wherever a translated text should appear:
 {{ "seals" | t }}
 ```
 
-On an English page (`page.lang = "en"`), this looks up `seals` in `en.json` and outputs "Seals". On a German page, it looks up the same key in `de.json` and outputs "Siegel". If a key is missing in the current language, it falls back to English, then to the raw key.
+On an English page (`page.lang = "en"`), this looks up `seals` in `en.json` and outputs "Seals". On a German page, it looks up the same key in `de.json` and outputs "Siegel". If a key is missing in the current language, it falls back to English, then to the raw key wrapped in brackets.
 
 The scaffold includes an `en.json.example` file in `source/website/_data/translations/`. Rename it to `en.json` and create a `de.json` alongside it with the German translations:
 
@@ -308,7 +308,7 @@ Then replace hardcoded strings in your templates with `| t` lookups. For example
 <a href="/{{ page.lang }}/seals/" class="nav-link">{{ "seals" | t }}</a>
 ```
 
-The `t` filter automatically looks up the key in the translation file matching `page.lang`. If no translation is found, it falls back to English, then to the raw key.
+The `t` filter automatically looks up the key in the translation file matching `page.lang`. If no translation is found, it falls back to English, then to the raw key wrapped in brackets.
 
 If you like, try it on a few texts across the project. Then let's go on to internationalise the remaining sections of the site.
 
