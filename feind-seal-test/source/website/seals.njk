@@ -1,0 +1,42 @@
+---
+layout: layouts/base.njk
+title: Seals
+permalink: "{{ langCode }}/seals/index.html"
+pagination:
+    data: languages.codes
+    size: 1
+    alias: langCode
+eleventyComputed:
+    title: "{{ 'seals' | t }}"
+---
+
+{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
+{% set documents = collections["seals-" + page.lang] %}
+
+<p class="index-intro">Browse all {{ documents | length | default(0) }} seals in the collection.</p>
+
+<table class="data-table">
+    <thead>
+    <tr>
+        <th>Document ID</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Dating</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if documents and documents | length > 0 %}
+        {% set sorted = documents | sort(false, false, "data.sortKey") %}
+        {% for document in sorted %}
+            <tr>
+                <td><a href="{{ document.url }}">{{ document.data.documentId }}</a></td>
+                <td>{{ document.data.title }}</td>
+                <td>{{ document.data.category }}</td>
+                <td>{{ document.data.origDate }}</td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        <tr><td colspan="3">No seals available.</td></tr>
+    {% endif %}
+    </tbody>
+</table>

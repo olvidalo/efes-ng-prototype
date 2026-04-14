@@ -1,0 +1,55 @@
+{# Data-driven index table partial
+   Usage:
+     {% set documentBasePath = "/en/inscriptions" %}
+     {% set indexData = indices.persons %}
+     {% include "partials/index-table.njk" %}
+   Requires:
+     indexData — object with { columns, entries, description }
+     documentBasePath — base URL for document links (e.g. "/en/seals", "/de/seals")
+#}
+
+{% if indexData %}
+    {% if indexData.description %}
+    <p class="index-intro">{{ indexData.description }}</p>
+    {% endif %}
+
+    {% macro renderTable(entries, columns, basePath) %}
+    <table class="data-table index-table">
+        <thead>
+            <tr>
+                {% for col in columns %}
+                <th>{{ col.header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for entry in entries %}
+            <tr>
+                {% for col in columns %}
+                    {% if col.type == 'references' %}
+                        <td class="references">
+                            {% for ref in entry.references %}
+                                <a href="{{ basePath }}/{{ ref.inscriptionId }}/">{{ ref.inscriptionId }}</a>
+                                {%- if not loop.last %} {% endif %}
+                            {% endfor %}
+                        </td>
+                    {% else %}
+                        {% set val = entry[col.key] %}
+                        {% if val is string or val is number %}
+                            <td>{{ val | default('-') }}</td>
+                        {% else %}
+                            <td>{{ val[page.lang] | default(val.en) | default(val | dictsort | first | last) | default('-') }}</td>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endmacro %}
+
+    <p class="entry-count-info">{{ indexData.entries | length }} entries</p>
+    {{ renderTable(indexData.entries, indexData.columns, documentBasePath) }}
+{% else %}
+    <p>No index data available.</p>
+{% endif %}

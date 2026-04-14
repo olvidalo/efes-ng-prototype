@@ -1,0 +1,28 @@
+---
+layout: layouts/base.njk
+permalink: "{{ langCode }}/indices/index.html"
+pagination:
+    data: languages.codes
+    size: 1
+    alias: langCode
+eleventyComputed:
+    title: "{{ 'indices' | t }}"
+---
+
+<p class="index-intro">Browse the entity indices for the collection.</p>
+
+<div class="indices-grid">
+{% if indices._summary and indices._summary.indices %}
+    {% for idx in indices._summary.indices %}
+    <a href="/{{ page.lang }}/indices/{{ idx.id }}/" class="index-card">
+        <h3>{{ idx.title }}</h3>
+        {% if idx.description %}
+        <p>{{ idx.description }}</p>
+        {% endif %}
+        <span class="entry-count">{{ idx.entryCount }} entries</span>
+    </a>
+    {% endfor %}
+{% else %}
+    <p>No indices available yet. Add XML documents to source/inscriptions/ and run the pipeline.</p>
+{% endif %}
+</div>

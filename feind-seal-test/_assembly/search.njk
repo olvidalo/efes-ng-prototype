@@ -1,0 +1,45 @@
+---
+layout: layouts/base.njk
+permalink: "{{ langCode }}/search/index.html"
+pagination:
+    data: languages.codes
+    size: 1
+    alias: langCode
+eleventyComputed:
+    title: "{{ 'search' | t }}"
+---
+
+<link rel="stylesheet" href="/assets/efes-search/efes-search.css">
+<script type="module" src="/assets/efes-search/efes-search.js"></script>
+
+<efes-search data-url="/search-data/documents_{{ page.lang }}.json" text-fields="fullText,title" match-mode="substring">
+    <aside class="efes-facet-sidebar">
+        <h2>Filter Results</h2>
+        <efes-search-input placeholder="Search..."></efes-search-input>
+
+        <efes-facet field="milieu" label="Milieu" expanded></efes-facet>
+
+        <div class="efes-filter-actions">
+            <button data-action="clear-all">Clear All Filters</button>
+        </div>
+    </aside>
+
+    <div class="efes-search-main">
+        <efes-active-filters></efes-active-filters>
+
+        <efes-results result-url="/{{ page.lang }}/seals/{documentId}/">
+            <template>
+                <a>
+                    <div class="efes-result-title">
+                        <span class="doc-id" data-field="documentId"></span>
+                        <span data-field="title"></span>
+                    </div>
+                    <div class="efes-result-details">
+                        <span data-field="origDate"></span>
+                        <span data-field="milieu"></span>
+                    </div>
+                </a>
+            </template>
+        </efes-results>
+    </div>
+</efes-search>

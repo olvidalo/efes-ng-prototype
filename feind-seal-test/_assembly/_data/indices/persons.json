@@ -1,0 +1,1439 @@
+{
+"id":"persons",
+"title":"Persons",
+"description":"Persons attested in the collection.",
+"columns":[
+   {
+      "key":"forename",
+      "header":"Forename"
+   },
+   {
+      "key":"surname",
+      "header":"Surname"
+   },
+   {
+      "key":"references",
+      "header":"Seals",
+      "type":"references"
+   }],
+"entries":[
+   {
+      "forename":{
+         "en":"Aetios",
+         "de":"Aetios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"aetios ",
+         "de":"aetios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S26"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Alexios",
+         "de":"Alexios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"alexios ",
+         "de":"alexios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB367"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Anastasios",
+         "de":"Anastasios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"anastasios ",
+         "de":"anastasios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S214"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Andronikos",
+         "de":"Andronikos"
+      },
+      "surname":{
+         "en":"N.",
+         "de":"N."
+      },
+      "sortKey":{
+         "en":"andronikos n.",
+         "de":"andronikos n."
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB116"
+         }]
+   },
+   {
+      "forename":{
+         "de":"Anonym"
+      },
+      "surname":{
+         "de":""
+      },
+      "sortKey":{
+         "de":"anonym "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S216"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Anonymous"
+      },
+      "surname":{
+         "en":""
+      },
+      "sortKey":{
+         "en":"anonymous "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S216"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Artemios",
+         "de":"Artemios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"artemios ",
+         "de":"artemios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S290"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Athenaios",
+         "de":"Athenaios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"athenaios ",
+         "de":"athenaios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_M163"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Auxentios",
+         "de":"Auxentios"
+      },
+      "surname":{
+         "en":"Hexakionites",
+         "de":"Hexakionites"
+      },
+      "sortKey":{
+         "en":"auxentios hexakionites",
+         "de":"auxentios hexakionites"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB12"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Bardas",
+         "de":"Bardas"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"bardas ",
+         "de":"bardas "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr10"
+         },
+         {
+            "inscriptionId":"Feind_Kr35"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Basileios",
+         "de":"Basileios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"basileios ",
+         "de":"basileios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr3"
+         },
+         {
+            "inscriptionId":"Feind_Kr81"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Basileios",
+         "de":"Basileios"
+      },
+      "surname":{
+         "en":"Apokapes",
+         "de":"Apokapes"
+      },
+      "sortKey":{
+         "en":"basileios apokapes",
+         "de":"basileios apokapes"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB115"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Basileios"
+      },
+      "surname":{
+         "en":"Mauros"
+      },
+      "sortKey":{
+         "en":"basileios mauros"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S112"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Basileios",
+         "de":"Basileios"
+      },
+      "surname":{
+         "en":"N.",
+         "de":"N."
+      },
+      "sortKey":{
+         "en":"basileios n.",
+         "de":"basileios n."
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB359"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Basileios",
+         "de":"Basileios"
+      },
+      "surname":{
+         "en":"Pediadites",
+         "de":"Pediadites"
+      },
+      "sortKey":{
+         "en":"basileios pediadites",
+         "de":"basileios pediadites"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB28"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Basileios",
+         "de":"Basileios"
+      },
+      "surname":{
+         "en":"Xeros",
+         "de":"Xeros"
+      },
+      "sortKey":{
+         "en":"basileios xeros",
+         "de":"basileios xeros"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB249"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Bonosos",
+         "de":"Bonosos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"bonosos ",
+         "de":"bonosos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S12"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Chrestos",
+         "de":"Chrestos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"chrestos ",
+         "de":"chrestos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB265"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Damianos",
+         "de":"Damianos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"damianos ",
+         "de":"damianos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr17"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Demetrios",
+         "de":"Demetrios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"demetrios ",
+         "de":"demetrios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB321"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Dorotheos",
+         "de":"Dorotheos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"dorotheos ",
+         "de":"dorotheos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S129"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Eustathios",
+         "de":"Eustathios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"eustathios ",
+         "de":"eustathios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB545"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Euthymios",
+         "de":"Euthymios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"euthymios ",
+         "de":"euthymios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB89"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Genesios",
+         "de":"Genesios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"genesios ",
+         "de":"genesios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB118"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Georgios",
+         "de":"Georgios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"georgios ",
+         "de":"georgios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S172"
+         },
+         {
+            "inscriptionId":"Feind_S218"
+         },
+         {
+            "inscriptionId":"Feind_S260"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Georgios",
+         "de":"Georgios"
+      },
+      "surname":{
+         "en":"Hexamilites",
+         "de":"Hexamilites"
+      },
+      "sortKey":{
+         "en":"georgios hexamilites",
+         "de":"georgios hexamilites"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB458"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Georgios",
+         "de":"Georgios"
+      },
+      "surname":{
+         "en":"Palaiologos",
+         "de":"Palaiologos"
+      },
+      "sortKey":{
+         "en":"georgios palaiologos",
+         "de":"georgios palaiologos"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB357"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Herakleios",
+         "de":"Herakleios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"herakleios ",
+         "de":"herakleios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S4"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Hypatios",
+         "de":"Hypatios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"hypatios ",
+         "de":"hypatios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB10"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Ioannes",
+         "de":"Ioannes"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"ioannes ",
+         "de":"ioannes "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S108"
+         },
+         {
+            "inscriptionId":"Feind_S16"
+         },
+         {
+            "inscriptionId":"Feind_SB146"
+         },
+         {
+            "inscriptionId":"Feind_SB21"
+         },
+         {
+            "inscriptionId":"Feind_SB36"
+         },
+         {
+            "inscriptionId":"Feind_SB37"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Ioannikios",
+         "de":"Ioannikios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"ioannikios ",
+         "de":"ioannikios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S152"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Ioseph",
+         "de":"Ioseph"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"ioseph ",
+         "de":"ioseph "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB117"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Kallinikos",
+         "de":"Kallinikos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"kallinikos ",
+         "de":"kallinikos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB475"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Konstantinos",
+         "de":"Konstantinos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"konstantinos ",
+         "de":"konstantinos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB13"
+         },
+         {
+            "inscriptionId":"Feind_SB140"
+         },
+         {
+            "inscriptionId":"Feind_SB203"
+         },
+         {
+            "inscriptionId":"Feind_SB304"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Konstantinos",
+         "de":"Konstantinos"
+      },
+      "surname":{
+         "en":"Panagiotes",
+         "de":"Panagiotes"
+      },
+      "sortKey":{
+         "en":"konstantinos panagiotes",
+         "de":"konstantinos panagiotes"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S179"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Konstantinos",
+         "de":"Konstantinos"
+      },
+      "surname":{
+         "en":"Potholinos",
+         "de":"Potholinos"
+      },
+      "sortKey":{
+         "en":"konstantinos potholinos",
+         "de":"konstantinos potholinos"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB114"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Kosmas",
+         "de":"Kosmas"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"kosmas ",
+         "de":"kosmas "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S29"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Leon",
+         "de":"Leon"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"leon ",
+         "de":"leon "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB16"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Leon",
+         "de":"Leon"
+      },
+      "surname":{
+         "en":"Blangas",
+         "de":"Blangas"
+      },
+      "sortKey":{
+         "en":"leon blangas",
+         "de":"leon blangas"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S23"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Manouel"
+      },
+      "surname":{
+         "en":""
+      },
+      "sortKey":{
+         "en":"manouel "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB121"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Manouel",
+         "de":"Manouel"
+      },
+      "surname":{
+         "en":"Mandromenos",
+         "de":"Mandromenos"
+      },
+      "sortKey":{
+         "en":"manouel mandromenos",
+         "de":"manouel mandromenos"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr12"
+         }]
+   },
+   {
+      "forename":{
+         "de":"Manuel"
+      },
+      "surname":{
+         "de":""
+      },
+      "sortKey":{
+         "de":"manuel "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB121"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Maria",
+         "de":"Maria"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"maria ",
+         "de":"maria "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S1"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Maria",
+         "de":"Maria"
+      },
+      "surname":{
+         "en":"Dalassene",
+         "de":"Dalassene"
+      },
+      "sortKey":{
+         "en":"maria dalassene",
+         "de":"maria dalassene"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB360"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Marianos",
+         "de":"Marianos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"marianos ",
+         "de":"marianos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S17"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Martinos",
+         "de":"Martinos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"martinos ",
+         "de":"martinos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_M160"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Maurianos",
+         "de":"Maurianos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"maurianos ",
+         "de":"maurianos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S13"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Michael",
+         "de":"Michael"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"michael ",
+         "de":"michael "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S2"
+         },
+         {
+            "inscriptionId":"Feind_SB17"
+         },
+         {
+            "inscriptionId":"Feind_SB193"
+         },
+         {
+            "inscriptionId":"Feind_SB44"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Michael",
+         "de":"Michael"
+      },
+      "surname":{
+         "en":"Goudeles",
+         "de":"Goudeles"
+      },
+      "sortKey":{
+         "en":"michael goudeles",
+         "de":"michael goudeles"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB19"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Michael",
+         "de":"Michael"
+      },
+      "surname":{
+         "en":"Karantenos",
+         "de":"Karantenos"
+      },
+      "sortKey":{
+         "en":"michael karantenos",
+         "de":"michael karantenos"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S9"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Michael",
+         "de":"Michael"
+      },
+      "surname":{
+         "en":"Lazaritzes",
+         "de":"Lazaritzes"
+      },
+      "sortKey":{
+         "en":"michael lazaritzes",
+         "de":"michael lazaritzes"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB4"
+         }]
+   },
+   {
+      "forename":{
+         "en":"N.",
+         "de":"N."
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"n. ",
+         "de":"n. "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr1"
+         },
+         {
+            "inscriptionId":"Feind_S11"
+         }]
+   },
+   {
+      "forename":{
+         "en":"N.",
+         "de":"N."
+      },
+      "surname":{
+         "en":"Libellisios",
+         "de":"Libellisios"
+      },
+      "sortKey":{
+         "en":"n. libellisios",
+         "de":"n. libellisios"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB111"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Nikephoros",
+         "de":"Nikephoros"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"nikephoros ",
+         "de":"nikephoros "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr11"
+         },
+         {
+            "inscriptionId":"Feind_S3"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Nikephoros",
+         "de":"Nikephoros"
+      },
+      "surname":{
+         "en":"Botaneiates",
+         "de":"Botaneiates"
+      },
+      "sortKey":{
+         "en":"nikephoros botaneiates",
+         "de":"nikephoros botaneiates"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB2"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Nikephoros",
+         "de":"Nikephoros"
+      },
+      "surname":{
+         "en":"Nesiotes",
+         "de":"Nesiotes"
+      },
+      "sortKey":{
+         "en":"nikephoros nesiotes",
+         "de":"nikephoros nesiotes"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB278"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Nikephoros",
+         "de":"Nikephoros"
+      },
+      "surname":{
+         "en":"Theodorokanos",
+         "de":"Theodorokanos"
+      },
+      "sortKey":{
+         "en":"nikephoros theodorokanos",
+         "de":"nikephoros theodorokanos"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB14"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Niketas",
+         "de":"Niketas"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"niketas ",
+         "de":"niketas "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S195"
+         },
+         {
+            "inscriptionId":"Feind_SB18"
+         },
+         {
+            "inscriptionId":"Feind_SB196"
+         },
+         {
+            "inscriptionId":"Feind_SB261"
+         },
+         {
+            "inscriptionId":"Feind_SB292"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Niketas",
+         "de":"Niketas"
+      },
+      "surname":{
+         "en":"Platys",
+         "de":"Platys"
+      },
+      "sortKey":{
+         "en":"niketas platys",
+         "de":"niketas platys"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB20"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Nikolaos",
+         "de":"Nikolaos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"nikolaos ",
+         "de":"nikolaos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr19"
+         },
+         {
+            "inscriptionId":"Feind_Kr42"
+         },
+         {
+            "inscriptionId":"Feind_Kr5"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Petros",
+         "de":"Petros"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"petros ",
+         "de":"petros "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB198"
+         },
+         {
+            "inscriptionId":"Feind_SB260"
+         },
+         {
+            "inscriptionId":"Feind_SB27"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Sergios",
+         "de":"Sergios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"sergios ",
+         "de":"sergios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S50"
+         },
+         {
+            "inscriptionId":"Feind_SB462"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Stephanos",
+         "de":"Stephanos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"stephanos ",
+         "de":"stephanos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S217"
+         },
+         {
+            "inscriptionId":"Feind_SB110"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Symeon",
+         "de":"Symeon"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"symeon ",
+         "de":"symeon "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr40"
+         },
+         {
+            "inscriptionId":"Feind_S225"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Tarasios",
+         "de":"Tarasios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"tarasios ",
+         "de":"tarasios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB1"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Theodoros",
+         "de":"Theodoros"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"theodoros ",
+         "de":"theodoros "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_M164"
+         },
+         {
+            "inscriptionId":"Feind_S289"
+         },
+         {
+            "inscriptionId":"Feind_S55"
+         },
+         {
+            "inscriptionId":"Feind_S7"
+         },
+         {
+            "inscriptionId":"Feind_SB45"
+         },
+         {
+            "inscriptionId":"Feind_SB61"
+         },
+         {
+            "inscriptionId":"Feind_SB97"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Theodoros",
+         "de":"Theodoros"
+      },
+      "surname":{
+         "en":"Megalommates",
+         "de":"Megalommates"
+      },
+      "sortKey":{
+         "en":"theodoros megalommates",
+         "de":"theodoros megalommates"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB295"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Theodosios",
+         "de":"Theodosios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"theodosios ",
+         "de":"theodosios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr2"
+         },
+         {
+            "inscriptionId":"Feind_SB570"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Theophanios",
+         "de":"Theophanios"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"theophanios ",
+         "de":"theophanios "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_Kr102"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Theophylaktos",
+         "de":"Theophylaktos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"theophylaktos ",
+         "de":"theophylaktos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB199"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Therdatos",
+         "de":"Therdatos"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"therdatos ",
+         "de":"therdatos "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_SB32"
+         }]
+   },
+   {
+      "forename":{
+         "de":"Βασίλειος"
+      },
+      "surname":{
+         "de":"Μαυρός"
+      },
+      "sortKey":{
+         "de":"βασίλειος μαυρός"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S112"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Ἰωάννης",
+         "de":"Ἰωάννης"
+      },
+      "surname":{
+         "en":"Λιπαρινός",
+         "de":"Λιπαρινός"
+      },
+      "sortKey":{
+         "en":"ἰωάννης λιπαρινός",
+         "de":"ἰωάννης λιπαρινός"
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S5"
+         }]
+   },
+   {
+      "forename":{
+         "en":"Κωνσταντῖνος",
+         "de":"Κωνσταντῖνος"
+      },
+      "surname":{
+         "en":"",
+         "de":""
+      },
+      "sortKey":{
+         "en":"κωνσταντῖνος ",
+         "de":"κωνσταντῖνος "
+      },
+      "references":[
+         {
+            "inscriptionId":"Feind_S167"
+         }]
+   }]
+}

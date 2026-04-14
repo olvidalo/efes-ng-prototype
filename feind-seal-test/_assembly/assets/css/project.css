@@ -1,0 +1,14 @@
+/*
+ * Project-specific CSS overrides for Feind Seal Test.
+ *
+ * Rules here override base.css by source order (loaded after it).
+ *
+ * To change the theme, override CSS custom properties:
+ *
+ *   :root {
+ *     --primary: #1a5276;
+ *     --accent: #cc9900;
+ *   }
+ *
+ * See base.css :root for all available variables.
+ */

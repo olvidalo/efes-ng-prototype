@@ -1,0 +1,19 @@
+{
+"indices":[
+   {
+      "id":"persons",
+      "title":"Persons",
+      "description":"Persons attested in the collection.",
+      "order":10,
+      "nav":"indices",
+      "entryCount":74
+   },
+   {
+      "id":"places",
+      "title":"Place Names",
+      "description":"Place names attested on seals.",
+      "order":20,
+      "nav":"indices",
+      "entryCount":33
+   }]
+}

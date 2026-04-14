@@ -1,0 +1,40 @@
+<header>
+    <div class="header-inner">
+        <div class="header-content">
+            <h1 id="site-title">
+                <a href="/{{ page.lang }}/" class="site-title-link">
+                    <!-- Website Title -->
+                    <span class="site-title-full">Feind Seal Test</span>
+                </a>
+            </h1>
+
+            <nav class="site-nav">
+                <a href="/{{ page.lang }}/seals/" class="nav-link">{{ "nav.seals" | t }}</a>
+                <a href="/{{ page.lang }}/search/" class="nav-link">Search</a>
+                <div class="nav-dropdown">
+                    <a href="/{{ page.lang }}/indices/" class="nav-link nav-dropdown-toggle">Indices</a>
+                    <ul class="nav-dropdown-menu">
+                        {% if indices and indices._summary and indices._summary.indices %}
+                            {% for idx in indices._summary.indices %}
+                            {% if idx.nav == "indices" or not idx.nav %}
+                            <li><a href="/{{ page.lang }}/indices/{{ idx.id }}/">{{ idx.title }}</a></li>
+                            {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+                <a href="/{{ page.lang }}/concordances/bibliography/" class="nav-link">Bibliography</a>
+            </nav>
+
+            <nav class="language-switcher">
+                {% for lang in languages.codes %}
+                    {% if lang == page.lang %}
+                        <span class="lang-current">{{ languages.labels[lang] }}</span>
+                    {% else %}
+                        <a href="{{ page.url | replace('/' + page.lang + '/', '/' + lang + '/') }}" class="lang-link">{{ languages.labels[lang] }}</a>
+                    {% endif %}
+                {% endfor %}
+            </nav>
+        </div>
+    </div>
+</header>

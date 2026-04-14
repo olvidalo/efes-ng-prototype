@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suche</title>
+
+    <!-- Foundation 4.3.1 — required for XSLT-generated tabs -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/css/foundation.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/css/normalize.min.css" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/epidoc.css">
+    <link rel="stylesheet" href="/assets/css/project.css">
+</head>
+<body>
+<header>
+    <div class="header-inner">
+        <div class="header-content">
+            <h1 id="site-title">
+                <a href="/de/" class="site-title-link">
+                    <!-- Website Title -->
+                    <span class="site-title-full">Feind Seal Test</span>
+                </a>
+            </h1>
+
+            <nav class="site-nav">
+                <a href="/de/seals/" class="nav-link">nav.seals</a>
+                <a href="/de/search/" class="nav-link">Search</a>
+                <div class="nav-dropdown">
+                    <a href="/de/indices/" class="nav-link nav-dropdown-toggle">Indices</a>
+                    <ul class="nav-dropdown-menu">
+                        
+                            
+                            
+                            <li><a href="/de/indices/persons/">Persons</a></li>
+                            
+                            
+                            
+                            <li><a href="/de/indices/places/">Place Names</a></li>
+                            
+                            
+                        
+                    </ul>
+                </div>
+                <a href="/de/concordances/bibliography/" class="nav-link">Bibliography</a>
+            </nav>
+
+            <nav class="language-switcher">
+                
+                    
+                        <a href="/en/search/" class="lang-link">EN</a>
+                    
+                
+                    
+                        <span class="lang-current">DE</span>
+                    
+                
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+<div class="layout-grid">
+    
+    <h1>Suche</h1>
+    
+
+    <main>
+        
+<link rel="stylesheet" href="/assets/efes-search/efes-search.css">
+<script type="module" src="/assets/efes-search/efes-search.js"></script>
+
+<efes-search data-url="/search-data/documents_de.json" text-fields="fullText,title" match-mode="substring">
+    <aside class="efes-facet-sidebar">
+        <h2>Filter Results</h2>
+        <efes-search-input placeholder="Search..."></efes-search-input>
+
+        <efes-facet field="milieu" label="Milieu" expanded></efes-facet>
+
+        <div class="efes-filter-actions">
+            <button data-action="clear-all">Clear All Filters</button>
+        </div>
+    </aside>
+
+    <div class="efes-search-main">
+        <efes-active-filters></efes-active-filters>
+
+        <efes-results result-url="/de/seals/{documentId}/">
+            <template>
+                <a>
+                    <div class="efes-result-title">
+                        <span class="doc-id" data-field="documentId"></span>
+                        <span data-field="title"></span>
+                    </div>
+                    <div class="efes-result-details">
+                        <span data-field="origDate"></span>
+                        <span data-field="milieu"></span>
+                    </div>
+                </a>
+            </template>
+        </efes-results>
+    </div>
+</efes-search>
+
+    </main>
+</div>
+
+<footer>
+    <div class="footer-inner">
+        <p>Powered by <a href="https://github.com/CCeH" target="_blank" rel="noopener">EFES-NG</a></p>
+    </div>
+</footer>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/js/foundation.min.js" crossorigin="anonymous"></script>
+<script>
+    $(document).foundation();
+</script>
+</body>
+</html>
