@@ -1,4 +1,4 @@
-{# Bibliography item detail — shows full citation and citing seals.
+{# Bibliography item detail — shows full citation and citing documents.
    Expects: item (bibliography entry from JSON), langCode (language code) #}
 
 {% set fc = item.fullCitation[langCode] if item.fullCitation[langCode] else item.fullCitation.en %}
@@ -20,7 +20,7 @@
     <thead>
         <tr>
             <th>{{ "citedRange" | t }}</th>
-            <th>{{ "seals" | t }}</th>
+            <th>{{ "documents" | t }}</th>
         </tr>
     </thead>
     <tbody>
@@ -28,7 +28,7 @@
         <tr>
             <td>{{ ref.citedRange[langCode] | default(ref.citedRange.en) | default('-') }}</td>
             <td class="references">
-                <a href="/{{ langCode }}/seals/{{ ref.documentId }}/"><strong>{{ ref.documentId }}</strong></a>
+                <a href="/{{ langCode }}/inscriptions/{{ ref.documentId }}/"><strong>{{ ref.documentId }}</strong></a>
             </td>
         </tr>
     {% endfor %}

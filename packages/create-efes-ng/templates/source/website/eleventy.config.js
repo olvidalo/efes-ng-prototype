@@ -22,7 +22,7 @@ export default function (eleventyConfig) {
         }
     }
 
-    // Translation filter: {{ "seals" | t }}
+    // Translation filter: {{ "inscriptions" | t }}
     // Resolves from page.lang, falls back to English, then to the raw key.
     eleventyConfig.addFilter('t', function (key) {
         const lang = this.page?.lang || 'en';
