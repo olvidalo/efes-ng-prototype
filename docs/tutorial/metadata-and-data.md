@@ -65,17 +65,20 @@ After the build, you can inspect the generated metadata files: in the GUI, click
 <metadata>
   <documentId>Feind_Kr1</documentId>
   <sourceFile>Feind_Kr1.xml</sourceFile>
-  <page xml:lang="en">
-    <language>en</language>
-    <title>Seal of N. imperial protospatharios ...</title>
-    <sortKey>Feind.Kr.00001.</sortKey>
+  <page>
+    <title xml:lang="en">Seal of N. imperial protospatharios ...</title>
+    <sortKey xml:lang="en">Feind.Kr.00001.</sortKey>
   </page>
-  <entities xml:lang="en"/>
-  <search xml:lang="en"/>
+  <entities/>
+  <search>
+    <title xml:lang="en">Seal of N. imperial protospatharios ...</title>
+    <material xml:lang="en">Lead</material>
+    <fullText xml:lang="en">Κ ύρι ε βοήθει ...</fullText>
+  </search>
 </metadata>
 ```
 
-Notice how the structure reflects what's configured: `documentId` and `sourceFile` come from the framework automatically. The `<page>` section (tagged with `xml:lang`) contains fields from your `indices-config.xsl` — here `title` and `sortKey`. The `entities` and `search` sections are empty for now — we'll populate them when we add indices and search later.
+Notice how the structure reflects what's configured: `documentId` and `sourceFile` come from the framework automatically. The `<page>` section contains fields from your `indices-config.xsl` — here `title` and `sortKey`. Each field carries an `xml:lang` attribute — the framework adds this automatically based on the configured languages. The `entities` section is empty for now — we'll populate it when we add indices later.
 
 ## Generating Sidecar Files
 
@@ -102,7 +105,7 @@ Uncomment it (after `extract-epidoc-metadata`) and adapt the configuration — c
 </xsltTransform>
 ```
 
-This node uses `<from>` to read the metadata XML produced by `extract-epidoc-metadata` — the same pattern we introduced in the [previous step](./adding-content#connecting-the-nodes-with-from). The `language` parameter tells it which language's page data to pick from the metadata.
+This node uses `<from>` to read the metadata XML produced by `extract-epidoc-metadata` — the same pattern we introduced in the [previous step](./adding-content#connecting-the-nodes-with-from). The `language` parameter tells it which language's fields to pick from the metadata (selecting fields where `xml:lang` matches).
 
 The stylesheet parameters control the sidecar content:
 
@@ -126,14 +129,12 @@ Once the build completes, inspect the `_assembly/en/seals/` directory again. Nex
   "layout": "layouts/document.njk",
   "tags": "seals",
   "documentId": "Feind_Kr1",
-  "language": "en",
-  "sourceFile": "Feind_Kr1.xml",
   "title": "Seal of N. imperial protospatharios epi tou chrysotriklinou ...",
   "sortKey": "Feind.Kr.00001."
 }
 ```
 
-Beyond the three fields we introduced earlier (`layout`, `tags`, `title`), the pipeline added `documentId`, `language`, `sourceFile`, and `sortKey`. The title and sort key come from your `indices-config.xsl` — if you open that file, you can see exactly how they're extracted. The other fields (`documentId`, `language`, `sourceFile`) are provided by the framework automatically.
+Beyond the three fields we introduced earlier (`layout`, `tags`, `title`), the pipeline added `documentId` and `sortKey`. The title and sort key come from your `indices-config.xsl` — if you open that file, you can see exactly how they're extracted. The `documentId` is provided by the framework automatically.
 
 The `sortKey` ensures seals are listed in natural order (so `Feind_Kr2` comes before `Feind_Kr10`), and the `title` is what appears in the seal list and browser tab.
 

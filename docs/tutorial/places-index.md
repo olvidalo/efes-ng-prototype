@@ -48,7 +48,7 @@ The extraction node needs access to the geography authority file. Add it as a st
     <sourceFiles><files>source/seals/*.xml</files></sourceFiles>
     <stylesheet><files>source/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
-        <param name="languages">en,de</param>
+        <param name="languages">en de</param>
         <param name="geography-file">
             <files>source/authority/geography.xml</files>
         </param>
@@ -103,7 +103,7 @@ The extraction template finds place references in each seal, resolves them via t
              $place/tei:placeName)[1]
         )"/>
         <xsl:if test="string-length($displayName) > 0">
-            <entity indexType="places">
+            <entity indexType="places" xml:id="{$geo-id}">
                 <name><xsl:value-of select="$displayName"/></name>
                 <sortKey><xsl:value-of select="lower-case($displayName)"/></sortKey>
             </entity>
@@ -113,15 +113,15 @@ The extraction template finds place references in each seal, resolves them via t
 ```
 
 Add this template below the index definition we added above. Notice:
-- The extraction template will be called once for each language specified in the `languages` stylesheet param specified for the `extract-epidoc-metadata` node. The **`$language` tunnel param** will always contain the currently evaluated UI language code (`en`, `de`...) so we can pick the right place name.
-- We use a **fallback chain** for missing translations: `@xml:lang=$language` → English `@xml:lang='en'`) → first available
+- The framework calls this template once per configured language, passing the current language as `$language` (a **tunnel param** — it flows automatically through intermediate templates like `extract-all-entities`)
+- We use a **fallback chain** for missing translations: `@xml:lang=$language` → English (`@xml:lang='en'`) → first available
 - We use an **authority lookup**: `$geography//tei:place[@xml:id = $geo-id]` resolves the reference
+- **`xml:id="{$geo-id}"`** tells the framework to merge the same place across documents into one index entry. Without it, each occurrence would be a separate entry
 
 Register it in `extract-all-entities`:
 
 ```xml
 <xsl:template match="tei:TEI" mode="extract-all-entities">
-    <xsl:param name="language" tunnel="yes"/>
     <xsl:apply-templates select="." mode="extract-persons"/>
     <xsl:apply-templates select="." mode="extract-places"/>
 </xsl:template>
@@ -129,28 +129,22 @@ Register it in `extract-all-entities`:
 
 ## The Multilingual Result
 
-Because the extraction runs once per language (via the `$languages` parameter), the metadata XML will contain language-specific place names:
+Because the framework calls the extraction template once per language, the metadata XML contains language-specific place names. The framework auto-stamps `xml:lang` on your output and merges entities with the same `xml:id`:
 
 ```xml
-<entities xml:lang="en">
+<entities>
     <places>
-        <entity indexType="places">
-            <name>Cephalonia</name>
-            <sortKey>geo0054</sortKey>
-        </entity>
-    </places>
-</entities>
-<entities xml:lang="de">
-    <places>
-        <entity indexType="places">
-            <name>Kephalonia</name>
-            <sortKey>geo0054</sortKey>
+        <entity indexType="places" xml:id="geo0054">
+            <name xml:lang="en">Cephalonia</name>
+            <sortKey xml:lang="en">cephalonia</sortKey>
+            <name xml:lang="de">Kephalonien</name>
+            <sortKey xml:lang="de">kephalonien</sortKey>
         </entity>
     </places>
 </entities>
 ```
 
-The same seal's place reference resolves to "Cephalonia" in English and "Kephalonia" in German — automatically, from the same extraction template.
+The same seal's place reference resolves to "Cephalonia" in English and "Kephalonien" in German — automatically, from the same extraction template. The `xml:id="geo0054"` ensures both language variants are merged into one index entry.
 
 ## Creating the Index Page
 
@@ -194,4 +188,16 @@ Because the extraction runs once per language (via the `$languages` parameter), 
 
 The index table template automatically resolves the current language — on the English page you see "Cephalonia", on the German page "Kephalonia". This happens because the `index-table.njk` partial uses `entry[col.key][page.lang]` with a fallback to English.
 
-This is the one entity type where multilingual indices genuinely matter — place names differ across languages. For person names and technical terms (dignities, offices), the same transliterated or Greek form is used regardless of UI language.
+## Display more metadata (norm data references/authority links/...term?)
+
+For some of the places the authority file contains external norm data IDs to Pleiades, Geonames, or TIB (Tabula Imperii Byzanti):
+
+<!-- actual exapmle here! -->
+
+Let's add colums for each of them to link to them where available:
+
+<!-- exapmle: add the columns to the index -->
+
+Now we need to add extraction logic to the extraction template
+
+<!-- show what to add -->

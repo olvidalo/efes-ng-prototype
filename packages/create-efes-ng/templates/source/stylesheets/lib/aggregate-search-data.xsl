@@ -4,7 +4,8 @@
 
     Reads per-document metadata XML files and produces a JSON array
     of search documents for a single language. Each document contains
-    all fields from the <search> section plus the documentId.
+    fields from the <search> section matching the requested language
+    (via @xml:lang) plus the documentId.
 
     For multi-language, run one pipeline node per language with a
     different $language parameter and output filename.
@@ -34,7 +35,7 @@
     <!-- Resolve language: explicit param, or first available in metadata -->
     <xsl:variable name="resolved-language" select="
         if ($language != '') then $language
-        else string(($all-docs/metadata/search/@xml:lang)[1])
+        else string(($all-docs/metadata/search/*/@xml:lang)[1])
     "/>
 
     <xsl:template name="aggregate" match="/">
@@ -43,13 +44,13 @@
                 <xsl:for-each select="$all-docs">
                     <xsl:sort select="string(/metadata/documentId)"/>
                     <xsl:variable name="doc-id" select="string(/metadata/documentId)"/>
-                    <xsl:variable name="search" select="/metadata/search[@xml:lang=$resolved-language]"/>
+                    <xsl:variable name="search" select="/metadata/search"/>
 
                     <xsl:if test="$search">
                         <fn:map>
                             <fn:string key="documentId"><xsl:value-of select="$doc-id"/></fn:string>
 
-                            <xsl:for-each select="$search/*">
+                            <xsl:for-each select="$search/*[@xml:lang=$resolved-language]">
                                 <xsl:variable name="field-name" select="local-name()"/>
                                 <xsl:choose>
                                     <!-- Multi-valued field (has <item> children) → JSON array -->

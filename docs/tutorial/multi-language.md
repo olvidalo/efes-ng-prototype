@@ -14,42 +14,41 @@ With a static site, each language version needs its own set of HTML pages. Remem
 
 Two kinds of changes are needed in `pipeline.xml`:
 
-**First**, update the existing `extract-epidoc-metadata` node to extract both languages. Change the `languages` parameter from `en` to `en,de`:
+**First**, update the existing `extract-epidoc-metadata` node to extract both languages. Change the `languages` parameter from `en` to `en de` (space-separated):
 
 ```xml
 <xsltTransform name="extract-epidoc-metadata">
     <sourceFiles><files>source/seals/*.xml</files></sourceFiles>
     <stylesheet><files>source/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
-        <param name="languages">en,de</param>
+        <param name="languages">en de</param>
     </stylesheetParams>
 </xsltTransform>
 ```
 
-This single node now extracts metadata for both languages at once — no separate German extraction node needed. Each metadata XML file now contains per-language sections:
+This single node now extracts metadata for both languages at once — no separate German extraction node needed. The framework calls your extraction templates once per language and auto-stamps `xml:lang` on the output. Each metadata XML file now contains fields for both languages:
 
 ```xml
 <metadata>
     <documentId>Feind_Kr1</documentId>
     <sourceFile>Feind_Kr1.xml</sourceFile>
-    <page xml:lang="en">
-        <language>en</language>
-        <title>Seal of N. imperial protospatharios ...</title>
-        ...
+    <page>
+        <title xml:lang="en">Seal of N. imperial protospatharios ...</title>
+        <sortKey xml:lang="en">Feind.Kr.00001.</sortKey>
+        <title xml:lang="de">Siegel des N. kaiserlicher protospatharios ...</title>
+        <sortKey xml:lang="de">Feind.Kr.00001.</sortKey>
     </page>
-    <page xml:lang="de">
-        <language>de</language>
-        <title>Siegel des N. kaiserlicher protospatharios ...</title>
-        ...
-    </page>
-    <entities xml:lang="en">...</entities>
-    <entities xml:lang="de">...</entities>
-    <search xml:lang="en">...</search>
-    <search xml:lang="de">...</search>
+    <entities>...</entities>
+    <search>
+        <title xml:lang="en">Seal of N. ...</title>
+        <material xml:lang="en">Lead</material>
+        <title xml:lang="de">Siegel des N. ...</title>
+        <material xml:lang="de">Blei</material>
+    </search>
 </metadata>
 ```
 
-The downstream stylesheets (`create-11ty-data.xsl`, `aggregate-search-data.xsl`) each select the language section they need based on the `language` parameter passed from the pipeline.
+Every field carries an `xml:lang` attribute — the framework adds this automatically. The downstream stylesheets (`create-11ty-data.xsl`, `aggregate-search-data.xsl`) select the fields matching their `language` parameter.
 
 Also update the existing `generate-eleventy-data` node's tags from `seals` to `seals-en`. This creates a language-specific Eleventy collection — when we add the German node with `seals-de`, each language gets its own collection, so the seal list template can show only the right language's seals:
 
@@ -535,7 +534,7 @@ Both approaches are valid — use what fits your project. You can mix them: pagi
 
 If you're using the pagination approach, adding a third language (e.g., Greek) is straightforward – the templates already generate pages for all languages in `languages.json`. You only need to add pipeline nodes and translation files:
 
-1. **Pipeline:** Add `el` to the `languages` param in `extract-epidoc-metadata`: `en,de,el`
+1. **Pipeline:** Add `el` to the `languages` param in `extract-epidoc-metadata`: `en de el`
 2. **HTML rendering:** Add `prune-epidoc-greek` and `transform-epidoc-greek` nodes
 3. **Sidecar data:** Add `generate-eleventy-data-greek` with `tags: "seals-el"` and `language: el`
 4. **Search data:** Add `aggregate-search-data-greek` with `language: el` and `filename: documents_el.json`
@@ -574,7 +573,7 @@ flowchart TD
 
     prune_en["Node: prune-epidoc-english"]
     prune_de["Node: prune-epidoc-german"]
-    extract["Node: extract-epidoc-metadata\n(languages: en,de)"]
+    extract["Node: extract-epidoc-metadata\n(languages: en de)"]
 
     subgraph "English"
         transform_en["transform-epidoc"]

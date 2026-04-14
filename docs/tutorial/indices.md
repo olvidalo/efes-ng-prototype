@@ -82,7 +82,7 @@ This works as a starting point, but for our SigiDoc project the person encoding 
             <entity indexType="persons">
                 <forename><xsl:value-of select="$forename"/></forename>
                 <surname><xsl:value-of select="$surname"/></surname>
-                <sortKey><xsl:value-of select="lower-case(string-join(($forename, $surname), ' '))"/></sortKey>
+                <sortKey><xsl:value-of select="lower-case(string-join(($forename, $surname)))"/></sortKey>
             </entity>
         </xsl:if>
     </xsl:for-each>
@@ -92,7 +92,7 @@ This works as a starting point, but for our SigiDoc project the person encoding 
 The key differences from the scaffold version:
 - We target `tei:listPerson[@type='issuer']` instead of all `tei:persName`
 - We extract `forename` and `surname` as separate fields (matching our column definitions)
-- `@xml:lang=$language` picks the name in the current language, falling back to any available name
+- The framework calls this template once per language, passing `$language` as a tunnel param — `@xml:lang=$language` picks the name in the current language, falling back to any available name
 - The `sortKey` combines forename and surname for alphabetical ordering
 
 Each `<entity>` must have:
@@ -100,7 +100,7 @@ Each `<entity>` must have:
 - **Fields matching the column keys** — here `forename` and `surname`
 - **`sortKey`** for ordering
 
-The framework automatically groups entities across all documents and collects references to the documents they appear in.
+The framework auto-stamps `xml:lang` on your output fields, merges entities across language iterations (by position), and groups them across all documents (by `sortKey`) to collect references.
 
 ### Register the Extraction
 
@@ -119,12 +119,12 @@ This tells the metadata extraction to run your persons template for each documen
 Rebuild and inspect a metadata XML file (click the **folder icon** next to `extract-epidoc-metadata`). The `<entities>` section that was empty before should now contain person data:
 
 ```xml
-<entities xml:lang="en">
+<entities>
     <persons>
         <entity indexType="persons">
-            <forename>Manouel</forename>
-            <surname>Mandromenos</surname>
-            <sortKey>manouel mandromenos</sortKey>
+            <forename xml:lang="en">Manouel</forename>
+            <surname xml:lang="en">Mandromenos</surname>
+            <sortKey xml:lang="en">manouel mandromenos</sortKey>
         </entity>
     </persons>
 </entities>
@@ -214,9 +214,9 @@ Here's what `persons.json` looks like:
   ],
   "entries": [
     {
-      "forename": "Manouel",
-      "surname": "Mandromenos",
-      "sortKey": "manouel mandromenos",
+      "forename": { "en": "Manouel" },
+      "surname": { "en": "Mandromenos" },
+      "sortKey": { "en": "manouel mandromenos" },
       "references": [
         { "inscriptionId": "Feind_Kr12" }
       ]
@@ -269,7 +269,7 @@ Rebuild and navigate to the Indices page. You should see a "Persons" card with a
 
 ## Advanced: Showing Greek Names
 
-The persons index shows transliterated names ("Manouel Mandromenos"), but the SigiDoc XML also has the original Greek. Let's add a column for it.
+The persons index shows transliterated names ("Basileios Apokapes"), but the SigiDoc XML also has the original Greek. Let's add a column for it.
 
 First, add the column to the index definition in `indices-config.xsl`:
 
@@ -296,13 +296,11 @@ Then add the field to the extraction template — the Greek name is in `tei:pers
     <forename><xsl:value-of select="$forename"/></forename>
     <surname><xsl:value-of select="$surname"/></surname>
     <greekName><xsl:value-of select="$greekName"/></greekName>
-    <sortKey><xsl:value-of select="lower-case(string-join(($forename, $surname), ' '))"/></sortKey>
+    <sortKey><xsl:value-of select="lower-case(string-join(($forename, $surname)))"/></sortKey>
 </entity>
 ```
 
-Rebuild — the persons table now shows three columns: Forename, Surname, and Greek. For "Manouel Mandromenos," the Greek column shows "Μανουήλ Μανδρομηνοός."
-
-Note that `@xml:lang='grc'` is hardcoded — Greek names are a scholarly convention, not a UI language preference. They should always show the original script regardless of the site language.
+Rebuild — the persons table now shows three columns: Forename, Surname, and Greek. For "Basileios Apokapes," the Greek column shows "Βασίλειος Ἀποκάπης".
 
 ## What We've Built So Far
 

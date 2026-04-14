@@ -44,13 +44,13 @@ This works just like `aggregate-indices` — it uses `<initialTemplate>` to proc
 > 1. The `extract-search` template in `indices-config.xsl` outputs `<title>`, `<material>`, `<fullText>` etc. for each document
 > 2. These end up in the `<search>` section of each metadata XML file (inspect them via `extract-epidoc-metadata`'s folder icon):
 >    ```xml
->    <search xml:lang="en">
->        <title>Seal of Manouel Mandromenos ...</title>
->        <material>Lead</material>
->        <fullText>Κύριε βοήθει τῷ σῷ δούλῳ Μανουὴλ ...</fullText>
+>    <search>
+>        <title xml:lang="en">Seal of Manouel Mandromenos ...</title>
+>        <material xml:lang="en">Lead</material>
+>        <fullText xml:lang="en">Κύριε βοήθει τῷ σῷ δούλῳ Μανουὴλ ...</fullText>
 >    </search>
 >    ```
-> 3. `aggregate-search-data` reads all metadata files and combines the `<search>` sections into a `documents_en.json` array
+> 3. `aggregate-search-data` reads all metadata files and selects the fields matching the requested language into a `documents_en.json` array
 > 4. The search page loads `documents_en.json` in the browser and builds a search index from it
 
 ## Updating the Search Page
