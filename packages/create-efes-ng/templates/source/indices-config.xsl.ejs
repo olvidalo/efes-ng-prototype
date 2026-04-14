@@ -105,9 +105,53 @@
     </xsl:template>
     -->
 
+    <!--
+    Example: Bibliography index
+    Uncomment and add bibliography-file parameter to pipeline and stylesheet.
+
+    <idx:index id="bibliography" title="Bibliography" nav="bibliography" order="10">
+        <idx:description>Bibliographic references cited in the collection.</idx:description>
+        <idx:columns>
+            <idx:column key="shortCitation">Citation</idx:column>
+            <idx:column key="fullCitation">Full Citation</idx:column>
+            <idx:column key="references" type="references">Documents</idx:column>
+        </idx:columns>
+    </idx:index>
+
+    <xsl:template match="tei:TEI" mode="extract-bibliography">
+        <xsl:for-each select=".//tei:body//tei:div//tei:bibl[tei:ptr[@target != '']]">
+            <xsl:variable name="target" select="string(tei:ptr/@target)"/>
+            <xsl:variable name="auth" select="$bibliography//tei:bibl[@xml:id = $target]"/>
+            <xsl:variable name="shortCitation" select="normalize-space($auth/tei:bibl[@type='abbrev'])"/>
+            <xsl:variable name="bibl" select="."/>
+            <xsl:for-each select="if ($bibl/tei:citedRange) then $bibl/tei:citedRange else $bibl">
+                <entity indexType="bibliography" xml:id="{$target}">
+                    <bibRef><xsl:value-of select="$target"/></bibRef>
+                    <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
+                    <fullCitation>
+                        <authors><xsl:value-of select="string-join(
+                            for $a in $auth/tei:author
+                            return normalize-space(string-join(($a/tei:forename, $a/tei:surname), ' ')),
+                            ', ')"/></authors>
+                        <title><xsl:value-of select="normalize-space($auth/tei:title[1])"/></title>
+                        <pubPlace><xsl:value-of select="normalize-space(($auth/tei:pubPlace[@xml:lang='en'], $auth/tei:pubPlace)[1])"/></pubPlace>
+                        <publisher><xsl:value-of select="normalize-space(($auth/tei:publisher)[1])"/></publisher>
+                        <date><xsl:value-of select="normalize-space(($auth/tei:date)[1])"/></date>
+                    </fullCitation>
+                    <xsl:if test="self::tei:citedRange">
+                        <citedRange><xsl:value-of select="normalize-space(.)"/></citedRange>
+                    </xsl:if>
+                    <sortKey><xsl:value-of select="($shortCitation[not(. = '')], $target)[1]"/></sortKey>
+                </entity>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:template>
+    -->
+
     <xsl:template match="tei:TEI" mode="extract-all-entities">
-        <!-- Uncomment to enable persons index extraction -->
+        <!-- Uncomment to enable index extraction -->
         <!-- <xsl:apply-templates select="." mode="extract-persons"/> -->
+        <!-- <xsl:apply-templates select="." mode="extract-bibliography"/> -->
     </xsl:template>
 
     <!-- ═══════════════════════════════════════════════

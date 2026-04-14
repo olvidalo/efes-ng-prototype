@@ -29,7 +29,7 @@
                     {% if col.type == 'references' %}
                         <td class="references">
                             {% for ref in entry.references %}
-                                <a href="{{ basePath }}/{{ ref.inscriptionId }}/">{{ ref.inscriptionId }}</a>
+                                <a href="{{ basePath }}/{{ ref.documentId }}/">{{ ref.documentId }}</a>
                                 {%- if not loop.last %} {% endif %}
                             {% endfor %}
                         </td>

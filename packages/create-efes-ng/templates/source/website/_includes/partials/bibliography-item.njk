@@ -1,0 +1,37 @@
+{# Bibliography item detail — shows full citation and citing seals.
+   Expects: item (bibliography entry from JSON), langCode (language code) #}
+
+{% set fc = item.fullCitation[langCode] if item.fullCitation[langCode] else item.fullCitation.en %}
+{% if fc %}
+<p class="full-citation">
+    {%- if fc.authors %}{{ fc.authors }}, {% endif %}
+    {%- if fc.title %}<i>{{ fc.title }}</i>{% endif %}
+    {%- if fc.pubPlace %}, {{ fc.pubPlace }}{% endif %}
+    {%- if fc.publisher %}, {{ fc.publisher }}{% endif %}
+    {%- if fc.date %}, {{ fc.date }}{% endif -%}
+    .
+</p>
+{% endif %}
+
+<p><a href="/{{ langCode }}/bibliography/">&larr; {{ "backToList" | t }}</a></p>
+
+{% if item.references and item.references | length %}
+<table class="data-table index-table">
+    <thead>
+        <tr>
+            <th>{{ "citedRange" | t }}</th>
+            <th>{{ "seals" | t }}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ref in item.references %}
+        <tr>
+            <td>{{ ref.citedRange[langCode] | default(ref.citedRange.en) | default('-') }}</td>
+            <td class="references">
+                <a href="/{{ langCode }}/seals/{{ ref.documentId }}/"><strong>{{ ref.documentId }}</strong></a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}

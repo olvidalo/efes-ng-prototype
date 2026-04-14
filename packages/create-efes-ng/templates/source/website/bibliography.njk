@@ -1,0 +1,35 @@
+---
+layout: layouts/base.njk
+permalink: "{{ langCode }}/bibliography/index.html"
+pagination:
+    data: languages.codes
+    size: 1
+    alias: langCode
+eleventyComputed:
+    title: "{{ 'bibliography' | t }}"
+---
+
+<p class="entry-count-info">{{ indices.bibliography.entries | length }} {{ "bibliography" | t | lower }}</p>
+
+<table class="data-table index-table">
+    <thead>
+        <tr>
+            <th>{{ "shortCitation" | t }}</th>
+            <th>{{ "fullCitation" | t }}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for entry in indices.bibliography.entries %}
+        <tr>
+            <td><a href="/{{ page.lang }}/bibliography/{{ entry.bibRef[page.lang] }}/">{{ entry.shortCitation[page.lang] or entry.shortCitation.en or entry.bibRef[page.lang] or '-' }}</a></td>
+            {% set fc = entry.fullCitation[page.lang] if entry.fullCitation[page.lang] else entry.fullCitation.en %}
+            <td>
+                {%- if fc and fc.authors %}{{ fc.authors }}, {% endif %}
+                {%- if fc and fc.title %}<i>{{ fc.title }}</i>{% endif %}
+                {%- if fc and fc.pubPlace %}, {{ fc.pubPlace }}{% endif %}
+                {%- if fc and fc.date %}, {{ fc.date }}{% endif -%}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

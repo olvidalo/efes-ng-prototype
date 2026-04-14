@@ -5,5 +5,9 @@
     "bibliography": "Bibliography",
     "backToIndex": "Back to Index",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "shortCitation": "Citation",
+    "fullCitation": "Full Citation",
+    "backToList": "Back to list",
+    "citedRange": "Cited Range"
 }
