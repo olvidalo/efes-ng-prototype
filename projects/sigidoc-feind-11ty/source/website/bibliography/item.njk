@@ -1,9 +1,8 @@
 ---
 layout: layouts/base.njk
-permalink: "{{ item.lang }}/bibliography/{{ item.bibRef }}/index.html"
+permalink: "{{ item.lang }}/bibliography/{{ item.bibRef[item.lang] or item.bibRef.en }}/index.html"
 eleventyComputed:
-  title: "Bibliography: {{ item.shortCitation }}"
-  language: "{{ item.lang }}"
+    title: "{{ item.shortCitation[item.lang] or item.shortCitation.en }}"
 ---
 {% set langCode = item.lang %}
 {% include "partials/bibliography-item.njk" %}

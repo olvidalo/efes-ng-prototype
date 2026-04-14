@@ -15,7 +15,7 @@
     <output to="_assembly" stripPrefix="source/website"/>
   </copyFiles>
 
-  <!-- ===== ENGLISH ===== -->
+  <!-- ===== LANGUAGE PRUNING ===== -->
 
   <xsltTransform name="prune-epidoc-english">
     <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
@@ -24,6 +24,24 @@
       <param name="language">en</param>
     </stylesheetParams>
   </xsltTransform>
+
+  <xsltTransform name="prune-epidoc-german">
+    <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
+    <stylesheet><files>source/stylesheets/lib/prune-to-language.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">de</param>
+    </stylesheetParams>
+  </xsltTransform>
+
+  <xsltTransform name="prune-epidoc-greek">
+    <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
+    <stylesheet><files>source/stylesheets/lib/prune-to-language.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="language">el</param>
+    </stylesheetParams>
+  </xsltTransform>
+
+  <!-- ===== HTML RENDERING ===== -->
 
   <xsltTransform name="transform-epidoc-en">
     <sourceFiles><from node="prune-epidoc-english" output="transformed"/></sourceFiles>
@@ -39,45 +57,11 @@
       <param name="bibloc"><ref name="bibliography-file"/></param>
       <param name="bib-link-template">../../bibliography/$1/</param>
       <param name="language">en</param>
+      <param name="messages-file"><files>source/translations/messages_en.xml</files></param>
     </stylesheetParams>
     <output to="_assembly/en/seals"
             stripPrefix="source/feind-collection"
             extension=".html"/>
-  </xsltTransform>
-
-  <xsltTransform name="extract-epidoc-metadata-en">
-    <sourceFiles><from node="prune-epidoc-english" output="transformed"/></sourceFiles>
-    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
-    <stylesheetParams>
-      <param name="language">en</param>
-      <param name="geography-file"><ref name="geography-file"/></param>
-      <param name="dignities-file"><ref name="dignities-file"/></param>
-      <param name="offices-file"><ref name="offices-file"/></param>
-      <param name="invocations-file"><ref name="invocations-file"/></param>
-      <param name="bibliography-file"><ref name="bibliography-file"/></param>
-    </stylesheetParams>
-  </xsltTransform>
-
-  <xsltTransform name="generate-eleventy-data-en">
-    <sourceFiles><from node="extract-epidoc-metadata-en" output="transformed"/></sourceFiles>
-    <stylesheet><files>source/stylesheets/lib/create-11ty-data.xsl</files></stylesheet>
-    <stylesheetParams>
-      <param name="layout">layouts/document.njk</param>
-      <param name="tags">seals</param>
-    </stylesheetParams>
-    <output to="_assembly/en/seals"
-            stripPrefix="source/feind-collection"
-            extension=".11tydata.json"/>
-  </xsltTransform>
-
-  <!-- ===== GERMAN ===== -->
-
-  <xsltTransform name="prune-epidoc-german">
-    <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
-    <stylesheet><files>source/stylesheets/lib/prune-to-language.xsl</files></stylesheet>
-    <stylesheetParams>
-      <param name="language">de</param>
-    </stylesheetParams>
   </xsltTransform>
 
   <xsltTransform name="transform-epidoc-de">
@@ -94,45 +78,11 @@
       <param name="bibloc"><ref name="bibliography-file"/></param>
       <param name="bib-link-template">../../bibliography/$1/</param>
       <param name="language">de</param>
+      <param name="messages-file"><files>source/translations/messages_de.xml</files></param>
     </stylesheetParams>
     <output to="_assembly/de/seals"
             stripPrefix="source/feind-collection"
             extension=".html"/>
-  </xsltTransform>
-
-  <xsltTransform name="extract-epidoc-metadata-de">
-    <sourceFiles><from node="prune-epidoc-german" output="transformed"/></sourceFiles>
-    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
-    <stylesheetParams>
-      <param name="language">de</param>
-      <param name="geography-file"><ref name="geography-file"/></param>
-      <param name="dignities-file"><ref name="dignities-file"/></param>
-      <param name="offices-file"><ref name="offices-file"/></param>
-      <param name="invocations-file"><ref name="invocations-file"/></param>
-      <param name="bibliography-file"><ref name="bibliography-file"/></param>
-    </stylesheetParams>
-  </xsltTransform>
-
-  <xsltTransform name="generate-eleventy-data-de">
-    <sourceFiles><from node="extract-epidoc-metadata-de" output="transformed"/></sourceFiles>
-    <stylesheet><files>source/stylesheets/lib/create-11ty-data.xsl</files></stylesheet>
-    <stylesheetParams>
-      <param name="layout">layouts/document.njk</param>
-      <param name="tags">seals</param>
-    </stylesheetParams>
-    <output to="_assembly/de/seals"
-            stripPrefix="source/feind-collection"
-            extension=".11tydata.json"/>
-  </xsltTransform>
-
-  <!-- ===== GREEK ===== -->
-
-  <xsltTransform name="prune-epidoc-greek">
-    <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
-    <stylesheet><files>source/stylesheets/lib/prune-to-language.xsl</files></stylesheet>
-    <stylesheetParams>
-      <param name="language">el</param>
-    </stylesheetParams>
   </xsltTransform>
 
   <xsltTransform name="transform-epidoc-el">
@@ -149,17 +99,20 @@
       <param name="bibloc"><ref name="bibliography-file"/></param>
       <param name="bib-link-template">../../bibliography/$1/</param>
       <param name="language">el</param>
+      <param name="messages-file"><files>source/translations/messages_el.xml</files></param>
     </stylesheetParams>
     <output to="_assembly/el/seals"
             stripPrefix="source/feind-collection"
             extension=".html"/>
   </xsltTransform>
 
-  <xsltTransform name="extract-epidoc-metadata-el">
-    <sourceFiles><from node="prune-epidoc-greek" output="transformed"/></sourceFiles>
+  <!-- ===== METADATA EXTRACTION (single node, all languages) ===== -->
+
+  <xsltTransform name="extract-epidoc-metadata">
+    <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
     <stylesheet><files>source/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
-      <param name="language">el</param>
+      <param name="languages">en de el</param>
       <param name="geography-file"><ref name="geography-file"/></param>
       <param name="dignities-file"><ref name="dignities-file"/></param>
       <param name="offices-file"><ref name="offices-file"/></param>
@@ -168,12 +121,41 @@
     </stylesheetParams>
   </xsltTransform>
 
-  <xsltTransform name="generate-eleventy-data-el">
-    <sourceFiles><from node="extract-epidoc-metadata-el" output="transformed"/></sourceFiles>
+  <!-- ===== SIDECAR DATA ===== -->
+
+  <xsltTransform name="generate-eleventy-data-en">
+    <sourceFiles><from node="extract-epidoc-metadata" output="transformed"/></sourceFiles>
     <stylesheet><files>source/stylesheets/lib/create-11ty-data.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="layout">layouts/document.njk</param>
-      <param name="tags">seals</param>
+      <param name="tags">seals-en</param>
+      <param name="language">en</param>
+    </stylesheetParams>
+    <output to="_assembly/en/seals"
+            stripPrefix="source/feind-collection"
+            extension=".11tydata.json"/>
+  </xsltTransform>
+
+  <xsltTransform name="generate-eleventy-data-de">
+    <sourceFiles><from node="extract-epidoc-metadata" output="transformed"/></sourceFiles>
+    <stylesheet><files>source/stylesheets/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="layout">layouts/document.njk</param>
+      <param name="tags">seals-de</param>
+      <param name="language">de</param>
+    </stylesheetParams>
+    <output to="_assembly/de/seals"
+            stripPrefix="source/feind-collection"
+            extension=".11tydata.json"/>
+  </xsltTransform>
+
+  <xsltTransform name="generate-eleventy-data-el">
+    <sourceFiles><from node="extract-epidoc-metadata" output="transformed"/></sourceFiles>
+    <stylesheet><files>source/stylesheets/lib/create-11ty-data.xsl</files></stylesheet>
+    <stylesheetParams>
+      <param name="layout">layouts/document.njk</param>
+      <param name="tags">seals-el</param>
+      <param name="language">el</param>
     </stylesheetParams>
     <output to="_assembly/el/seals"
             stripPrefix="source/feind-collection"
@@ -186,21 +168,42 @@
     <stylesheet><files>source/stylesheets/lib/aggregate-indices.xsl</files></stylesheet>
     <initialTemplate>aggregate</initialTemplate>
     <stylesheetParams>
-      <param name="metadata-files"><from node="extract-epidoc-metadata-en" output="transformed"/></param>
+      <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
       <param name="indices-config"><files>source/indices-config.xsl</files></param>
     </stylesheetParams>
     <output to="_assembly/_data/indices" filename="_summary.json"/>
   </xsltTransform>
 
-  <!-- ===== SEARCH ===== -->
+  <!-- ===== SEARCH DATA (per language) ===== -->
 
-  <xsltTransform name="aggregate-search-data">
+  <xsltTransform name="aggregate-search-data-en">
     <stylesheet><files>source/stylesheets/lib/aggregate-search-data.xsl</files></stylesheet>
     <initialTemplate>aggregate</initialTemplate>
     <stylesheetParams>
-      <param name="metadata-files"><from node="extract-epidoc-metadata-en" output="transformed"/></param>
+      <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
+      <param name="language">en</param>
     </stylesheetParams>
-    <output to="_assembly/search-data" filename="documents.json"/>
+    <output to="_assembly/search-data" filename="documents_en.json"/>
+  </xsltTransform>
+
+  <xsltTransform name="aggregate-search-data-de">
+    <stylesheet><files>source/stylesheets/lib/aggregate-search-data.xsl</files></stylesheet>
+    <initialTemplate>aggregate</initialTemplate>
+    <stylesheetParams>
+      <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
+      <param name="language">de</param>
+    </stylesheetParams>
+    <output to="_assembly/search-data" filename="documents_de.json"/>
+  </xsltTransform>
+
+  <xsltTransform name="aggregate-search-data-el">
+    <stylesheet><files>source/stylesheets/lib/aggregate-search-data.xsl</files></stylesheet>
+    <initialTemplate>aggregate</initialTemplate>
+    <stylesheetParams>
+      <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
+      <param name="language">el</param>
+    </stylesheetParams>
+    <output to="_assembly/search-data" filename="documents_el.json"/>
   </xsltTransform>
 
   <!-- ===== FINAL ASSEMBLY ===== -->

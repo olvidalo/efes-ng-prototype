@@ -6,29 +6,30 @@ pagination:
 permalink: "{{ langCode }}/bibliography/index.html"
 layout: layouts/base.njk
 eleventyComputed:
-  title: "{{ translations[langCode].nav.bibliography }}"
-  language: "{{ langCode }}"
+  title: "{{ 'bibliography' | t }}"
 ---
 
-{% set t = translations[langCode] %}
-
-<p>{{ indices.bibliography.entries | length }} bibliography entries cited in the seals.</p>
+<p class="entry-count-info">{{ indices.bibliography.entries | length }} {{ "bibliography" | t | lower }}</p>
 
 <table class="data-table index-table">
     <thead>
         <tr>
-            <th>Short Citation</th>
-            <th>Full Citation</th>
+            <th>{{ "shortCitation" | t }}</th>
+            <th>{{ "fullCitation" | t }}</th>
         </tr>
     </thead>
     <tbody>
     {% for entry in indices.bibliography.entries %}
         <tr>
-            <td><a href="/{{ langCode }}/bibliography/{{ entry.bibRef }}/">{{ entry.shortCitation or entry.bibRef }}</a></td>
-            <td>{{ entry.fullCitation or '-' }}</td>
+            <td><a href="/{{ page.lang }}/bibliography/{{ entry.bibRef[page.lang] or entry.bibRef.en }}/">{{ entry.shortCitation[page.lang] or entry.shortCitation.en or entry.bibRef[page.lang] or '-' }}</a></td>
+            {% set fc = entry.fullCitation[page.lang] if entry.fullCitation[page.lang] else entry.fullCitation.en %}
+            <td>
+                {%- if fc and fc.authors %}{{ fc.authors }}, {% endif %}
+                {%- if fc and fc.title %}<i>{{ fc.title }}</i>{% endif %}
+                {%- if fc and fc.pubPlace %}, {{ fc.pubPlace }}{% endif %}
+                {%- if fc and fc.date %}, {{ fc.date }}{% endif -%}
+            </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
-
-{% include "partials/index-table-styles.njk" %}

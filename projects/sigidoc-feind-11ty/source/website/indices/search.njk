@@ -6,51 +6,48 @@ pagination:
 permalink: "{{ langCode }}/search/index.html"
 layout: layouts/base.njk
 eleventyComputed:
-  title: "{{ translations[langCode].search.pageTitle }}"
-  language: "{{ langCode }}"
+  title: "{{ 'searchPageTitle' | t }}"
 ---
-
-{% set t = translations[langCode] %}
 
 <link rel="stylesheet" href="/assets/efes-search/efes-search.css">
 <script type="module" src="/assets/efes-search/efes-search.js"></script>
 
-<efes-search data-url="../../search-data/documents.json" text-fields="fullText,title">
+<efes-search data-url="/search-data/documents_{{ page.lang }}.json" text-fields="fullText,title">
     <aside class="efes-facet-sidebar">
-        <h2>{{ t.search.filterResults }}</h2>
+        <h2>{{ "filterResults" | t }}</h2>
 
         <efes-date-range
-            label="{{ t.search.dateRange }}"
-            from-label="{{ t.search.fromYear }}"
-            to-label="{{ t.search.toYear }}"></efes-date-range>
+            label="{{ "dateRange" | t }}"
+            from-label="{{ "fromYear" | t }}"
+            to-label="{{ "toYear" | t }}"></efes-date-range>
 
-        <efes-facet field="material" label="{{ t.search.material }}" expanded></efes-facet>
-        <efes-facet field="objectType" label="{{ t.search.objectType }}" expanded></efes-facet>
-        <efes-facet field="language" label="{{ t.search.language }}" expanded></efes-facet>
-        <efes-facet field="personalNames" label="{{ t.search.personalNames }}"></efes-facet>
-        <efes-facet field="familyNames" label="{{ t.search.familyNames }}"></efes-facet>
-        <efes-facet field="gender" label="{{ t.search.gender }}" expanded></efes-facet>
-        <efes-facet field="milieu" label="{{ t.search.milieu }}"></efes-facet>
-        <efes-facet field="placeNames" label="{{ t.search.placeNames }}"></efes-facet>
-        <efes-facet field="dignities" label="{{ t.search.dignities }}"></efes-facet>
-        <efes-facet field="civilOffices" label="{{ t.search.civilOffices }}"></efes-facet>
-        <efes-facet field="ecclesiasticalOffices" label="{{ t.search.ecclesiasticalOffices }}"></efes-facet>
-        <efes-facet field="militaryOffices" label="{{ t.search.militaryOffices }}"></efes-facet>
-        <efes-facet field="collection" label="{{ t.search.collection }}"></efes-facet>
-        <efes-facet field="metrical" label="{{ t.search.metrical }}"></efes-facet>
-        <efes-facet field="monogram" label="{{ t.search.monogram }}"></efes-facet>
+        <efes-facet field="material" label="{{ "material" | t }}" expanded></efes-facet>
+        <efes-facet field="objectType" label="{{ "objectType" | t }}" expanded></efes-facet>
+        <efes-facet field="language" label="{{ "language" | t }}" expanded></efes-facet>
+        <efes-facet field="personalNames" label="{{ "personalNames" | t }}"></efes-facet>
+        <efes-facet field="familyNames" label="{{ "familyNames" | t }}"></efes-facet>
+        <efes-facet field="gender" label="{{ "gender" | t }}" expanded></efes-facet>
+        <efes-facet field="milieu" label="{{ "milieu" | t }}"></efes-facet>
+        <efes-facet field="placeNames" label="{{ "placeNames" | t }}"></efes-facet>
+        <efes-facet field="dignities" label="{{ "dignities" | t }}"></efes-facet>
+        <efes-facet field="civilOffices" label="{{ "civilOffices" | t }}"></efes-facet>
+        <efes-facet field="ecclesiasticalOffices" label="{{ "ecclesiasticalOffices" | t }}"></efes-facet>
+        <efes-facet field="militaryOffices" label="{{ "militaryOffices" | t }}"></efes-facet>
+        <efes-facet field="collection" label="{{ "collection" | t }}"></efes-facet>
+        <efes-facet field="metrical" label="{{ "metrical" | t }}"></efes-facet>
+        <efes-facet field="monogram" label="{{ "monogram" | t }}"></efes-facet>
 
         <div class="efes-filter-actions">
-            <button data-action="clear-all">{{ t.search.clearAll }}</button>
+            <button data-action="clear-all">{{ "clearAll" | t }}</button>
         </div>
     </aside>
 
     <div class="efes-search-main">
-        <efes-search-input placeholder="{{ t.search.placeholder }}"></efes-search-input>
+        <efes-search-input placeholder="{{ "placeholder" | t }}"></efes-search-input>
 
         <efes-active-filters></efes-active-filters>
 
-        <efes-results result-url="../../{{ langCode }}/seals/{documentId}">
+        <efes-results result-url="/{{ page.lang }}/seals/{documentId}/">
             <template>
                 <a>
                     <span class="doc-id" data-field="documentId"></span>

@@ -3,17 +3,7 @@ layout: layouts/base.njk
 suppressTitle: true
 ---
 
-{# Get translations for current language #}
-{% set t = translations[language].nav %}
-
-{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
-{% set langSeals = [] %}
-{% for seal in collections.seals %}
-  {% if seal.data.language == language %}
-    {% set langSeals = (langSeals.push(seal), langSeals) %}
-  {% endif %}
-{% endfor %}
-{% set sortedSeals = langSeals | sort(false, false, "data.sortKey") %}
+{% set sortedSeals = collections["seals-" + page.lang] | sort(false, false, "data.sortKey") %}
 
 {# Find current item's index in sorted array #}
 {% set currentIndex = -1 %}
@@ -28,19 +18,19 @@ suppressTitle: true
 {% set nextPost = sortedSeals[currentIndex + 1] if currentIndex < (sortedSeals | length - 1) else null %}
 
 <nav class="doc-nav">
-  <a href="/{{ language }}/seals/" class="doc-nav-back">&#8592; {{ t.backToIndex }}</a>
+  <a href="/{{ page.lang }}/seals/" class="doc-nav-back">&#8592; {{ "backToIndex" | t }}</a>
 
   <div class="doc-nav-pager">
     {% if previousPost %}
       <a href="{{ previousPost.url }}" class="doc-nav-link">&#8592; {{ previousPost.data.documentId }}</a>
     {% else %}
-      <span class="doc-nav-disabled">&#8592; {{ t.previous }}</span>
+      <span class="doc-nav-disabled">&#8592; {{ "previous" | t }}</span>
     {% endif %}
 
     {% if nextPost %}
       <a href="{{ nextPost.url }}" class="doc-nav-link">{{ nextPost.data.documentId }} &#8594;</a>
     {% else %}
-      <span class="doc-nav-disabled">{{ t.next }} &#8594;</span>
+      <span class="doc-nav-disabled">{{ "next" | t }} &#8594;</span>
     {% endif %}
   </div>
 </nav>
@@ -55,13 +45,13 @@ suppressTitle: true
     {% if previousPost %}
       <a href="{{ previousPost.url }}" class="doc-nav-link">&#8592; {{ previousPost.data.documentId }}</a>
     {% else %}
-      <span class="doc-nav-disabled">&#8592; {{ t.previous }}</span>
+      <span class="doc-nav-disabled">&#8592; {{ "previous" | t }}</span>
     {% endif %}
 
     {% if nextPost %}
       <a href="{{ nextPost.url }}" class="doc-nav-link">{{ nextPost.data.documentId }} &#8594;</a>
     {% else %}
-      <span class="doc-nav-disabled">{{ t.next }} &#8594;</span>
+      <span class="doc-nav-disabled">{{ "next" | t }} &#8594;</span>
     {% endif %}
   </div>
 </nav>

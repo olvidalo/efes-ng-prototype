@@ -6,30 +6,20 @@ pagination:
 permalink: "{{ langCode }}/seals/index.html"
 layout: layouts/base.njk
 eleventyComputed:
-  title: "{{ translations[langCode].seals.pageTitle }}"
-  language: "{{ langCode }}"
+  title: "{{ 'sealsPageTitle' | t }}"
 ---
 
-{% set t = translations[langCode].seals %}
+{% set sortedSeals = collections["seals-" + page.lang] | sort(false, false, "data.sortKey") %}
 
-{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
-{% set langSeals = [] %}
-{% for seal in collections.seals %}
-  {% if seal.data.language == langCode %}
-    {% set langSeals = (langSeals.push(seal), langSeals) %}
-  {% endif %}
-{% endfor %}
-{% set sortedSeals = langSeals | sort(false, false, "data.sortKey") %}
-
-<p class="list-summary">{{ sortedSeals | length | default(0) }} {{ t.intro }}</p>
+<p class="list-summary">{{ sortedSeals | length | default(0) }} {{ "sealsIntro" | t }}</p>
 
 <table class="data-table seal-table">
     <thead>
     <tr>
-        <th>{{ t.headers.documentId }}</th>
-        <th>{{ t.headers.title }}</th>
-        <th>{{ t.headers.category }}</th>
-        <th>{{ t.headers.dating }}</th>
+        <th>{{ "documentId" | t }}</th>
+        <th>{{ "title" | t }}</th>
+        <th>{{ "category" | t }}</th>
+        <th>{{ "dating" | t }}</th>
     </tr>
     </thead>
     <tbody>
@@ -44,7 +34,7 @@ eleventyComputed:
         {% endfor %}
     {% else %}
         <tr>
-            <td colspan="4">{{ t.noSeals }}</td>
+            <td colspan="4">{{ "noSeals" | t }}</td>
         </tr>
     {% endif %}
     </tbody>

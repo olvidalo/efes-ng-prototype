@@ -6,10 +6,9 @@ pagination:
 permalink: "{{ langCode }}/indices/places/index.html"
 layout: layouts/base.njk
 eleventyComputed:
-  title: "{{ translations[langCode].indices.places }}"
-  language: "{{ langCode }}"
+  title: "{{ 'places' | t }}"
 ---
 
-{% set documentBasePath = "/" + langCode + "/seals" %}
+{% set documentBasePath = "/" + page.lang + "/seals" %}
 {% set indexData = indices.places %}
 {% include "partials/index-table.njk" %}
