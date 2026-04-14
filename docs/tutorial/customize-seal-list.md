@@ -25,12 +25,12 @@ Uncomment them so they're active:
 ```
 
 These extract two fields from each seal's XML:
-- **`origDate`** — the dating information from the `<origDate>` element (e.g., "mid-10th c.")
-- **`category`** — the seal category from the `<summary>` element (e.g., "Provincial administration.")
+- **`origDate`**: the dating information from the `<origDate>` element (e.g., "mid-10th c.")
+- **`category`**: the seal category from the `<summary>` element (e.g., "Provincial administration.")
 
 ## Step 2: Verify the Data
 
-Rebuild and inspect the results. Open a metadata XML file (click the **folder icon** next to `extract-epidoc-metadata`) — you should see the new fields in the `<page>` section:
+Rebuild and inspect the results. Open a metadata XML file (click the **folder icon** next to `extract-epidoc-metadata`). You should see the new fields in the `<page>` section:
 
 ```xml
 <page>
@@ -41,7 +41,7 @@ Rebuild and inspect the results. Open a metadata XML file (click the **folder ic
 </page>
 ```
 
-The sidecar JSON files now include these fields too — open a `.11tydata.json` file in `_assembly/en/seals/` to confirm:
+The sidecar JSON files now include these fields too. Open a `.11tydata.json` file in `_assembly/en/seals/` to confirm:
 
 ```json
 {
@@ -54,7 +54,7 @@ The sidecar JSON files now include these fields too — open a `.11tydata.json` 
 }
 ```
 
-The data flows from your XML source through the metadata extraction into the sidecar JSON — now we just need to display it.
+The data flows from your XML source through the metadata extraction into the sidecar JSON. Now we just need to display it.
 
 ## Step 3: Add Table Columns
 
@@ -91,10 +91,10 @@ And in the `{% for document in sorted %}` loop:
 </tr>
 ```
 
-Notice how `document.data.category` and `document.data.origDate` match the field names from the sidecar JSON — which in turn match the element names in `indices-config.xsl`. The names you choose in the XSLT are the names you use in the template.
+Notice how `document.data.category` and `document.data.origDate` match the field names from the sidecar JSON, which in turn match the element names in `indices-config.xsl`. The names you choose in the XSLT are the names you use in the template.
 
 ::: details How does Eleventy make this data available?
-When Eleventy finds a `.11tydata.json` file next to an `.html` file, it reads the JSON and attaches all its fields to that page. In the seal list template, `{% for document in sorted %}` loops over all seal pages — and `document.data` gives you access to everything from the corresponding sidecar JSON.
+When Eleventy finds a `.11tydata.json` file next to an `.html` file, it reads the JSON and attaches all its fields to that page. In the seal list template, `{% for document in sorted %}` loops over all seal pages, and `document.data` gives you access to everything from the corresponding sidecar JSON.
 
 **1. XML source** (`Feind_Kr1.xml`):
 ```xml
@@ -122,7 +122,7 @@ This means any field you add in `indices-config.xsl` automatically becomes avail
 
 ## See It Work
 
-Rebuild and open the seal list. You should now see four columns — Document ID, Title, Category, and Dating — populated with data extracted from each seal's XML source.
+Rebuild and open the seal list. You should now see four columns (Document ID, Title, Category, and Dating) populated with data extracted from each seal's XML source.
 
 This is the full data flow in action:
 
@@ -138,4 +138,4 @@ flowchart LR
 
 To add more columns, repeat this pattern: add an extraction element in `indices-config.xsl`, then add the `<th>` and `<td>` in the template. The element name you choose becomes the field name in the JSON and the property name in the template.
 
-Next, let's add browsable indices — [Indices →](./indices)
+Next, let's add browsable indices: [Indices →](./indices)

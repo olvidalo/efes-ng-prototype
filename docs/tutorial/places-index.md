@@ -1,10 +1,10 @@
 # Authority Files and Places Index
 
-The persons index extracts names directly from each seal's XML. But place names work differently — the seal XML contains a reference (`@ref="#geo0054"`), and the actual name lives in an authority file (`geography.xml`), along with translations. In the following, we build a places index that looks up names from the authority file, with multilingual support.
+The persons index extracts names directly from each seal's XML. But place names work differently: the seal XML contains a reference (`@ref="#geo0054"`), and the actual name lives in an authority file (`geography.xml`), along with translations. In the following, we build a places index that looks up names from the authority file, with multilingual support.
 
 ## What Are Authority Files?
 
-Authority files are shared XML databases of controlled vocabulary — standardised entries for places, persons, dignities, etc. Each entry has an ID and names in multiple languages:
+Authority files are shared XML databases of controlled vocabulary, providing standardised entries for places, persons, dignities, etc. Each entry has an ID and names in multiple languages:
 
 ```xml
 <!-- source/authority/geography.xml -->
@@ -113,7 +113,7 @@ The extraction template finds place references in each seal, resolves them via t
 ```
 
 Add this template below the index definition we added above. Notice:
-- The framework calls this template once per configured language, passing the current language as `$language` (a **tunnel param** — it flows automatically through intermediate templates like `extract-all-entities`)
+- The framework calls this template once per configured language, passing the current language as `$language` (a **tunnel param**: it flows automatically through intermediate templates like `extract-all-entities`)
 - We use a **fallback chain** for missing translations: `@xml:lang=$language` → English (`@xml:lang='en'`) → first available
 - We use an **authority lookup**: `$geography//tei:place[@xml:id = $geo-id]` resolves the reference
 - **`xml:id="{$geo-id}"`** tells the framework to merge the same place across documents into one index entry. Without it, each occurrence would be a separate entry
@@ -144,7 +144,7 @@ Because the framework calls the extraction template once per language, the metad
 </entities>
 ```
 
-The same seal's place reference resolves to "Cephalonia" in English and "Kephalonien" in German — automatically, from the same extraction template. The `xml:id="geo0054"` ensures both language variants are merged into one index entry.
+The same seal's place reference resolves to "Cephalonia" in English and "Kephalonien" in German, automatically, from the same extraction template. The `xml:id="geo0054"` ensures both language variants are merged into one index entry.
 
 ## Creating the Index Page
 
@@ -172,7 +172,7 @@ If you're using the copy approach instead, create `source/website/en/indices/pla
  
 ## See It Work
 
-Rebuild and navigate to the Indices page — you should see a "Place Names" card alongside "Persons." Click it to see place names extracted from the seals, with links to the seal pages where each place appears.
+Rebuild and navigate to the Indices page. You should see a "Place Names" card alongside "Persons." Click it to see place names extracted from the seals, with links to the seal pages where each place appears.
 
 ### Multilingual Index Display
 
@@ -186,7 +186,7 @@ Because the extraction runs once per language (via the `$languages` parameter), 
 }
 ```
 
-The index table template automatically resolves the current language — on the English page you see "Cephalonia", on the German page "Kephalonia". This happens because the `index-table.njk` partial uses `entry[col.key][page.lang]` with a fallback to English.
+The index table template automatically resolves the current language: on the English page you see "Cephalonia", on the German page "Kephalonia". This happens because the `index-table.njk` partial uses `entry[col.key][page.lang]` with a fallback to English.
 
 ## Linking to External Gazetteers
 
@@ -232,7 +232,7 @@ Then extract the Pleiades link in the extraction template. Instead of a plain te
 
 When the aggregation stylesheet encounters a field with child elements (instead of just text), it serializes them as a JSON object. The `index-table.njk` partial recognizes `type="link"` columns and renders the `url` and `label` keys as a clickable link.
 
-Rebuild and check the places index — Eumeneia now shows a clickable "481818" linking to its Pleiades page. Places without a Pleiades entry show "-".
+Rebuild and check the places index. Eumeneia now shows a clickable "481818" linking to its Pleiades page. Places without a Pleiades entry show "-".
 
 Notice that Pleiades URLs follow a regular pattern (`https://pleiades.stoa.org/places/{id}`), so we construct the URL from the ID in the extraction template rather than reading the explicit `<link>` from the authority file.
 
@@ -259,7 +259,7 @@ And the extraction (GeoNames URLs are also regular):
 
 ### TIB
 
-TIB (Tabula Imperii Byzantini) is different — the URLs are not regular. They point to specific pages in digitised volumes: `tib7.html#page/251/mode/1up`. We can't construct them from the ID alone.
+TIB (Tabula Imperii Byzantini) is different: the URLs are not regular. They point to specific pages in digitised volumes: `tib7.html#page/251/mode/1up`. We can't construct them from the ID alone.
 
 Instead, read the explicit `<link>` from the authority file. Each `<idno>` in the authority file is followed by a `<link target="...">` sibling with the full URL:
 
@@ -275,7 +275,7 @@ Instead, read the explicit `<link>` from the authority file. Each `<idno>` in th
 </xsl:if>
 ```
 
-The `following-sibling::tei:link[1]/@target` picks the `<link>` element immediately after the `<idno>` — this is the convention used in the SigiDoc authority files.
+The `following-sibling::tei:link[1]/@target` picks the `<link>` element immediately after the `<idno>`. This is the convention used in the SigiDoc authority files.
 
 Add the column:
 
@@ -346,4 +346,8 @@ And the full extraction template:
 </xsl:template>
 ```
 
-Rebuild — the places index now has clickable links to external gazetteers where available, with "-" for places without entries.
+Rebuild. The places index now has clickable links to external gazetteers where available, with "-" for places without entries.
+
+## What's Next
+
+The seal pages already show bibliography references, but they link to pages that don't exist yet. Let's complete the picture: [Bibliography →](./bibliography)

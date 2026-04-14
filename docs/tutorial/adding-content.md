@@ -3,7 +3,7 @@
 Right now, the preview site shows our customized header and homepage, but if you click the "Seals" menu item you get an empty page. Let's add seals.
 
 > [!info] We're now working with: Pipeline Configuration (pipeline.xml)
-> This step is about configuring XML/XSLT transformations — telling the pipeline which XML files to process, which stylesheets to use, and where to write the output. See [Content and Templates](/guide/two-worlds) for how this relates to the website templates.
+> This step is about configuring XML/XSLT transformations: telling the pipeline which XML files to process, which stylesheets to use, and where to write the output. See [Content and Templates](/guide/two-worlds) for how this relates to the website templates.
 
 ## What We Need
 
@@ -40,7 +40,7 @@ my-sigidoc-project/
 >
 > This keeps the source documents linked to their own version history.
 
-You'll also need authority files — the controlled vocabulary XMLs that the stylesheets reference for resolving geographic names, dignities, offices, etc. Place them in `source/authority/`.
+You'll also need authority files, the controlled vocabulary XMLs that the stylesheets reference for resolving geographic names, dignities, offices, etc. Place them in `source/authority/`.
 
 ## Configuring the Pipeline
 
@@ -58,9 +58,9 @@ The first thing to configure is where the node finds its input:
 <sourceFiles><files>source/seals/*.xml</files></sourceFiles>
 ```
 
-The `<files>` element contains a *glob pattern* — a way to describe a set of files using wildcards. `source/seals/*.xml` means "all XML files directly inside the `source/seals/` folder". You could also use `source/seals/**/*.xml` to include files in subdirectories recursively, or just a plain path like `source/authority/bibliography.xml` for a single file.
+The `<files>` element contains a *glob pattern*, a way to describe a set of files using wildcards. `source/seals/*.xml` means "all XML files directly inside the `source/seals/` folder". You could also use `source/seals/**/*.xml` to include files in subdirectories recursively, or just a plain path like `source/authority/bibliography.xml` for a single file.
 
-Wrapping a path in `<files>` does more than just point the node to its input — it also registers those files as tracked **dependencies**. When you run the pipeline a second time, the node checks each input file individually: if a file hasn't changed since the last build, its cached result is reused and the transformation is skipped for that file. Only files that actually changed get re-processed. This is what makes incremental rebuilds fast — editing one seal doesn't require re-transforming all of them.
+Wrapping a path in `<files>` does more than just point the node to its input. It also registers those files as tracked **dependencies**. When you run the pipeline a second time, the node checks each input file individually: if a file hasn't changed since the last build, its cached result is reused and the transformation is skipped for that file. Only files that actually changed get re-processed. This is what makes incremental rebuilds fast: editing one seal doesn't require re-transforming all of them.
 
 ### Step 2: Stylesheet
 
@@ -78,7 +78,7 @@ Just like with `<sourceFiles>`, wrapping the stylesheet path in `<files>` regist
 
 ### Step 3: Stylesheet Parameters
 
-XSLT stylesheets accept parameters that control their behavior. The EpiDoc stylesheets have many options for rendering — which Leiden convention to use, how to display line numbers, where to find bibliography data, and more:
+XSLT stylesheets accept parameters that control their behavior. The EpiDoc stylesheets have many options for rendering: which Leiden convention to use, how to display line numbers, where to find bibliography data, and more:
 
 ```xml
 <stylesheetParams>
@@ -96,14 +96,14 @@ XSLT stylesheets accept parameters that control their behavior. The EpiDoc style
 </stylesheetParams>
 ```
 
-Notice that the `bibloc` parameter uses `<files>` to reference a file. This registers the bibliography as a dependency — if you update `bibliography.xml`, the pipeline knows to re-transform.
+Notice that the `bibloc` parameter uses `<files>` to reference a file. This registers the bibliography as a dependency, so if you update `bibliography.xml`, the pipeline knows to re-transform.
 
-The `language` parameter tells the stylesheet to resolve UI labels (like "Material", "Type", "Dating") to English. The `messages-file` parameter points to the translation file and registers it as a dependency — so if you edit the translations, the pipeline rebuilds affected pages. The scaffold includes a stub with a few common keys, but for SigiDoc projects you need the complete translation file. Download it from [the SigiDoc EFES repository](https://github.com/SigiDoc/EFES-SigiDoc/blob/master/webapps/ROOT/assets/translations/messages_en.xml) and save it to `source/translations/messages_en.xml`, replacing the stub.
+The `language` parameter tells the stylesheet to resolve UI labels (like "Material", "Type", "Dating") to English. The `messages-file` parameter points to the translation file and registers it as a dependency, so if you edit the translations, the pipeline rebuilds affected pages. The scaffold includes a stub with a few common keys, but for SigiDoc projects you need the complete translation file. Download it from [the SigiDoc EFES repository](https://github.com/SigiDoc/EFES-SigiDoc/blob/master/webapps/ROOT/assets/translations/messages_en.xml) and save it to `source/translations/messages_en.xml`, replacing the stub.
 
 ::: details How do UI label translations work?
 The SigiDoc stylesheets don't hardcode label text. Instead, they output placeholder elements like `<i18n:text i18n:key="material"/>`. The `epidoc-to-html.xsl` wrapper looks up each key in the messages file and replaces the placeholder with the translated text. Without the translation file, labels appear as bracketed keys like `[material]` instead of "Material".
 
-For multi-language support, you can add additional translation files (`messages_de.xml`, `messages_el.xml`) and pass the corresponding `language` parameter — we'll do this in the [Multi-Language Support](./multi-language) step.
+For multi-language support, you can add additional translation files (`messages_de.xml`, `messages_el.xml`) and pass the corresponding `language` parameter. We'll do this in the [Multi-Language Support](./multi-language) step.
 :::
 
 ### Step 4: Output Configuration
@@ -114,9 +114,9 @@ Finally, specify where the HTML output should go. By default, a node preserves t
 <output to="_assembly/en/seals"/>
 ```
 
-then `source/seals/Feind_Kr1.xml` would be written to `_assembly/en/seals/source/seals/Feind_Kr1.xml` — which is not what we want. The `source/seals/` part of the path is just where the files happen to live in our project, not where they should end up on the website.
+then `source/seals/Feind_Kr1.xml` would be written to `_assembly/en/seals/source/seals/Feind_Kr1.xml`, which is not what we want. The `source/seals/` part of the path is just where the files happen to live in our project, not where they should end up on the website.
 
-That's what `stripPrefix` is for — it removes the source directory from the path:
+That's what `stripPrefix` is for: it removes the source directory from the path:
 
 ```xml
 <output to="_assembly/en/seals"
@@ -166,17 +166,17 @@ Putting it all together:
 
 ## Building and Inspecting
 
-If you already clicked **Start** earlier (during the customization step), the pipeline is in watch mode. It automatically detects changes to `pipeline.xml` and reloads the pipeline configuration — you should see the new `transform-epidoc` node appear in the node list, and a rebuild starts automatically.
+If you already clicked **Start** earlier (during the customization step), the pipeline is in watch mode. It automatically detects changes to `pipeline.xml` and reloads the pipeline configuration. You should see the new `transform-epidoc` node appear in the node list, and a rebuild starts automatically.
 
 If the pipeline is not running yet, click **Start** now.
 
-Watch as the node processes each XML file — the progress counter shows how many seals have been transformed.
+Watch as the node processes each XML file. The progress counter shows how many seals have been transformed.
 
 ### What Did the Pipeline Produce?
 
-Once the build completes, let's look at what happened. Open the `_assembly/en/seals/` directory in your file manager or editor. You should see an `.html` file for every input XML file — `Feind_Kr1.html`, `Feind_Kr10.html`, and so on.
+Once the build completes, let's look at what happened. Open the `_assembly/en/seals/` directory in your file manager or editor. You should see an `.html` file for every input XML file: `Feind_Kr1.html`, `Feind_Kr10.html`, and so on.
 
-Open one of these HTML files in a text editor. You'll see a partial HTML fragment — the seal's transcription, metadata, and commentary, rendered by the SigiDoc stylesheets. This is the content that will eventually be embedded in a page on the site.
+Open one of these HTML files in a text editor. You'll see a partial HTML fragment containing the seal's transcription, metadata, and commentary, rendered by the SigiDoc stylesheets. This is the content that will eventually be embedded in a page on the site.
 
 > [!tip] Inspecting a Node
 > You can also inspect the output from the GUI: click on `transform-epidoc` in the node list to open the inspector panel. It shows the node's configuration, dependencies, cache statistics, and the list of output files it produced.
@@ -185,8 +185,8 @@ Open one of these HTML files in a text editor. You'll see a partial HTML fragmen
 
 Now switch to the preview and try opening a seal page directly (like `/en/seals/Feind_Kr1/`). You'll notice two things are off:
 
-1. The page shows raw HTML without the site template — no header, footer, or navigation. This is because Eleventy needs a sidecar data file to know which layout to use. We'll fix that in the [next step](./metadata-and-data).
-2. The content itself is garbled — text from different languages is mashed together: "SiegelSealΜολυβδόβουλλο" instead of just "Seal".
+1. The page shows raw HTML without the site template (no header, footer, or navigation). This is because Eleventy needs a sidecar data file to know which layout to use. We'll fix that in the [next step](./metadata-and-data).
+2. The content itself is garbled, with text from different languages mashed together: "SiegelSealΜολυβδόβουλλο" instead of just "Seal".
 
 The garbled text happens because the SigiDoc XML files contain content in multiple languages side by side. For example, look at the object type in `Feind_Kr1.xml`:
 
@@ -200,7 +200,7 @@ The garbled text happens because the SigiDoc XML files contain content in multip
 </objectType>
 ```
 
-English, German, and Greek are all in the same element. When the stylesheet renders this without filtering, it outputs all three: "SiegelSealΜολυβδόβουλλο". The same pattern repeats throughout the file — titles, materials, descriptions — producing the garbled output we see. Let's fix this first.
+English, German, and Greek are all in the same element. When the stylesheet renders this without filtering, it outputs all three: "SiegelSealΜολυβδόβουλλο". The same pattern repeats throughout the file (titles, materials, descriptions), producing the garbled output we see. Let's fix this first.
 
 ### Fixing with Language Pruning
 
@@ -228,7 +228,7 @@ This node takes each XML file and strips out all content that isn't marked as En
 </objectType>
 ```
 
-Notice the node has no `<output>` — its results are only needed by other pipeline nodes, not by external tools.
+Notice the node has no `<output>` because its results are only needed by other pipeline nodes, not by external tools.
 
 > [!tip]
 > After a build, you can inspect the pruned XML files by clicking the **folder icon** next to `prune-epidoc-english` in the node list. Open one to see what the XML looks like with only English content remaining.
@@ -244,16 +244,16 @@ Now we need to change `transform-epidoc` so it reads the pruned XML instead of t
 ```
 
 The `<from>` element says: "instead of reading files from disk, take the output of another pipeline node." This does two things:
-- **Provides the input** — uses the `transformed` output of `prune-epidoc-english`
-- **Creates a dependency** — the pipeline knows it must run `prune-epidoc-english` before `transform-epidoc`
+- **Provides the input**: uses the `transformed` output of `prune-epidoc-english`
+- **Creates a dependency**: the pipeline knows it must run `prune-epidoc-english` before `transform-epidoc`
 
 ### Rebuild
 
-The watcher detects the `pipeline.xml` changes, reloads the pipeline, and rebuilds. You should see both nodes in the node list — `prune-epidoc-english` runs first, then `transform-epidoc`.
+The watcher detects the `pipeline.xml` changes, reloads the pipeline, and rebuilds. You should see both nodes in the node list. `prune-epidoc-english` runs first, then `transform-epidoc`.
 
-Switch to the preview and open a seal page (e.g. `/seals/Feind_M163/`) or refresh the page if you already have it open. The content is now clean English — no more garbled multilingual text.
+Switch to the preview and open a seal page (e.g. `/seals/Feind_M163/`) or refresh the page if you already have it open. The content is now clean English, with no more garbled multilingual text.
 
-The content is correct now, but the two issues from before remain: the seal pages are still missing the site shell (header, footer, navigation), and the seal list at `/en/seals/` is still empty. Both are caused by the same thing — Eleventy doesn't know how to handle the HTML fragments yet. It needs a **data sidecar file** for each seal — a small JSON file that tells Eleventy which layout to use, what the page title is, and which collection the page belongs to.
+The content is correct now, but the two issues from before remain: the seal pages are still missing the site shell (header, footer, navigation), and the seal list at `/en/seals/` is still empty. Both are caused by the same thing: Eleventy doesn't know how to handle the HTML fragments yet. It needs a **data sidecar file** for each seal, a small JSON file that tells Eleventy which layout to use, what the page title is, and which collection the page belongs to.
 
 Here's what such a file looks like. For `Feind_Kr1.html`, Eleventy expects a file called `Feind_Kr1.11tydata.json`:
 
@@ -266,15 +266,15 @@ Here's what such a file looks like. For `Feind_Kr1.html`, Eleventy expects a fil
 ```
 
 This tells Eleventy three things:
-- **`layout`** — wrap this HTML fragment in the `document.njk` template (which gives it the site header, footer, and navigation)
-- **`title`** — the page title (used in the browser tab and the page heading)
-- **`tags`** — add this page to the `seals` collection, which is what populates the seal list page
+- **`layout`**: wrap this HTML fragment in the `document.njk` template (which gives it the site header, footer, and navigation)
+- **`title`**: the page title (used in the browser tab and the page heading)
+- **`tags`**: add this page to the `seals` collection, which is what populates the seal list page
 
-Writing these by hand for every seal would be tedious — and the title and other metadata are already in the XML source files. In the next step, we will create the pipeline nodes that generate these sidecar files automatically from the XML.
+Writing these by hand for every seal would be tedious, and the title and other metadata are already in the XML source files. In the next step, we will create the pipeline nodes that generate these sidecar files automatically from the XML.
 
 ## What We've Built So Far
 
-Here's the pipeline at this point — three nodes:
+Here's the pipeline at this point, with three nodes:
 
 ```mermaid
 flowchart TD

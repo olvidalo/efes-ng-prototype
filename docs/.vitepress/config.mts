@@ -29,6 +29,7 @@ export default withMermaid(
               { text: 'Search', link: '/tutorial/search' },
               { text: 'Multi-Language Support', link: '/tutorial/multi-language' },
               { text: 'Authority Files and Places Index', link: '/tutorial/places-index' },
+              { text: 'Bibliography', link: '/tutorial/bibliography' },
             ],
           },
         ],

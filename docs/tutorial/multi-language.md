@@ -1,8 +1,8 @@
 # Multi-Language Support
 
-So far, our seals are published in English only. The SigiDoc Feind Collection is available in three languages — English, German, and Greek. Let's add German.
+So far, our seals are published in English only. The SigiDoc Feind Collection is available in three languages: English, German, and Greek. Let's add German.
 
-Multi-language support involves three layers: source content, XSLT UI labels, and the website shell. See [Multi-Language Architecture](/guide/multi-language-architecture) for the full picture — here we'll work through each layer hands-on.
+Multi-language support involves three layers: source content, XSLT UI labels, and the website shell. See [Multi-Language Architecture](/guide/multi-language-architecture) for the full picture. Here we'll work through each layer hands-on.
 
 ## Step 1: German Seal Pages
 
@@ -26,7 +26,7 @@ Two kinds of changes are needed in `pipeline.xml`:
 </xsltTransform>
 ```
 
-This single node now extracts metadata for both languages at once — no separate German extraction node needed. The framework calls your extraction templates once per language and auto-stamps `xml:lang` on the output. Each metadata XML file now contains fields for both languages:
+This single node now extracts metadata for both languages at once, so no separate German extraction node is needed. The framework calls your extraction templates once per language and auto-stamps `xml:lang` on the output. Each metadata XML file now contains fields for both languages:
 
 ```xml
 <metadata>
@@ -48,9 +48,9 @@ This single node now extracts metadata for both languages at once — no separat
 </metadata>
 ```
 
-Every field carries an `xml:lang` attribute — the framework adds this automatically. The downstream stylesheets (`create-11ty-data.xsl`, `aggregate-search-data.xsl`) select the fields matching their `language` parameter.
+Every field carries an `xml:lang` attribute (the framework adds this automatically). The downstream stylesheets (`create-11ty-data.xsl`, `aggregate-search-data.xsl`) select the fields matching their `language` parameter.
 
-Also update the existing `generate-eleventy-data` node's tags from `seals` to `seals-en`. This creates a language-specific Eleventy collection — when we add the German node with `seals-de`, each language gets its own collection, so the seal list template can show only the right language's seals:
+Also update the existing `generate-eleventy-data` node's tags from `seals` to `seals-en`. This creates a language-specific Eleventy collection. When we add the German node with `seals-de`, each language gets its own collection, so the seal list template can show only the right language's seals:
 
 ```xml
 <param name="tags">seals-en</param>
@@ -64,7 +64,7 @@ Since you changed the tag from `seals` to `seals-en`, also update the English se
 > [!note]
 > Note the bracket syntax: `collections["seals-en"]` instead of `collections.seals`. This is just another way of accessing a collection that we need here because because the hyphen in `seals-en` doesn't work with the dot notation that we used before.
 
-**Then**, add the new German nodes — a prune + transform chain for rendering the German seal HTML pages, and a sidecar data node for German page metadata:
+**Then**, add the new German nodes: a prune + transform chain for rendering the German seal HTML pages, and a sidecar data node for German page metadata:
 
 ```xml
 <!-- ===== GERMAN ===== -->
@@ -120,22 +120,22 @@ Since you changed the tag from `seals` to `seals-en`, also update the English se
 ```
 
 Notice:
-- **No separate extraction node** — the existing `extract-epidoc-metadata` handles both languages. Only the HTML rendering (`prune` + `transform`) and sidecar generation (`generate-eleventy-data`) need per-language nodes
+- **No separate extraction node**: the existing `extract-epidoc-metadata` handles both languages. Only the HTML rendering (`prune` + `transform`) and sidecar generation (`generate-eleventy-data`) need per-language nodes
 - `generate-eleventy-data-german` reads from the **same** `extract-epidoc-metadata` as the English version
-- Tags use a language suffix (`seals-en`, `seals-de`) — this creates separate Eleventy collections per language
+- Tags use a language suffix (`seals-en`, `seals-de`), which creates separate Eleventy collections per language
 
 > [!tip]
-> If you have the watcher running, you'll see an error about `messages_de.xml` not found. That's expected — we just told the transform node to use German translations from `messages_de.xml` for the SigiDoc seal page UI labels, but haven't added the file yet. Let's fix that now.
+> If you have the watcher running, you'll see an error about `messages_de.xml` not found. That's expected. We just told the transform node to use German translations from `messages_de.xml` for the SigiDoc seal page UI labels, but haven't added the file yet. Let's fix that now.
 
 ### Step 2: German UI Labels
 
 Remember how we [downloaded `messages_en.xml`](./adding-content#step-3-stylesheet-parameters) for English UI labels like "Material", "Type", "Dating"? The SigiDoc stylesheets use `i18n:text` placeholders that get resolved from these message files.
 
-Download `messages_de.xml` from the [SigiDoc EFES repository](https://github.com/SigiDoc/EFES-SigiDoc/blob/master/webapps/ROOT/assets/translations/messages_de.xml) and save it to `source/translations/messages_de.xml`. The `messages-file` parameter we set on the transform node points to this file and registers it as a tracked dependency — so edits to the translations trigger a rebuild.
+Download `messages_de.xml` from the [SigiDoc EFES repository](https://github.com/SigiDoc/EFES-SigiDoc/blob/master/webapps/ROOT/assets/translations/messages_de.xml) and save it to `source/translations/messages_de.xml`. The `messages-file` parameter we set on the transform node points to this file and registers it as a tracked dependency, so edits to the translations trigger a rebuild.
 
 ### Build and Inspect
 
-Rebuild. You should see the four new German nodes in the pipeline. Once complete, navigate to `/de/seals/Feind_Kr1/` — the seal content is now in German, with German UI labels.
+Rebuild. You should see the four new German nodes in the pipeline. Once complete, navigate to `/de/seals/Feind_Kr1/`. The seal content is now in German, with German UI labels.
 
 Here's what happens to a single source file now:
 
@@ -165,9 +165,9 @@ One source file produces four outputs: an HTML page and a sidecar JSON for each 
 
 ## Step 3: Language Switcher
 
-Open an English seal page like `/en/seals/Feind_Kr1/`. You can see the German version exists at `/de/seals/Feind_Kr1/` — but how does a user switch between them? Let's add a language switcher to the header.
+Open an English seal page like `/en/seals/Feind_Kr1/`. You can see the German version exists at `/de/seals/Feind_Kr1/`, but how does a user switch between them? Let's add a language switcher to the header.
 
-This requires the `languages.json` data file. The scaffold includes a `languages.json.example` — rename it to `languages.json`:
+This requires the `languages.json` data file. The scaffold includes a `languages.json.example`. Rename it to `languages.json`:
 
 ```json
 {
@@ -190,9 +190,9 @@ Then find the commented-out language switcher block in `source/website/_includes
 </nav>
 ```
 
-This loops over the configured languages and shows the current one highlighted, with links to switch to the others. The URL replacement swaps the language prefix — so clicking "DE" on `/en/seals/Feind_Kr1/` takes you to `/de/seals/Feind_Kr1/`.
+This loops over the configured languages and shows the current one highlighted, with links to switch to the others. The URL replacement swaps the language prefix, so clicking "DE" on `/en/seals/Feind_Kr1/` takes you to `/de/seals/Feind_Kr1/`.
 
-The seal list at `/de/seals/` won't work yet — that's a website shell concern, which we'll handle next.
+The seal list at `/de/seals/` won't work yet. That's a website shell concern, which we'll handle next.
 
 ## Step 4: German Seal List
 
@@ -203,7 +203,7 @@ The German seal pages work, but the seal list at `/de/seals/` doesn't exist yet.
 The simplest approach: copy the English seal list template. Create a `source/website/de/seals/` directory (mirroring the `en/seals/` structure) and copy `source/website/en/seals/index.njk` into it. Then make two changes:
 
 1. Change the title to "Siegel"
-2. Change the collection to `collections["seals-de"]` — this matches the `tags: "seals-de"` we set in the German pipeline node
+2. Change the collection to `collections["seals-de"]`, which matches the `tags: "seals-de"` we set in the German pipeline node
 
 ```liquid
 ---
@@ -214,21 +214,21 @@ title: Siegel
 {% set documents = collections["seals-de"] %}
 ```
 
-Because we used language-suffixed tags (`seals-en`, `seals-de`), each language has its own collection. No filtering needed — `collections["seals-de"]` contains only German seals.
+Because we used language-suffixed tags (`seals-en`, `seals-de`), each language has its own collection. No filtering needed, because `collections["seals-de"]` contains only German seals.
 
-You also need to update the **document layout** at `source/website/_includes/layouts/document.njk`. This is a shared layout (not inside `en/` or `de/`), used by both English and German seal pages — it provides the prev/next navigation between seals. Change its collection reference from `collections.seals` to `collections["seals-" + page.lang]`:
+You also need to update the **document layout** at `source/website/_includes/layouts/document.njk`. This is a shared layout (not inside `en/` or `de/`), used by both English and German seal pages. It provides the prev/next navigation between seals. Change its collection reference from `collections.seals` to `collections["seals-" + page.lang]`:
 
 ```liquid
 {% set documents = collections["seals-" + page.lang] | sort(false, false, "data.sortKey") %}
 ```
 
-Since `page.lang` is auto-detected from the `/en/` or `/de/` directory, this one change makes the layout work for both languages — it automatically shows prev/next links to seals in the same language.
+Since `page.lang` is auto-detected from the `/en/` or `/de/` directory, this one change makes the layout work for both languages. It automatically shows prev/next links to seals in the same language.
 
 Rebuild, and the German seal list at `/de/seals/` shows only German seals.
 
 ## Step 5: German Homepage
 
-Let's also add a German homepage. This is a pure content page — just copy `source/website/en/index.njk` to `source/website/de/index.njk` and translate the text by hand:
+Let's also add a German homepage. This is a pure content page, so just copy `source/website/en/index.njk` to `source/website/de/index.njk` and translate the text by hand:
 
 ```html
 ---
@@ -247,18 +247,18 @@ suppressTitle: true
 </div>
 ```
 
-Navigate to `/de/` — you now have a German homepage.
+Navigate to `/de/`. You now have a German homepage.
 
 ## Step 6: Translating the Website Shell
 
-We now have German seal pages, a German seal list, and a German homepage. But look at the header — the navigation menu still says "Seals", "Search", "Indices" on German pages too. The prev/next links say "Previous" and "Next". All of this text is hardcoded in the templates and needs translating.
+We now have German seal pages, a German seal list, and a German homepage. But look at the header: the navigation menu still says "Seals", "Search", "Indices" on German pages too. The prev/next links say "Previous" and "Next". All of this text is hardcoded in the templates and needs translating.
 
-Unlike the seal list or homepage, we can't just copy these files per language. The header, footer, and document layout are **shared includes** — one `header.njk` is used by every page on the site, regardless of language. Both `/en/seals/` and `/de/seals/` include the same file. It needs to display "Seals" or "Siegel" depending on which page is using it.
+Unlike the seal list or homepage, we can't just copy these files per language. The header, footer, and document layout are **shared includes**: one `header.njk` is used by every page on the site, regardless of language. Both `/en/seals/` and `/de/seals/` include the same file. It needs to display "Seals" or "Siegel" depending on which page is using it.
 
-Our project's Eleventy configuration file (`source/website/eleventy.config.js`) provides a `| t` filter for this. It reads translation files from `source/website/_data/translations/` — one JSON file per language (`en.json`, `de.json`, etc.) — and looks up a key based on the current page's language.
+Our project's Eleventy configuration file (`source/website/eleventy.config.js`) provides a `| t` filter for this. It reads translation files from `source/website/_data/translations/` (one JSON file per language: `en.json`, `de.json`, etc.) and looks up a key based on the current page's language.
 
 > [!note] 
-> The approach is the same one we saw for the SigiDoc XSLT UI labels (`messages_en.xml` with key lookups) — but adapted for Eleventy templates: translation files that map keys to translated strings, and a method to look them up.
+> The approach is the same one we saw for the SigiDoc XSLT UI labels (`messages_en.xml` with key lookups), but adapted for Eleventy templates: translation files that map keys to translated strings, and a method to look them up.
 
 The language file defines the translation keys and texts like this:
 
@@ -313,7 +313,7 @@ The `t` filter automatically looks up the key in the translation file matching `
 If you like, try it on a few texts across the project. Then let's go on to internationalise the remaining sections of the site.
 
 ::: details How many strings need converting?
-About 20 across all templates — mostly in the header (nav labels), document layout (prev/next/back), and the seal list (column headers, intro text). 
+About 20 across all templates, mostly in the header (nav labels), document layout (prev/next/back), and the seal list (column headers, intro text). 
 :::
 
 ## Step 7: German Search Page
@@ -344,7 +344,7 @@ Then create the German search page: create the `source/website/de/search` direct
 
 ## Step 8: German Entity Index Pages
 
-Copy the remaining index pages to German. The data-driven content (index tables) handles language automatically — you just need to copy the template and translate the title.
+Copy the remaining index pages to German. The data-driven content (index tables) handles language automatically. You just need to copy the template and translate the title.
 
 **Indices landing page:** create the `source/website/de/indices` directory and move `source/website/en/indices/index.njk` to `source/website/de/indices/index.njk`:
 
@@ -384,12 +384,12 @@ title: Personen
 {% include "partials/index-table.njk" %}
 ```
 
-The index table partial already handles multilingual entity names — it uses `entry[col.key][page.lang]` with a fallback to English.
+The index table partial already handles multilingual entity names. It uses `entry[col.key][page.lang]` with a fallback to English.
 
 ## Going further
-### This Works — But Doesn't Scale
+### This Works, But Doesn't Scale
 
-Take a step back and look at what we've done: we copied the seal list, search page, indices landing, and persons index — four templates that are mostly identical across languages. For content pages like the homepage, copying and translating by hand is fine — the text is unique to each language. But these data-driven pages are essentially the same template with a different title.
+Take a step back and look at what we've done: we copied the seal list, search page, indices landing, and persons index. Those four templates are mostly identical across languages. For content pages like the homepage, copying and translating by hand is fine, because the text is unique to each language. But these data-driven pages are essentially the same template with a different title.
 
 If we add Greek, we copy all four again. Every change to the table layout needs updating in all copies. For three or more languages, this becomes tedious and error-prone.
 
@@ -423,7 +423,7 @@ eleventyComputed:
 - **`pagination.data`**: The data to iterate over. Here it points to `languages.codes` from our `languages.json` file (`["en", "de"]`)
 - **`pagination.size`**: Produce exactly one page per language.
 - **`pagination.alias`**: The variable name for the current item. We use `langCode`, which becomes `"en"` or `"de"` in each iteration
-- **`eleventyComputed.title`**: The title needs to be different for each language, so we can't just write `title: Seals` — that would be the same for every generated page. `eleventyComputed` tells Eleventy to evaluate the value at render time (like a template expression), so <span v-pre style="white-space: nowrap">`{{ 'seals' | t }}`</span> resolves to "Seals" or "Siegel" depending on the current language
+- **`eleventyComputed.title`**: The title needs to be different for each language, so we can't just write `title: Seals` (that would be the same for every generated page). `eleventyComputed` tells Eleventy to evaluate the value at render time (like a template expression), so <span v-pre style="white-space: nowrap">`{{ 'seals' | t }}`</span> resolves to "Seals" or "Siegel" depending on the current language
 :::
 
 3. Change the collection reference to use `page.lang`:
@@ -515,7 +515,7 @@ eleventyComputed:
 ::: 
 
 > [!tip]
-> The *permalink* front matter property that controls where pages generated from this template end up only matters for templates that need to produce multiple outputs. For pipeline-generated content (like the individual seal HTML pages), the output path is determined by the pipeline's `<output>` configuration — no permalink needed.
+> The *permalink* front matter property that controls where pages generated from this template end up only matters for templates that need to produce multiple outputs. For pipeline-generated content (like the individual seal HTML pages), the output path is determined by the pipeline's `<output>` configuration, so no permalink is needed.
 
 #### Copy vs. Pagination: Which to Choose?
 
@@ -524,15 +524,15 @@ eleventyComputed:
 | **Initial Setup**                                  | Copy file, translate text in template                       | Move file, add front matter, translate text using key lookup method with `\| t` filter |
 | **Adding a language**                              | Copy all templates and make language-specific changes again | Add one code to `languages.json`                                                       |
 | **Changing a template**                            | Update every copy                                           | Update one file                                                                        |
-| **Content pages** (homepage, about)                | Recommended — content is unique per language                | Not useful — nothing to share                                                          |
+| **Content pages** (homepage, about)                | Recommended – content is unique per language                | Not useful – nothing to share                                                          |
 | **Data-driven pages** (seal list, indices, search) | Works okay for 2 languages                                  | Recommended for 3 or more languages                                                    |
 | **Complexity**                                     | Simple, explicit                                            | Requires understanding pagination front matter                                         |
 
-Both approaches are valid — use what fits your project. You can mix them: pagination for data-driven pages, copy for content pages.
+Both approaches are valid. Use what fits your project. You can mix them: pagination for data-driven pages, copy for content pages.
 
 ### Adding More Languages
 
-If you're using the pagination approach, adding a third language (e.g., Greek) is straightforward – the templates already generate pages for all languages in `languages.json`. You only need to add pipeline nodes and translation files:
+If you're using the pagination approach, adding a third language (e.g., Greek) is straightforward, because the templates already generate pages for all languages in `languages.json`. You only need to add pipeline nodes and translation files:
 
 1. **Pipeline:** Add `el` to the `languages` param in `extract-epidoc-metadata`: `en de el`
 2. **HTML rendering:** Add `prune-epidoc-greek` and `transform-epidoc-greek` nodes
@@ -543,7 +543,7 @@ If you're using the pagination approach, adding a third language (e.g., Greek) i
 
 If you're using the copy approach, you also need to duplicate all templates to `el/` paths and adapt them according to the language.
 
-> [!info] The SigiDoc FEIND project's `source/website/` directory shows a complete set of multi-language templates — use it as a reference.
+> [!info] The SigiDoc FEIND project's `source/website/` directory shows a complete set of multi-language templates. Use it as a reference.
 ## What We've Built
 
 ### Template Structure
@@ -616,6 +616,6 @@ flowchart TD
     style output fill:#fff3e0,stroke:#ff9800
 ```
 
-The German nodes (highlighted in blue) add a prune + transform chain for HTML rendering, a sidecar data node, and a search data node. The metadata extraction and index aggregation are **shared** — one node each handles both languages.
+The German nodes (highlighted in blue) add a prune + transform chain for HTML rendering, a sidecar data node, and a search data node. The metadata extraction and index aggregation are **shared**: one node each handles both languages.
 
-Now that we have multi-language support, let's see it in action with a genuinely multilingual index — [Authority Files and Places Index →](./places-index)
+Now that we have multi-language support, let's see it in action with a genuinely multilingual index: [Authority Files and Places Index →](./places-index)

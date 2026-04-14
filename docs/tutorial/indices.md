@@ -1,14 +1,14 @@
 # Indices
 
-The seal pages and seal list work, but the Indices section is still empty. Indices are browsable tables that collect entities — persons, places, dignities, offices — extracted from across all your documents. Let's add one.
+The seal pages and seal list work, but the Indices section is still empty. Indices are browsable tables that collect entities (persons, places, dignities, offices) extracted from across all your documents. Let's add one.
 
 ## How Indices Work
 
 An index configuration has three parts:
 
-1. **Definition** — in `indices-config.xsl`, an `<idx:index>` block declares the index (its ID, title, and column layout)
-2. **Extraction** — an XSLT template finds the relevant entities in each XML source file and outputs `<entity>` elements
-3. **Aggregation** — a pipeline node combines all extracted entities across documents into a single JSON file
+1. **Definition**: in `indices-config.xsl`, an `<idx:index>` block declares the index (its ID, title, and column layout)
+2. **Extraction**: an XSLT template finds the relevant entities in each XML source file and outputs `<entity>` elements
+3. **Aggregation**: a pipeline node combines all extracted entities across documents into a single JSON file
 
 The data flows like this:
 
@@ -26,7 +26,7 @@ flowchart LR
   style json fill:#e8f5e9,stroke:#4caf50
 ```
 
-We already have the extraction step (`extract-epidoc-metadata`) — its `<entities>` section was empty because we hadn't defined any indices yet. Let's fix that.
+We already have the extraction step (`extract-epidoc-metadata`), but its `<entities>` section was empty because we hadn't defined any indices yet. Let's fix that.
 
 ## Adding a Persons Index
 
@@ -36,7 +36,7 @@ Open `source/indices-config.xsl`. The scaffold includes a commented-out persons 
 
 ### Define the Index
 
-Find the commented-out `<idx:index id="persons">` block and uncomment it. We'll also add a surname column — the scaffold only has a generic `name` column, but our SigiDoc seals have separate forenames and surnames:
+Find the commented-out `<idx:index id="persons">` block and uncomment it. We'll also add a surname column, since the scaffold only has a generic `name` column but our SigiDoc seals have separate forenames and surnames:
 
 ```xml
 <idx:index id="persons" title="Persons" nav="indices" order="10">
@@ -68,7 +68,7 @@ Uncomment the `extract-persons` template below the index definition. The scaffol
 </xsl:template>
 ```
 
-This works as a starting point, but for our SigiDoc project the person encoding is more specific — seal issuers are in `<listPerson type="issuer">` with separate forename and surname elements in multiple languages. Let's adapt it:
+This works as a starting point, but for our SigiDoc project the person encoding is more specific: seal issuers are in `<listPerson type="issuer">` with separate forename and surname elements in multiple languages. Let's adapt it:
 
 ```xml
 <!-- Adapted for SigiDoc seal issuers -->
@@ -92,12 +92,12 @@ This works as a starting point, but for our SigiDoc project the person encoding 
 The key differences from the scaffold version:
 - We target `tei:listPerson[@type='issuer']` instead of all `tei:persName`
 - We extract `forename` and `surname` as separate fields (matching our column definitions)
-- The framework calls this template once per language, passing `$language` as a tunnel param — `@xml:lang=$language` picks the name in the current language, falling back to any available name
+- The framework calls this template once per language, passing `$language` as a tunnel param. `@xml:lang=$language` picks the name in the current language, falling back to any available name
 - The `sortKey` combines forename and surname for alphabetical ordering
 
 Each `<entity>` must have:
 - **`indexType`** matching the index ID (`"persons"`)
-- **Fields matching the column keys** — here `forename` and `surname`
+- **Fields matching the column keys**: here `forename` and `surname`
 - **`sortKey`** for ordering
 
 The framework auto-stamps `xml:lang` on your output fields, merges entities across language iterations (by position), and groups them across all documents (by `sortKey`) to collect references.
@@ -158,10 +158,10 @@ Uncomment it in `pipeline.xml`:
 
 This node is different from the ones we've seen before:
 
-- **`metadata-files`** — passes all the metadata XML files from `extract-epidoc-metadata` as a parameter to the stylesheet. This is how the aggregation gets access to entity data from every document at once
-- **`indices-config`** — passes your `indices-config.xsl` so the aggregation knows which indices are defined and how their columns are structured
-- **`<initialTemplate>`** — instead of processing input files one by one, this node calls a named template (`aggregate`) that processes all metadata files at once to produce combined output
-- **`<output filename="_summary.json">`** — produces a single file rather than one per input. The aggregation stylesheet also produces individual JSON files for each index (e.g., `persons.json`) alongside the summary
+- **`metadata-files`**: passes all the metadata XML files from `extract-epidoc-metadata` as a parameter to the stylesheet. This is how the aggregation gets access to entity data from every document at once
+- **`indices-config`**: passes your `indices-config.xsl` so the aggregation knows which indices are defined and how their columns are structured
+- **`<initialTemplate>`**: instead of processing input files one by one, this node calls a named template (`aggregate`) that processes all metadata files at once to produce combined output
+- **`<output filename="_summary.json">`**: produces a single file rather than one per input. The aggregation stylesheet also produces individual JSON files for each index (e.g., `persons.json`) alongside the summary
 
 ### How Does Eleventy Know to Wait?
 
@@ -176,13 +176,13 @@ Look at the `eleventyBuild` node's configuration:
 </eleventyBuild>
 ```
 
-Back in [Exploring the Project](./explore-project), we mentioned that `<collect>` would be explained later — here's how it works. The `<collect>` element creates an implicit dependency on *all* nodes that write files into the specified directory. Since `aggregate-indices` writes to `_assembly/_data/indices/`, and `transform-epidoc` writes to `_assembly/en/seals/`, and `copy-eleventy-site` writes to `_assembly/` — this single `<collect>` ensures the Eleventy build waits for all of them to finish, without you having to list every dependency explicitly.
+Back in [Exploring the Project](./explore-project), we mentioned that `<collect>` would be explained later. Here's how it works. The `<collect>` element creates an implicit dependency on *all* nodes that write files into the specified directory. Since `aggregate-indices` writes to `_assembly/_data/indices/`, and `transform-epidoc` writes to `_assembly/en/seals/`, and `copy-eleventy-site` writes to `_assembly/`, this single `<collect>` ensures the Eleventy build waits for all of them to finish, without you having to list every dependency explicitly.
 
 ### Inspecting the Aggregated Data
 
 Rebuild and open the output directory for `aggregate-indices` (click the **folder icon**). You'll find two kinds of files:
 
-**`_summary.json`** — a list of all defined indices with entry counts:
+**`_summary.json`**: a list of all defined indices with entry counts:
 
 ```json
 {
@@ -199,7 +199,7 @@ Rebuild and open the output directory for `aggregate-indices` (click the **folde
 
 The indices landing page (`en/indices/index.njk`) reads this file to show an overview card for each index.
 
-**`persons.json`** — the full data for the persons index. You might wonder how this file got here — the pipeline only specifies `_summary.json` as the output filename. The aggregation stylesheet uses an XSLT feature called `xsl:result-document` to write additional files alongside the primary output. For each index it defines, it produces a separate JSON file. The file names are derived from the index IDs in your `indices-config.xsl`.
+**`persons.json`**: the full data for the persons index. You might wonder how this file got here. The pipeline only specifies `_summary.json` as the output filename. The aggregation stylesheet uses an XSLT feature called `xsl:result-document` to write additional files alongside the primary output. For each index it defines, it produces a separate JSON file. The file names are derived from the index IDs in your `indices-config.xsl`.
 
 Here's what `persons.json` looks like:
 
@@ -225,10 +225,10 @@ Here's what `persons.json` looks like:
 }
 ```
 
-Notice how the aggregation grouped all occurrences of each person across documents and collected the references. The column definitions come from the `<idx:index>` block you defined — they tell the template how to render the table.
+Notice how the aggregation grouped all occurrences of each person across documents and collected the references. The column definitions come from the `<idx:index>` block you defined, and they tell the template how to render the table.
 
 ::: details How does Eleventy make this data available?
-Eleventy has a special convention: any JSON file in a `_data/` directory is automatically loaded and made available to templates. The directory structure becomes the property path — files in `_data/indices/` become properties of `indices`. So `_data/indices/persons.json` is available as `indices.persons`, and `_data/indices/_summary.json` as `indices._summary`. That's why the index page template can simply write `{% set indexData = indices.persons %}` — no configuration needed.
+Eleventy has a special convention: any JSON file in a `_data/` directory is automatically loaded and made available to templates. The directory structure becomes the property path, so files in `_data/indices/` become properties of `indices`. So `_data/indices/persons.json` is available as `indices.persons`, and `_data/indices/_summary.json` as `indices._summary`. That's why the index page template can simply write `{% set indexData = indices.persons %}`, no configuration needed.
 :::
 
 ## Creating the Index Page
@@ -252,11 +252,11 @@ title: Persons
 
 The template is short because the heavy lifting is done by the shared `index-table.njk` partial. It reads the `persons.json` data and renders the table with the columns we defined in the index definition.
 
-The `documentBasePath` variable tells the template where your seal pages live — so the reference links point to the right URLs (e.g., `/en/seals/Feind_Kr1/`).
+The `documentBasePath` variable tells the template where your seal pages live, so the reference links point to the right URLs (e.g., `/en/seals/Feind_Kr1/`).
 
 ## See It Work
 
-Rebuild and navigate to the Indices page. You should see a "Persons" card with an entry count. Click it to see the full table — person names with links to the seals they appear on.
+Rebuild and navigate to the Indices page. You should see a "Persons" card with an entry count. Click it to see the full table: person names with links to the seals they appear on.
 
 > [!tip] Adding More Indices
 > To add another index (places, dignities, offices, etc.), repeat the pattern:
@@ -265,7 +265,7 @@ Rebuild and navigate to the Indices page. You should see a "Persons" card with a
 > 3. Register it in `extract-all-entities`
 > 4. Create a page template (`en/indices/yourindex.njk`)
 >
-> The SigiDoc FEIND project has complete examples with five indices — see its `indices-config.xsl` for reference.
+> The SigiDoc FEIND project has complete examples with five indices. See its `indices-config.xsl` for reference.
 
 ## Advanced: Showing Greek Names
 
@@ -285,7 +285,7 @@ First, add the column to the index definition in `indices-config.xsl`:
 </idx:index>
 ```
 
-Then add the field to the extraction template — the Greek name is in `tei:persName[@xml:lang='grc']`:
+Then add the field to the extraction template. The Greek name is in `tei:persName[@xml:lang='grc']`:
 
 ```xml
 <xsl:variable name="greekName" select="normalize-space(
@@ -300,7 +300,7 @@ Then add the field to the extraction template — the Greek name is in `tei:pers
 </entity>
 ```
 
-Rebuild — the persons table now shows three columns: Forename, Surname, and Greek. For "Basileios Apokapes," the Greek column shows "Βασίλειος Ἀποκάπης".
+Rebuild. The persons table now shows three columns: Forename, Surname, and Greek. For "Basileios Apokapes," the Greek column shows "Βασίλειος Ἀποκάπης".
 
 ## What We've Built So Far
 
@@ -353,4 +353,4 @@ flowchart TD
 
 The `aggregate-indices` node (highlighted in blue) is new in this step. It reads the metadata we already extract and produces index JSON files that Eleventy renders as browsable tables.
 
-Next, let's make the content searchable — [Search →](./search)
+Next, let's make the content searchable. [Search →](./search)

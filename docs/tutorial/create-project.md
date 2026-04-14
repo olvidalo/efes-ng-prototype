@@ -53,19 +53,19 @@ my-sigidoc-project/
 ```
 
 ::: details What are all these files?
-- **`pipeline.xml`** — defines the processing steps that transform your XML into a website (more on this shortly)
-- **`source/stylesheets/sigidoc/`** — the upstream SigiDoc XSLT stylesheets, cloned from the official repository
-- **`source/stylesheets/lib/`** — framework-provided XSLT stylesheets that glue everything together
-- **`source/stylesheets/overrides.xsl`** — a place for your project-specific XSLT overrides (empty by default)
-- **`source/translations/`** — translation files for UI labels in the EpiDoc/SigiDoc XSLT output (e.g., "Material", "Type", "Dating")
-- **`source/website/`** — the website template: HTML layouts, CSS, and the homepage
-- **`source/website/eleventy.config.js`** — configures the Eleventy static site generator (language detection, translation filter)
-- **`source/indices-config.xsl`** — configures which metadata fields to extract for indices and search
-- **`source/authority/`** — will hold your controlled vocabulary XML files (geography, bibliography, etc.)
+- **`pipeline.xml`**: defines the processing steps that transform your XML into a website (more on this shortly)
+- **`source/stylesheets/sigidoc/`**: the upstream SigiDoc XSLT stylesheets, cloned from the official repository
+- **`source/stylesheets/lib/`**: framework-provided XSLT stylesheets that glue everything together
+- **`source/stylesheets/overrides.xsl`**: a place for your project-specific XSLT overrides (empty by default)
+- **`source/translations/`**: translation files for UI labels in the EpiDoc/SigiDoc XSLT output (e.g., "Material", "Type", "Dating")
+- **`source/website/`**: the website template: HTML layouts, CSS, and the homepage
+- **`source/website/eleventy.config.js`**: configures the Eleventy static site generator (language detection, translation filter)
+- **`source/indices-config.xsl`**: configures which metadata fields to extract for indices and search
+- **`source/authority/`**: will hold your controlled vocabulary XML files (geography, bibliography, etc.)
 :::
 
 > [!tip]
-> The project structure is flexible — you can organize your source files however you like. But we recommend following this structure, which is what the documentation and examples use.
+> The project structure is flexible: you can organize your source files however you like. But we recommend following this structure, which is what the documentation and examples use.
 
 ## First Build
 
@@ -73,6 +73,6 @@ Let's build the project to see what we have. Open the project folder in the EFES
 
 The pipeline will run through its steps and generate the website. Once complete, click **Preview** to open it in your browser.
 
-You should see a generic site with a header, navigation, and footer — but no content yet. That's expected: we haven't added any XML source documents.
+You should see a generic site with a header, navigation, and footer, but no content yet. That's expected: we haven't added any XML source documents.
 
-Next, let's understand what the pipeline is doing — [Exploring the Project →](./explore-project)
+Next, let's understand what the pipeline is doing: [Exploring the Project →](./explore-project)

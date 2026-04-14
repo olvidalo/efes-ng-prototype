@@ -26,7 +26,7 @@ In the same file, you'll find the navigation menu. The generated template includ
 <a href="/en/seals/" class="nav-link">Seals</a>
 ```
 
-We changed where the link points, but the actual listing page still lives at `source/website/en/inscriptions/`. This `index.njk` template generates the index page — the browsable list of all documents in the collection. The website template's directory structure determines the URL on the final site, so we need to rename the folder to match. Rename `source/website/en/inscriptions/` to `source/website/en/seals/`.
+We changed where the link points, but the actual listing page still lives at `source/website/en/inscriptions/`. This `index.njk` template generates the index page, the browsable list of all documents in the collection. The website template's directory structure determines the URL on the final site, so we need to rename the folder to match. Rename `source/website/en/inscriptions/` to `source/website/en/seals/`.
 
 Then open the `index.njk` inside your renamed folder and update the title in the `---` block at the top from "Inscriptions" to "Seals" (we'll explain what this block does [below](#what-did-we-just-do)):
 
@@ -39,7 +39,7 @@ title: Seals
 
 ## Editing the Footer
 
-Open `source/website/_includes/footer.njk` and update the footer text — add your institution name, a link to the project, or whatever you like.
+Open `source/website/_includes/footer.njk` and update the footer text: add your institution name, a link to the project, or whatever you like.
 
 ## Editing the Homepage
 
@@ -63,7 +63,7 @@ title: Home
 Click **Start** in the GUI (or run `npx efes-ng run` on the command line), then open the preview. You should see your updated title, navigation, and homepage.
 
 > [!tip] Watch Mode
-> If you use **Start** in the GUI, the pipeline enters watch mode after the initial build. Any changes you save to template files will trigger an automatic rebuild — just save and switch to the preview.
+> If you use **Start** in the GUI, the pipeline enters watch mode after the initial build. Any changes you save to template files will trigger an automatic rebuild. Just save and switch to the preview.
 
 ## Customizing Colors
 
@@ -93,7 +93,7 @@ A template language lets you mix static HTML with dynamic expressions. Instead o
 Nunjucks uses `{{ }}` for outputting values and `{% %}` for logic:
 
 ```html
-<title>{{ title }} — My Project</title>
+<title>{{ title }} – My Project</title>
 
 {% if items.length > 0 %}
   <ul>
@@ -104,7 +104,7 @@ Nunjucks uses `{{ }}` for outputting values and `{% %}` for logic:
 {% endif %}
 ```
 
-Eleventy processes these templates at build time, producing plain HTML files. The final website has no dependency on Nunjucks or Eleventy — it's just static HTML.
+Eleventy processes these templates at build time, producing plain HTML files. The final website has no dependency on Nunjucks or Eleventy; it's just static HTML.
 :::
 
 ### How the Template System Works
@@ -121,11 +121,11 @@ document.njk      ← Extends base.njk, adds document-specific features
                      (prev/next navigation, metadata display)
 ```
 
-**`base.njk`** is the root layout. It defines the HTML skeleton — `<head>`, CSS links, the overall page structure — and includes `header.njk` and `footer.njk` as reusable components. Every page on the site uses this layout (or a layout that extends it).
+**`base.njk`** is the root layout. It defines the HTML skeleton (`<head>`, CSS links, the overall page structure) and includes `header.njk` and `footer.njk` as reusable components. Every page on the site uses this layout (or a layout that extends it).
 
-**`document.njk`** extends `base.njk` and adds features specific to document pages — like navigation between seals. When we add content in the next step, each seal page will use this layout automatically.
+**`document.njk`** extends `base.njk` and adds features specific to document pages, like navigation between seals. When we add content in the next step, each seal page will use this layout automatically.
 
-The `---` block at the top of a template file is called **front matter** — metadata written in YAML that tells Eleventy which layout to use, what the page title is, and other settings:
+The `---` block at the top of a template file is called **front matter**: metadata written in YAML that tells Eleventy which layout to use, what the page title is, and other settings:
 
 ```yaml
 ---
@@ -134,7 +134,7 @@ title: Home                  # Page title
 ---
 ```
 
-Front matter values are available to templates as variables. For example, `base.njk` uses `title` in two places — in the HTML `<title>` tag (what appears in the browser tab):
+Front matter values are available to templates as variables. For example, `base.njk` uses `title` in two places: in the HTML `<title>` tag (what appears in the browser tab):
 
 ```html
 <title>{{ title | default('My Collection') }}</title>
@@ -146,11 +146,11 @@ and as a heading on the page itself:
 <h1>{{ title }}</h1>
 ```
 
-That's why we changed the title to "Seals" earlier — it controls both the browser tab text and the page heading.
+That's why we changed the title to "Seals" earlier: it controls both the browser tab text and the page heading.
 
 ### How Files Become Pages
 
-You might be wondering: how did `index.njk` end up as the homepage? The answer is straightforward — the file's path inside `source/website/` determines its URL on the final site.
+You might be wondering: how did `index.njk` end up as the homepage? The answer is straightforward: the file's path inside `source/website/` determines its URL on the final site.
 
 Remember that the `copy-eleventy-site` node copies everything from `source/website/` into `_assembly/`, stripping the `source/website/` prefix. Then Eleventy turns each file in `_assembly/` into a page, preserving the directory structure:
 
@@ -164,4 +164,4 @@ The same principle applies to content generated by the pipeline. When a later st
 
 In short: **directory structure = URL structure**. If you want a page at `/about/`, create `source/website/about/index.njk` (or `source/website/about.njk`).
 
-Now let's add actual content — [Adding Content →](./adding-content)
+Now let's add actual content. [Adding Content →](./adding-content)

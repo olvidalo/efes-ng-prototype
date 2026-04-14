@@ -1,6 +1,6 @@
 # Metadata and Data Generation
 
-The seal pages render content, but they're missing the site shell (header, footer, navigation) and the seal list is empty. Both problems are solved by generating **sidecar data files** — small JSON files that tell Eleventy how to handle each page.
+The seal pages render content, but they're missing the site shell (header, footer, navigation) and the seal list is empty. Both problems are solved by generating **sidecar data files**: small JSON files that tell Eleventy how to handle each page.
 
 Two pipeline nodes do this: one extracts metadata from the XML, the other generates the JSON files.
 
@@ -21,7 +21,7 @@ We'll configure the first two nodes now. Index aggregation and search come later
 
 ## Extracting Metadata
 
-The `extract-epidoc-metadata` node reads each XML source file and extracts structured metadata — title, sort key, document ID, and other fields — into intermediate XML files.
+The `extract-epidoc-metadata` node reads each XML source file and extracts structured metadata (title, sort key, document ID, and other fields) into intermediate XML files.
 
 Uncomment this node in `pipeline.xml`, after `transform-epidoc`. Adapt `source/inscriptions` to `source/seals` to match our project:
 
@@ -35,17 +35,17 @@ Uncomment this node in `pipeline.xml`, after `transform-epidoc`. Adapt `source/i
 </xsltTransform>
 ```
 
-Unlike `transform-epidoc`, this node reads the **raw source XML** directly — no pruning needed. The extraction templates use the `languages` parameter to select the right language content internally.
+Unlike `transform-epidoc`, this node reads the **raw source XML** directly, without pruning. The extraction templates use the `languages` parameter to select the right language content internally.
 
-- It transforms each file with **`indices-config.xsl`** — your project's metadata configuration stylesheet, which defines which fields to extract from the XML
-- **No `<output>`** — this node's results are only consumed by other pipeline nodes via `<from>`, so the default build directory (`.efes-build/extract-epidoc-metadata/`) is fine
+- It transforms each file with **`indices-config.xsl`**: your project's metadata configuration stylesheet, which defines which fields to extract from the XML
+- **No `<output>`**: this node's results are only consumed by other pipeline nodes via `<from>`, so the default build directory (`.efes-build/extract-epidoc-metadata/`) is fine
 
 ::: details What does `indices-config.xsl` do?
 This stylesheet is the bridge between your XML encoding and the website's metadata needs. It imports the generic `extract-metadata.xsl` library provided by the EFES-NG Prototype as part of your project and adds project-specific extraction logic.
 
 The generated scaffold already extracts two fields:
-- **`title`** — from the first `<title>` in the TEI header, falling back to the filename
-- **`sortKey`** — auto-generated from the filename for natural sort ordering
+- **`title`**: from the first `<title>` in the TEI header, falling back to the filename
+- **`sortKey`**: auto-generated from the filename for natural sort ordering
 
 You can open `source/indices-config.xsl` to see how these are extracted, and customize or add more fields later (like dates, categories, or findspots). The scaffold also has commented-out examples for additional fields and index definitions.
 :::
@@ -59,7 +59,7 @@ a new field, for instance `date`, add a `<date>` element to the template's outpu
 ```
 :::
 
-After the build, you can inspect the generated metadata files: in the GUI, click the **folder icon** next to the `extract-epidoc-metadata` node in the node list to open its output directory. Each XML source file has a corresponding metadata XML file. Open one — here's what `Feind_Kr1.xml` looks like:
+After the build, you can inspect the generated metadata files: in the GUI, click the **folder icon** next to the `extract-epidoc-metadata` node in the node list to open its output directory. Each XML source file has a corresponding metadata XML file. Open one. Here's what `Feind_Kr1.xml` looks like:
 
 ```xml
 <metadata>
@@ -78,13 +78,13 @@ After the build, you can inspect the generated metadata files: in the GUI, click
 </metadata>
 ```
 
-Notice how the structure reflects what's configured: `documentId` and `sourceFile` come from the framework automatically. The `<page>` section contains fields from your `indices-config.xsl` — here `title` and `sortKey`. Each field carries an `xml:lang` attribute — the framework adds this automatically based on the configured languages. The `entities` section is empty for now — we'll populate it when we add indices later.
+Notice how the structure reflects what's configured: `documentId` and `sourceFile` come from the framework automatically. The `<page>` section contains fields from your `indices-config.xsl`, here `title` and `sortKey`. Each field carries an `xml:lang` attribute (the framework adds this automatically based on the configured languages). The `entities` section is empty for now; we'll populate it when we add indices later.
 
 ## Generating Sidecar Files
 
-The `generate-eleventy-data` node takes the extracted metadata and produces the `.11tydata.json` sidecar files that Eleventy needs. It uses the `create-11ty-data.xsl` stylesheet provided as part of your generated project — a simple transformation that reads the metadata XML and produces a JSON file.
+The `generate-eleventy-data` node takes the extracted metadata and produces the `.11tydata.json` sidecar files that Eleventy needs. It uses the `create-11ty-data.xsl` stylesheet provided as part of your generated project, a simple transformation that reads the metadata XML and produces a JSON file.
 
-Uncomment it (after `extract-epidoc-metadata`) and adapt the configuration — change `inscriptions` to `seals` in the `tags` parameter and in the `<output>` element:
+Uncomment it (after `extract-epidoc-metadata`) and adapt the configuration: change `inscriptions` to `seals` in the `tags` parameter and in the `<output>` element:
 
 ```xml
 <xsltTransform name="generate-eleventy-data">
@@ -105,14 +105,14 @@ Uncomment it (after `extract-epidoc-metadata`) and adapt the configuration — c
 </xsltTransform>
 ```
 
-This node uses `<from>` to read the metadata XML produced by `extract-epidoc-metadata` — the same pattern we introduced in the [previous step](./adding-content#connecting-the-nodes-with-from). The `language` parameter tells it which language's fields to pick from the metadata (selecting fields where `xml:lang` matches).
+This node uses `<from>` to read the metadata XML produced by `extract-epidoc-metadata`, the same pattern we introduced in the [previous step](./adding-content#connecting-the-nodes-with-from). The `language` parameter tells it which language's fields to pick from the metadata (selecting fields where `xml:lang` matches).
 
 The stylesheet parameters control the sidecar content:
 
-- **`layout`** — which Eleventy layout to use for these pages
-- **`tags`** — which collection to add the pages to (this is what makes them appear in the seal list)
+- **`layout`**: which Eleventy layout to use for these pages
+- **`tags`**: which collection to add the pages to (this is what makes them appear in the seal list)
 
-The `<output>` uses the same `to`/`stripPrefix`/`extension` pattern as before. The sidecar file must end up next to the corresponding HTML file and share the same base name — that's how Eleventy pairs them:
+The `<output>` uses the same `to`/`stripPrefix`/`extension` pattern as before. The sidecar file must end up next to the corresponding HTML file and share the same base name. That's how Eleventy pairs them:
 
 | HTML (from `transform-epidoc`) | Sidecar (from `generate-eleventy-data`) |
 |--------------------------------|-----------------------------------------|
@@ -120,9 +120,9 @@ The `<output>` uses the same `to`/`stripPrefix`/`extension` pattern as before. T
 
 ## Inspecting the Results
 
-The watcher detects the `pipeline.xml` changes and rebuilds. You should see the two new nodes — `extract-epidoc-metadata` and `generate-eleventy-data` — appear in the node list and run in sequence (since the second depends on the first).
+The watcher detects the `pipeline.xml` changes and rebuilds. You should see the two new nodes, `extract-epidoc-metadata` and `generate-eleventy-data`, appear in the node list and run in sequence (since the second depends on the first).
 
-Once the build completes, inspect the `_assembly/en/seals/` directory again. Next to each `.html` file, there's now a `.11tydata.json` file. Open one — here's what it looks like:
+Once the build completes, inspect the `_assembly/en/seals/` directory again. Next to each `.html` file, there's now a `.11tydata.json` file. Open one. Here's what it looks like:
 
 ```json
 {
@@ -134,11 +134,11 @@ Once the build completes, inspect the `_assembly/en/seals/` directory again. Nex
 }
 ```
 
-Beyond the three fields we introduced earlier (`layout`, `tags`, `title`), the pipeline added `documentId` and `sortKey`. The title and sort key come from your `indices-config.xsl` — if you open that file, you can see exactly how they're extracted. The `documentId` is provided by the framework automatically.
+Beyond the three fields we introduced earlier (`layout`, `tags`, `title`), the pipeline added `documentId` and `sortKey`. The title and sort key come from your `indices-config.xsl`. If you open that file, you can see exactly how they're extracted. The `documentId` is provided by the framework automatically.
 
 The `sortKey` ensures seals are listed in natural order (so `Feind_Kr2` comes before `Feind_Kr10`), and the `title` is what appears in the seal list and browser tab.
 
-Now switch to the preview. Individual seal pages work — if you navigate to `/en/seals/Feind_Kr1/`, you'll see the seal content wrapped in the site template with header, footer, and navigation. But the seal list at `/en/seals/` is still empty.
+Now switch to the preview. Individual seal pages work. If you navigate to `/en/seals/Feind_Kr1/`, you'll see the seal content wrapped in the site template with header, footer, and navigation. But the seal list at `/en/seals/` is still empty.
 
 ## Connecting the Seal List
 
@@ -146,7 +146,7 @@ Why is the list empty? The `tags` parameter we set to `"seals"` tells Eleventy t
 
 > [!info] We're switching to: Website Templates (source/website/)
 
-Open `source/website/en/seals/index.njk`. Near the top you'll see a `collections.inscriptions` reference. Change it to `collections.seals` — this must match the `tags` value we set in the pipeline:
+Open `source/website/en/seals/index.njk`. Near the top you'll see a `collections.inscriptions` reference. Change it to `collections.seals`. This must match the `tags` value we set in the pipeline:
 
 ```liquid
 {# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
@@ -155,18 +155,18 @@ Open `source/website/en/seals/index.njk`. Near the top you'll see a `collections
 
 Notice how the rest of the template uses the `documents` variable to loop over the collection and display each seal's `documentId` and `title` in a table. These are the same fields from the sidecar JSON we saw earlier.
 
-The same change is needed in `source/website/_includes/layouts/document.njk` — this is the layout that wraps each individual seal page and provides prev/next navigation. Find the `collections.inscriptions` line and change it to `collections.seals`.
+The same change is needed in `source/website/_includes/layouts/document.njk`, which is the layout that wraps each individual seal page and provides prev/next navigation. Find the `collections.inscriptions` line and change it to `collections.seals`.
 
 After rebuilding, the seal list populates and the prev/next navigation on individual seal pages works.
 
 Your seals are on the site.
 
 > [!tip]
-> Click on `extract-epidoc-metadata` or `generate-eleventy-data` in the GUI to inspect their outputs and cache statistics. Try editing one XML source file and saving — the watcher will rebuild only the affected files.
+> Click on `extract-epidoc-metadata` or `generate-eleventy-data` in the GUI to inspect their outputs and cache statistics. Try editing one XML source file and saving. The watcher will rebuild only the affected files.
 
 ## What We've Built So Far
 
-Here's the pipeline as it stands now — five nodes working together:
+Here's the pipeline as it stands now, with five nodes working together:
 
 ```mermaid
 flowchart TD
@@ -216,7 +216,7 @@ Nodes and outputs highlighted in blue were added in this step.
 
 ## What's Next
 
-The seal list shows Document ID and Title, but we can do better. Let's add more columns — [Customizing the Seal List →](./customize-seal-list)
+The seal list shows Document ID and Title, but we can do better. Let's add more columns: [Customizing the Seal List →](./customize-seal-list)
 
 <!-- TODO: After seal list customization, continue with:
   - Index aggregation (aggregate-indices node)
