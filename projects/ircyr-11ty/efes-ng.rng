@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+         xmlns:sch="http://purl.oclc.org/dsdl/schematron"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+  <start>
+    <ref name="pipeline"/>
+  </start>
+
+  <!-- Root element -->
+  <define name="pipeline">
+    <element name="pipeline">
+      <attribute name="name"/>
+      <optional><attribute name="buildDir"/></optional>
+      <optional><attribute name="cacheDir"/></optional>
+      <optional>
+        <attribute name="executionMode">
+          <choice>
+            <value>sequential</value>
+            <value>parallel</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional><ref name="meta"/></optional>
+      <zeroOrMore>
+        <choice>
+          <ref name="variable"/>
+          <ref name="xsltTransform"/>
+          <ref name="compileStylesheet"/>
+          <ref name="sefTransform"/>
+          <ref name="copyFiles"/>
+          <ref name="zipCompress"/>
+          <ref name="flexSearchIndex"/>
+          <ref name="eleventyBuild"/>
+        </choice>
+      </zeroOrMore>
+    </element>
+  </define>
+
+  <!-- Pipeline metadata: project-level settings consumed by CLI, GUI, etc. -->
+  <define name="meta">
+    <element name="meta">
+      <a:documentation>Project-level metadata not used by the pipeline itself. Consumed by CLI, GUI, and other tools (e.g. siteDir for the dev server).</a:documentation>
+      <optional>
+        <attribute name="siteDir">
+          <a:documentation>Directory where the final site is generated. Used by the dev server for live preview and the CLI for status checks.</a:documentation>
+        </attribute>
+      </optional>
+      <zeroOrMore>
+        <attribute>
+          <anyName>
+            <except><name>siteDir</name></except>
+          </anyName>
+        </attribute>
+      </zeroOrMore>
+    </element>
+  </define>
+
+  <!-- Non-empty string (at least one non-whitespace character, no normalization) -->
+  <define name="nonEmptyString">
+    <data type="string">
+      <param name="pattern">.*\S.*</param>
+    </data>
+  </define>
+
+  <!-- Input: files, from, collect, absolutePath, or variable ref -->
+  <define name="inputContent">
+    <choice>
+      <element name="files">
+        <a:documentation>File path or glob pattern (e.g. "*.xml", "stylesheets/**/*.xsl"), resolved relative to the project directory.</a:documentation>
+        <ref name="nonEmptyString"/>
+      </element>
+      <element name="from">
+        <a:documentation>Use the output of another pipeline node as input. Output directory structure is preserved by default.</a:documentation>
+        <attribute name="node"><data type="IDREF"/></attribute>
+        <attribute name="output">
+          <choice>
+            <value>transformed</value>
+            <value>result-documents</value>
+            <value>compiledStylesheet</value>
+            <value>copied</value>
+            <value>zip</value>
+            <value>searchIndex</value>
+            <value>built</value>
+          </choice>
+        </attribute>
+        <text/>
+      </element>
+      <element name="collect">
+        <a:documentation>A shared directory that multiple nodes write into. The node waits for all writers to finish before reading.</a:documentation>
+        <ref name="nonEmptyString"/>
+      </element>
+      <element name="absolutePath">
+        <a:documentation>Resolve a project-relative path to an absolute filesystem path. Useful for passing directory locations as XSLT parameters, e.g. for document() calls. For file references, prefer &lt;files&gt; which also tracks the file for cache invalidation.</a:documentation>
+        <ref name="nonEmptyString"/>
+      </element>
+      <element name="ref">
+        <a:documentation>Reference a reusable value defined in a &lt;variable&gt; element.</a:documentation>
+        <attribute name="name"><data type="IDREF"/></attribute>
+      </element>
+    </choice>
+  </define>
+
+  <!-- Output configuration -->
+  <define name="outputConfig">
+    <element name="output">
+      <a:documentation>Configure where and how this node writes its output files.</a:documentation>
+      <optional><attribute name="to"><a:documentation>Destination directory for output files.</a:documentation></attribute></optional>
+      <optional><attribute name="stripPrefix"><a:documentation>Strip this prefix from input paths to derive the output subpath, preserving only the relative structure below it.</a:documentation></attribute></optional>
+      <optional><attribute name="extension"><a:documentation>Replace the file extension on output files (e.g. ".html").</a:documentation></attribute></optional>
+      <optional><attribute name="flat"><a:documentation>If "true", flatten all output into a single directory, ignoring subdirectory structure.</a:documentation></attribute></optional>
+      <optional><attribute name="filename"><a:documentation>Write output to a single file with this name. Only for nodes that produce exactly one output file.</a:documentation></attribute></optional>
+    </element>
+  </define>
+
+  <!-- Map: named params with text, input refs, or nested params -->
+  <define name="mapContent">
+    <zeroOrMore>
+      <element name="param">
+        <attribute name="name"/>
+        <choice>
+          <text/>
+          <ref name="inputContent"/>
+          <ref name="mapContent"/>
+        </choice>
+      </element>
+    </zeroOrMore>
+  </define>
+
+  <!-- Array of string values -->
+  <define name="arrayContent">
+    <zeroOrMore>
+      <element name="field"><ref name="nonEmptyString"/></element>
+    </zeroOrMore>
+  </define>
+
+  <!-- Variable definition (reusable via <ref>) -->
+  <define name="variable">
+    <element name="variable">
+      <a:documentation>Define a reusable value that can be referenced with &lt;ref&gt; in node configurations. Useful for shared file paths like authority files.</a:documentation>
+      <attribute name="name"><data type="ID"/></attribute>
+      <choice>
+        <text/>
+        <ref name="inputContent"/>
+        <ref name="mapContent"/>
+      </choice>
+    </element>
+  </define>
+
+  <!-- ====== Node types ====== -->
+
+  <define name="xsltTransform">
+    <element name="xsltTransform">
+      <a:documentation>Apply an XSLT stylesheet to XML source files using Saxon-JS (XSLT 3.0). The stylesheet is automatically compiled to SEF format.</a:documentation>
+      <attribute name="name"><data type="ID"/></attribute>
+      <interleave>
+        <element name="stylesheet"><a:documentation>The XSLT stylesheet to apply.</a:documentation><ref name="inputContent"/></element>
+        <optional><element name="sourceFiles"><a:documentation>Source files to process. Accepts a glob pattern or a node output reference.</a:documentation><ref name="inputContent"/></element></optional>
+        <optional><element name="initialTemplate"><a:documentation>Named template to invoke instead of applying templates to source files (e.g. for generating a single output).</a:documentation><ref name="nonEmptyString"/></element></optional>
+        <optional><element name="stylesheetParams"><a:documentation>Parameters passed to the stylesheet via xsl:param.</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><element name="tunnelParams"><a:documentation>Tunnel parameters passed through to descendant templates.</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><element name="templateParams"><a:documentation>Parameters passed to the initial template.</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><element name="serializationParams"><a:documentation>Override the stylesheet output serialization settings.</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><element name="initialMode"><a:documentation>Initial processing mode to use when applying templates.</a:documentation><ref name="nonEmptyString"/></element></optional>
+        <optional><element name="stubLibPath"><a:documentation>Path to a stub XSLT library that provides empty templates for unavailable imports.</a:documentation><ref name="inputContent"/></element></optional>
+        <optional><ref name="outputConfig"/></optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="compileStylesheet">
+    <element name="compileStylesheet">
+      <a:documentation>Compile XSLT stylesheets to Saxon Executable Format (SEF) for fast runtime execution.</a:documentation>
+      <attribute name="name"><data type="ID"/></attribute>
+      <interleave>
+        <element name="stylesheets"><a:documentation>XSLT files to compile to SEF format.</a:documentation><ref name="inputContent"/></element>
+        <optional><element name="stubLibPath"><a:documentation>Path to a stub XSLT library JSON that provides empty templates for unavailable imports.</a:documentation><ref name="inputContent"/></element></optional>
+        <optional><ref name="outputConfig"/></optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="sefTransform">
+    <element name="sefTransform">
+      <a:documentation>Apply a pre-compiled SEF stylesheet to XML source files using Saxon-JS. Supports result-documents, stylesheet parameters, and no-source mode.</a:documentation>
+      <attribute name="name"><data type="ID"/></attribute>
+      <interleave>
+        <element name="sefStylesheet"><a:documentation>Pre-compiled SEF stylesheet to apply.</a:documentation><ref name="inputContent"/></element>
+        <optional><element name="sourceFiles"><a:documentation>Source XML files to transform. If omitted, the stylesheet runs in no-source mode (e.g. using document() for input).</a:documentation><ref name="inputContent"/></element></optional>
+        <optional><element name="initialTemplate"><a:documentation>Named template to invoke instead of applying templates to source files.</a:documentation><ref name="nonEmptyString"/></element></optional>
+        <optional><element name="stylesheetParams"><a:documentation>Parameters passed to the stylesheet via xsl:param.</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><element name="tunnelParams"><a:documentation>Tunnel parameters passed through to descendant templates.</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><element name="templateParams"><a:documentation>Parameters passed to the initial template.</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><element name="serializationParams"><a:documentation>Override the stylesheet output serialization settings.</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><element name="initialMode"><a:documentation>Initial processing mode to use when applying templates.</a:documentation><ref name="nonEmptyString"/></element></optional>
+        <optional><ref name="outputConfig"/></optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="copyFiles">
+    <element name="copyFiles">
+      <a:documentation>Copy files from source to destination, preserving directory structure. Requires an output element with a "to" attribute.</a:documentation>
+      <attribute name="name"><data type="ID"/></attribute>
+      <interleave>
+        <element name="sourceFiles"><a:documentation>Source files to process. Accepts a glob pattern or a node output reference.</a:documentation><ref name="inputContent"/></element>
+        <optional><ref name="outputConfig"/></optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="zipCompress">
+    <element name="zipCompress">
+      <a:documentation>Compress files into a single ZIP archive. Requires an output element with a "filename" attribute.</a:documentation>
+      <attribute name="name"><data type="ID"/></attribute>
+      <interleave>
+        <element name="files"><a:documentation>Files to include in the ZIP archive. Accepts a glob pattern or a node output reference.</a:documentation><ref name="inputContent"/></element>
+        <optional><ref name="outputConfig"/></optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="flexSearchIndex">
+    <element name="flexSearchIndex">
+      <a:documentation>Build a FlexSearch full-text search index from per-document metadata XML files. Produces index files that can be loaded client-side for in-browser search.</a:documentation>
+      <attribute name="name"><data type="ID"/></attribute>
+      <interleave>
+        <element name="documents"><a:documentation>Per-document metadata XML files to build search index from.</a:documentation><ref name="inputContent"/></element>
+        <element name="idField"><a:documentation>The document field to use as a unique identifier (e.g. "documentId").</a:documentation><ref name="nonEmptyString"/></element>
+        <element name="textFields"><a:documentation>Document fields to include in the full-text search index.</a:documentation><ref name="arrayContent"/></element>
+        <optional><element name="excludeFields"><a:documentation>Fields to exclude from the search index (not indexed as text or facet).</a:documentation><ref name="arrayContent"/></element></optional>
+        <optional><ref name="outputConfig"/></optional>
+      </interleave>
+    </element>
+  </define>
+
+  <define name="eleventyBuild">
+    <element name="eleventyBuild">
+      <a:documentation>Run Eleventy to build the final static website from the assembled intermediate files. This is typically the last step in the pipeline.</a:documentation>
+      <attribute name="name"><data type="ID"/></attribute>
+      <interleave>
+        <element name="sourceDir"><a:documentation>The directory containing the assembled Eleventy site (templates, data, content). Must use a collect reference.</a:documentation><ref name="inputContent"/></element>
+        <optional><element name="passthroughCopy"><a:documentation>Files to copy directly into the Eleventy output without processing (e.g. search data, CSS, images).</a:documentation><ref name="mapContent"/></element></optional>
+        <optional><ref name="outputConfig"/></optional>
+      </interleave>
+    </element>
+  </define>
+
+  <!-- ====== Schematron rules ====== -->
+  <sch:pattern>
+    <sch:rule context="ref">
+      <sch:assert test="/pipeline/variable[@name = current()/@name]">
+        Variable "<sch:value-of select="@name"/>" is not defined in this pipeline.
+      </sch:assert>
+    </sch:rule>
+    <sch:rule context="from">
+      <sch:assert test="/pipeline/*[not(self::variable)][@name = current()/@node]">
+        Node "<sch:value-of select="@node"/>" is not defined in this pipeline.
+      </sch:assert>
+      <sch:let name="target" value="@node"/>
+      <sch:assert test="not(/pipeline/xsltTransform[@name = $target]) or @output = 'transformed' or @output = 'result-documents' or @output = 'compiledStylesheet'">
+        Invalid output "<sch:value-of select="@output"/>" for xsltTransform node. Valid: transformed, result-documents, compiledStylesheet.
+      </sch:assert>
+      <sch:assert test="not(/pipeline/compileStylesheet[@name = $target]) or @output = 'compiledStylesheet'">
+        Invalid output "<sch:value-of select="@output"/>" for compileStylesheet node. Valid: compiledStylesheet.
+      </sch:assert>
+      <sch:assert test="not(/pipeline/sefTransform[@name = $target]) or @output = 'transformed' or @output = 'result-documents'">
+        Invalid output "<sch:value-of select="@output"/>" for sefTransform node. Valid: transformed, result-documents.
+      </sch:assert>
+      <sch:assert test="not(/pipeline/copyFiles[@name = $target]) or @output = 'copied'">
+        Invalid output "<sch:value-of select="@output"/>" for copyFiles node. Valid: copied.
+      </sch:assert>
+      <sch:assert test="not(/pipeline/zipCompress[@name = $target]) or @output = 'zip'">
+        Invalid output "<sch:value-of select="@output"/>" for zipCompress node. Valid: zip.
+      </sch:assert>
+      <sch:assert test="not(/pipeline/flexSearchIndex[@name = $target]) or @output = 'searchIndex'">
+        Invalid output "<sch:value-of select="@output"/>" for flexSearchIndex node. Valid: searchIndex.
+      </sch:assert>
+      <sch:assert test="not(/pipeline/eleventyBuild[@name = $target]) or @output = 'built'">
+        Invalid output "<sch:value-of select="@output"/>" for eleventyBuild node. Valid: built.
+      </sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+</grammar>
