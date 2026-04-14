@@ -26,6 +26,18 @@
                 </div>
                 <a href="<%- '/{{ page.lang }}/concordances/bibliography/' %>" class="nav-link">Bibliography</a>
             </nav>
+
+            <!-- Uncomment for multi-language support (requires _data/languages.json):
+            <nav class="language-switcher">
+                {% for lang in languages.codes %}
+                    {% if lang == page.lang %}
+                        <span class="lang-current">{{ languages.labels[lang] }}</span>
+                    {% else %}
+                        <a href="{{ page.url | replace('/' + page.lang + '/', '/' + lang + '/') }}" class="lang-link">{{ languages.labels[lang] }}</a>
+                    {% endif %}
+                {% endfor %}
+            </nav>
+            -->
         </div>
     </div>
 </header>

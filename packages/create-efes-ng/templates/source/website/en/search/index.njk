@@ -1,13 +1,12 @@
 ---
 layout: layouts/base.njk
 title: Search
-permalink: en/search/index.html
 ---
 
 <link rel="stylesheet" href="/assets/efes-search/efes-search.css">
 <script type="module" src="/assets/efes-search/efes-search.js"></script>
 
-<efes-search data-url="/search-data/documents.json" text-fields="fullText,title" match-mode="prefix">
+<efes-search data-url="/search-data/documents_{{ page.lang }}.json" text-fields="fullText,title" match-mode="prefix">
     <aside class="efes-facet-sidebar">
         <h2>Filter Results</h2>
         <efes-search-input placeholder="Search..."></efes-search-input>

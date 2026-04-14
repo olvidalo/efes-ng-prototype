@@ -267,6 +267,43 @@ Rebuild and navigate to the Indices page. You should see a "Persons" card with a
 >
 > The SigiDoc FEIND project has complete examples with five indices — see its `indices-config.xsl` for reference.
 
+## Advanced: Showing Greek Names
+
+The persons index shows transliterated names ("Manouel Mandromenos"), but the SigiDoc XML also has the original Greek. Let's add a column for it.
+
+First, add the column to the index definition in `indices-config.xsl`:
+
+```xml
+<idx:index id="persons" title="Persons" nav="indices" order="10">
+    <idx:description>Persons attested in the collection.</idx:description>
+    <idx:columns>
+        <idx:column key="forename">Forename</idx:column>
+        <idx:column key="surname">Surname</idx:column>
+        <idx:column key="greekName">Greek</idx:column>
+        <idx:column key="references" type="references">Seals</idx:column>
+    </idx:columns>
+</idx:index>
+```
+
+Then add the field to the extraction template — the Greek name is in `tei:persName[@xml:lang='grc']`:
+
+```xml
+<xsl:variable name="greekName" select="normalize-space(
+    string-join((tei:persName[@xml:lang='grc']/tei:forename,
+                 tei:persName[@xml:lang='grc']/tei:surname), ' ')
+)"/>
+<entity indexType="persons">
+    <forename><xsl:value-of select="$forename"/></forename>
+    <surname><xsl:value-of select="$surname"/></surname>
+    <greekName><xsl:value-of select="$greekName"/></greekName>
+    <sortKey><xsl:value-of select="lower-case(string-join(($forename, $surname), ' '))"/></sortKey>
+</entity>
+```
+
+Rebuild — the persons table now shows three columns: Forename, Surname, and Greek. For "Manouel Mandromenos," the Greek column shows "Μανουήλ Μανδρομηνοός."
+
+Note that `@xml:lang='grc'` is hardcoded — Greek names are a scholarly convention, not a UI language preference. They should always show the original script regardless of the site language.
+
 ## What We've Built So Far
 
 ```mermaid
@@ -291,8 +328,8 @@ flowchart TD
   output(["_output/"])
 
   seals --> prune --> pruned
+  seals --> extract --> meta
   pruned --> transform --> html
-  pruned --> extract --> meta
   meta --> data --> json
   meta --> agg --> idxjson
   templates --> copy --> site

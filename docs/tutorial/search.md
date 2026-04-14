@@ -7,8 +7,8 @@ The indices let readers browse entities by category, but what if they want to fi
 The search follows the same extract-then-aggregate pattern as indices:
 
 1. The `extract-epidoc-metadata` node already extracts search fields — they go into the `<search>` section of the metadata XML
-2. A new `aggregate-search-data` pipeline node combines all search data into a single `documents.json` file
-3. The search page uses a client-side search component that loads `documents.json` and builds a full-text index in the browser
+2. A new `aggregate-search-data` pipeline node combines all search data into a `documents_en.json` file
+3. The search page uses a client-side search component that loads the language-specific file and builds a full-text index in the browser
 
 No server needed — the search runs entirely in the reader's browser.
 
@@ -30,8 +30,9 @@ Uncomment the `aggregate-search-data` node in `pipeline.xml`:
         <param name="metadata-files">
             <from node="extract-epidoc-metadata" output="transformed"/>
         </param>
+        <param name="language">en</param>
     </stylesheetParams>
-    <output to="_assembly/search-data" filename="documents.json"/>
+    <output to="_assembly/search-data" filename="documents_en.json"/>
 </xsltTransform>
 ```
 
@@ -49,8 +50,8 @@ This works just like `aggregate-indices` — it uses `<initialTemplate>` to proc
 >        <fullText>Κύριε βοήθει τῷ σῷ δούλῳ Μανουὴλ ...</fullText>
 >    </search>
 >    ```
-> 3. `aggregate-search-data` reads all metadata files and combines the `<search>` sections into a single `documents.json` array
-> 4. The search page loads `documents.json` in the browser and builds a search index from it
+> 3. `aggregate-search-data` reads all metadata files and combines the `<search>` sections into a `documents_en.json` array
+> 4. The search page loads `documents_en.json` in the browser and builds a search index from it
 
 ## Updating the Search Page
 
@@ -59,7 +60,7 @@ This works just like `aggregate-indices` — it uses `<initialTemplate>` to proc
 The scaffold already includes a search page at `source/website/en/search/index.njk` with the search component set up. Open it and update the `result-url` on `<efes-results>` to point to your seal pages:
 
 ```html
-<efes-search data-url="/search-data/documents.json" text-fields="fullText,title" match-mode="prefix">
+<efes-search data-url="/search-data/documents_{{ page.lang }}.json" text-fields="fullText,title" match-mode="prefix">
     <efes-search-input placeholder="Search..."></efes-search-input>
     <efes-results result-url="/en/seals/{documentId}/">
         <template>
@@ -77,7 +78,7 @@ The scaffold already includes a search page at `source/website/en/search/index.n
 The `{documentId}` placeholder is replaced with each result's `documentId` field to create the link to the seal page for each result.
 
 Three attributes on `<efes-search>` configure the component:
-- **`data-url`** — where to load the search data from (the `documents.json` our pipeline produces)
+- **`data-url`** — where to load the search data from (the `documents_en.json` our pipeline produces). The `page.lang` variable in the URL ensures the correct language file is loaded when multi-language support is added
 - **`text-fields`** — which fields to index for full-text search (comma-separated). Here, searching matches against `fullText` (the edition text) and `title`
 - **`match-mode`** — how search terms are matched: `exact` (whole words only), `prefix` (matches from the start of a word, e.g., "bar" finds "Bardas"), or `substring` (matches anywhere, e.g., "tospa" finds "protospatharios").
 
@@ -87,7 +88,7 @@ Three attributes on `<efes-search>` configure the component:
 ::: details How does the search component work?
 The `<efes-search>` component is a set of Web Components that run entirely in the browser:
 
-1. On page load, it fetches `documents.json`
+1. On page load, it fetches the search data JSON
 2. It builds a [FlexSearch](https://github.com/nextapps-de/flexsearch) full-text index from the fields specified in `text-fields`
 3. As the user types, it searches the index and filters results in real-time
 4. No server is needed — everything runs client-side
@@ -111,7 +112,7 @@ The search results currently show only the title. Let's add the dating so reader
 <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
 ```
 
-After rebuilding, inspect the search data (click the **folder icon** next to `aggregate-search-data`). Each document in `documents.json` now includes the dating:
+After rebuilding, inspect the search data (click the **folder icon** next to `aggregate-search-data`). Each document in `documents_en.json` now includes the dating:
 
 ```json
 {
@@ -140,7 +141,7 @@ To display `origDate` in the search results, open `source/website/en/search/inde
 </template>
 ```
 
-The entire result box is clickable. The `efes-result-title` row shows the document ID and title, and `efes-result-details` adds secondary information below in a smaller font. Each `<span data-field="...">` maps to a field in `documents.json` — the search component fills in the values automatically.
+The entire result box is clickable. The `efes-result-title` row shows the document ID and title, and `efes-result-details` adds secondary information below in a smaller font. Each `<span data-field="...">` maps to a field in the search data JSON — the search component fills in the values automatically.
 
 ### Adding a Filter Facet
 
@@ -205,7 +206,7 @@ flowchart TD
   meta(["metadata XML"])
   json(["Feind_*.11tydata.json"])
   idxjson(["_data/indices/*.json"])
-  searchjson(["search-data/documents.json"])
+  searchjson(["search-data/documents_en.json"])
   site(["templates, CSS, ..."])
   output(["_output/"])
 

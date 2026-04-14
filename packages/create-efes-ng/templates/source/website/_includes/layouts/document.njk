@@ -3,20 +3,11 @@ layout: layouts/base.njk
 suppressTitle: true
 ---
 
-{# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
-{% set documents = collections.inscriptions | sort(false, false, "data.sortKey") %}
-
-{# Find current item's index in sorted array #}
-{% set currentIndex = -1 %}
-{% for item in documents %}
-  {% if item.url == page.url %}
-    {% set currentIndex = loop.index0 %}
-  {% endif %}
-{% endfor %}
-
-{# Get previous and next items based on sorted order #}
-{% set previousPost = documents[currentIndex - 1] if currentIndex > 0 else null %}
-{% set nextPost = documents[currentIndex + 1] if currentIndex < (documents | length - 1) else null %}
+{# Prev/next navigation: pass the collection sorted by sortKey.
+   The i18n plugin automatically resolves to the current language's equivalent page. #}
+{% set sorted = collections.inscriptions | sort(false, false, "data.sortKey") %}
+{% set previousPost = sorted | getPreviousCollectionItem %}
+{% set nextPost = sorted | getNextCollectionItem %}
 
 <nav class="doc-nav">
   <a href="/{{ page.lang }}/inscriptions/" class="doc-nav-back">&#8592; Back to Index</a>

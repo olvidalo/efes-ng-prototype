@@ -147,7 +147,7 @@ Why is the list empty? The `tags` parameter we set to `"seals"` tells Eleventy t
 
 Open `source/website/en/seals/index.njk`. Near the top you'll see a `collections.inscriptions` reference. Change it to `collections.seals` — this must match the `tags` value we set in the pipeline:
 
-```nunjucks
+```liquid
 {# Collection name must match the "tags" stylesheet parameter in the generate-eleventy-data pipeline node #}
 {% set documents = collections.seals %}
 ```

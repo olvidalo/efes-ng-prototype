@@ -22,13 +22,12 @@ export default function (eleventyConfig) {
         }
     }
 
-    // Translation filter: {{ "nav.seals" | t }}
+    // Translation filter: {{ "seals" | t }}
     // Resolves from page.lang, falls back to English, then to the raw key.
     eleventyConfig.addFilter('t', function (key) {
         const lang = this.page?.lang || 'en';
-        const resolve = (obj, k) => k.split('.').reduce((o, p) => o?.[p], obj);
-        return resolve(translations[lang], key)
-            ?? resolve(translations['en'], key)
+        return translations[lang]?.[key]
+            ?? translations['en']?.[key]
             ?? key;
     });
 }

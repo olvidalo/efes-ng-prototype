@@ -35,7 +35,11 @@
                         </td>
                     {% else %}
                         {% set val = entry[col.key] %}
-                        <td>{{ val[page.lang] | default(val.en) | default(val) | default('-') }}</td>
+                        {% if val is string or val is number %}
+                            <td>{{ val | default('-') }}</td>
+                        {% else %}
+                            <td>{{ val[page.lang] | default(val.en) | default(val | dictsort | first | last) | default('-') }}</td>
+                        {% endif %}
                     {% endif %}
                 {% endfor %}
             </tr>
