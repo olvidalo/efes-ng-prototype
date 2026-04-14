@@ -29,12 +29,31 @@
                     {% if col.type == 'references' %}
                         <td class="references">
                             {% for ref in entry.references %}
-                                <a href="{{ basePath }}/{{ ref.inscriptionId }}/">{{ ref.inscriptionId }}</a>
+                                <a href="{{ basePath }}/{{ ref.documentId }}/">{{ ref.documentId }}</a>
                                 {%- if not loop.last %} {% endif %}
                             {% endfor %}
                         </td>
+                    {% elif col.type == 'link' %}
+                        {% set val = entry[col.key] %}
+                        {% if val %}
+                            {% set linkVal = val[page.lang] if val[page.lang] else (val.en if val.en else val) %}
+                            {% if linkVal and linkVal.url %}
+                                <td><a href="{{ linkVal.url }}">{{ linkVal.label | default(linkVal.url) }}</a></td>
+                            {% else %}
+                                <td>-</td>
+                            {% endif %}
+                        {% else %}
+                            <td>-</td>
+                        {% endif %}
                     {% else %}
-                        <td>{{ entry[col.key] | default('-') }}</td>
+                        {% set val = entry[col.key] %}
+                        {% if val is string or val is number %}
+                            <td>{{ val | default('-') }}</td>
+                        {% elif val %}
+                            <td>{{ val[page.lang] | default(val.en) | default(val | dictsort | first | last) | default('-') }}</td>
+                        {% else %}
+                            <td>-</td>
+                        {% endif %}
                     {% endif %}
                 {% endfor %}
             </tr>

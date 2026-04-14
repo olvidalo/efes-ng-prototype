@@ -3,25 +3,30 @@
     Generic Metadata Extraction
 
     Shared boilerplate for extracting XML metadata from TEI XML documents.
-    Project-specific logic is provided via four hook template modes,
-    implemented in each project's indices-config.xsl:
+    Iterates over configured languages and calls project-specific hook
+    templates (in indices-config.xsl) once per language:
 
+    - extract-metadata: page display fields (title, sortKey, etc.)
     - extract-all-entities: dispatches to individual extraction templates
-    - extract-search: returns search facet data as XML elements
+    - extract-search: search facet data as XML elements
       (multi-valued fields using <item> children are automatically deduped)
-    - extract-metadata: returns additional project-specific page display fields
+
+    The framework auto-stamps xml:lang on all output elements and merges
+    entities with the same xml:id into unified elements.
+
+    The $language tunnel param is available to all hook templates.
 -->
 <xsl:stylesheet version="3.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns:fn="http://www.w3.org/2005/xpath-functions"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:idx="http://efes.info/indices"
+    xmlns:idx="urn:efes-ng:indices"
     exclude-result-prefixes="tei fn xs idx">
 
     <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
     <xsl:param name="source-file" select="base-uri()"/>
-    <xsl:param name="language" select="'en'"/>
+    <xsl:param name="languages" select="'en'"/>
 
     <!-- Extract filename without extension -->
     <xsl:variable name="filename">
@@ -35,55 +40,105 @@
     <xsl:template match="tei:TEI" mode="extract-metadata"/>
 
     <xsl:template match="/">
-        <!-- Collect ALL entity elements via dispatch hook -->
-        <xsl:variable name="all-entities">
-            <xsl:apply-templates select="/tei:TEI" mode="extract-all-entities"/>
-        </xsl:variable>
-
-        <!-- Group entities by indexType into named wrapper elements -->
-        <xsl:variable name="grouped-entities">
-            <xsl:for-each-group select="$all-entities/entity" group-by="@indexType">
-                <xsl:element name="{current-grouping-key()}">
-                    <xsl:copy-of select="current-group()"/>
-                </xsl:element>
-            </xsl:for-each-group>
-        </xsl:variable>
+        <xsl:variable name="doc" select="."/>
 
         <metadata>
             <documentId><xsl:value-of select="$filename"/></documentId>
+            <sourceFile><xsl:value-of select="concat($filename, '.xml')"/></sourceFile>
 
+            <!-- Page metadata: call hook per language, auto-stamp xml:lang -->
             <page>
-                <language><xsl:value-of select="$language"/></language>
-                <sourceFile><xsl:value-of select="concat($filename, '.xml')"/></sourceFile>
-
-                <!-- Project-specific page fields (title, sortKey, origDate, etc.) -->
-                <xsl:apply-templates select="/tei:TEI" mode="extract-metadata"/>
+                <xsl:for-each select="tokenize($languages)">
+                    <xsl:variable name="lang" select="."/>
+                    <xsl:variable name="hook-output">
+                        <xsl:apply-templates select="$doc/tei:TEI" mode="extract-metadata">
+                            <xsl:with-param name="language" select="$lang" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    <xsl:for-each select="$hook-output/*">
+                        <xsl:copy>
+                            <xsl:copy-of select="@*"/>
+                            <xsl:attribute name="xml:lang" select="$lang"/>
+                            <xsl:copy-of select="node()"/>
+                        </xsl:copy>
+                    </xsl:for-each>
+                </xsl:for-each>
             </page>
 
+            <!-- Entities: call hook per language, tag with position,
+                 then merge across languages by xml:id or position -->
+            <xsl:variable name="all-entities-raw" as="element()*">
+                <xsl:for-each select="tokenize($languages)">
+                    <xsl:variable name="lang" select="."/>
+                    <xsl:variable name="hook-output">
+                        <xsl:apply-templates select="$doc/tei:TEI" mode="extract-all-entities">
+                            <xsl:with-param name="language" select="$lang" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    <xsl:for-each select="$hook-output/entity">
+                        <xsl:variable name="my-type" select="string(@indexType)"/>
+                        <entity>
+                            <xsl:copy-of select="@*"/>
+                            <xsl:attribute name="xml:lang" select="$lang"/>
+                            <xsl:attribute name="_pos" select="1 + count(preceding-sibling::entity[@indexType = $my-type])"/>
+                            <xsl:copy-of select="*"/>
+                        </entity>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:variable>
+
             <entities>
-                <xsl:copy-of select="$grouped-entities"/>
+                <!-- Group by indexType, then merge by xml:id (or position fallback) -->
+                <xsl:for-each-group select="$all-entities-raw" group-by="@indexType">
+                    <xsl:element name="{current-grouping-key()}">
+                        <xsl:for-each-group select="current-group()"
+                            group-by="if (@xml:id) then string(@xml:id) else string(@_pos)">
+                            <entity>
+                                <!-- Copy attributes except xml:lang and _pos -->
+                                <xsl:copy-of select="current-group()[1]/@*[local-name() != '_pos']
+                                    [not(local-name() = 'lang' and namespace-uri() = 'http://www.w3.org/XML/1998/namespace')]"/>
+                                <!-- Move xml:lang from entity to children -->
+                                <xsl:for-each select="current-group()">
+                                    <xsl:variable name="entity-lang" select="string(@xml:lang)"/>
+                                    <xsl:for-each select="*">
+                                        <xsl:copy>
+                                            <xsl:copy-of select="@*"/>
+                                            <xsl:attribute name="xml:lang" select="$entity-lang"/>
+                                            <xsl:copy-of select="node()"/>
+                                        </xsl:copy>
+                                    </xsl:for-each>
+                                </xsl:for-each>
+                            </entity>
+                        </xsl:for-each-group>
+                    </xsl:element>
+                </xsl:for-each-group>
             </entities>
 
-            <!-- Dedup multi-valued search fields (elements with <item> children) -->
-            <xsl:variable name="raw-search">
-                <xsl:apply-templates select="/tei:TEI" mode="extract-search">
-                    <xsl:with-param name="entities" select="$grouped-entities" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:variable>
+            <!-- Search fields: call hook per language, auto-stamp xml:lang, dedup items -->
             <search>
-                <xsl:for-each select="$raw-search/*">
-                    <xsl:copy>
-                        <xsl:choose>
-                            <xsl:when test="item">
-                                <xsl:for-each-group select="item" group-by="normalize-space(.)">
-                                    <item><xsl:value-of select="current-grouping-key()"/></item>
-                                </xsl:for-each-group>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:copy-of select="node()"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:copy>
+                <xsl:for-each select="tokenize($languages)">
+                    <xsl:variable name="lang" select="."/>
+                    <xsl:variable name="hook-output">
+                        <xsl:apply-templates select="$doc/tei:TEI" mode="extract-search">
+                            <xsl:with-param name="language" select="$lang" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    <xsl:for-each select="$hook-output/*">
+                        <xsl:copy>
+                            <xsl:copy-of select="@*"/>
+                            <xsl:attribute name="xml:lang" select="$lang"/>
+                            <xsl:choose>
+                                <xsl:when test="item">
+                                    <xsl:for-each-group select="item" group-by="normalize-space(.)">
+                                        <item><xsl:value-of select="current-grouping-key()"/></item>
+                                    </xsl:for-each-group>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:copy-of select="node()"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:copy>
+                    </xsl:for-each>
                 </xsl:for-each>
             </search>
         </metadata>

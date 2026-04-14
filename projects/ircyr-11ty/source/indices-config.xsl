@@ -21,9 +21,9 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:tei="http://www.tei-c.org/ns/1.0"
-    xmlns:idx="http://efes.info/indices"
-    xmlns:efes="http://efes.info/functions"
-    exclude-result-prefixes="xs efes">
+    xmlns:idx="urn:efes-ng:indices"
+    xmlns:local="urn:ircyr:functions"
+    exclude-result-prefixes="#all">
 
     <xsl:import href="stylesheets/lib/extract-metadata.xsl"/>
 
@@ -65,7 +65,7 @@
     <xsl:variable name="symbols-authority" select="document('file://' || $symbols-file)"/>
 
     <xsl:param name="bibliography-file" as="xs:string"/>
-    <xsl:variable name="bibliography-authority" select="document('file://' || $bibliography-file)"/>
+    <xsl:variable name="bibliography" select="document('file://' || $bibliography-file)"/>
 
     <!-- ================================================================== -->
     <!-- INDEX: personal_names (Personal Names)                              -->
@@ -113,7 +113,7 @@
     </idx:index>
 
     <!-- Helper: get own names of a persName (not in nested persNames) -->
-    <xsl:function name="efes:own-names" as="xs:string">
+    <xsl:function name="local:own-names" as="xs:string">
         <xsl:param name="person" as="element()"/>
         <xsl:sequence select="string-join(
             $person//tei:name[@nymRef][ancestor::tei:persName[@type='attested'][1] is $person]/@nymRef,
@@ -121,18 +121,18 @@
     </xsl:function>
 
     <!-- Helper: build descendant genealogical chain recursively -->
-    <xsl:function name="efes:descendant-chain" as="xs:string?">
+    <xsl:function name="local:descendant-chain" as="xs:string?">
         <xsl:param name="person" as="element()"/>
         <xsl:variable name="child" select="$person/tei:persName[@type='attested']
             [descendant::tei:name[@nymRef]][1]"/>
         <xsl:if test="$child">
-            <xsl:variable name="deeper" select="efes:descendant-chain($child)"/>
-            <xsl:sequence select="string-join((efes:own-names($child), $deeper), ' child of ')"/>
+            <xsl:variable name="deeper" select="local:descendant-chain($child)"/>
+            <xsl:sequence select="string-join((local:own-names($child), $deeper), ' child of ')"/>
         </xsl:if>
     </xsl:function>
 
     <!-- Helper: place qualifiers -->
-    <xsl:function name="efes:place-qualifiers" as="xs:string?">
+    <xsl:function name="local:place-qualifiers" as="xs:string?">
         <xsl:param name="person" as="element()"/>
         <xsl:variable name="from" select="$person/tei:placeName[not(@type='ethnic')][@nymRef]/@nymRef"/>
         <xsl:variable name="ethnic" select="$person/tei:placeName[@type='ethnic']/@nymRef"/>
@@ -145,8 +145,8 @@
     <xsl:template match="tei:TEI" mode="extract-persons">
         <xsl:for-each select=".//tei:persName[@type='attested'][descendant::tei:name[@nymRef]][ancestor::tei:div/@type='edition']">
             <xsl:variable name="level" select="count(ancestor::tei:persName[@type='attested'])"/>
-            <xsl:variable name="ownNames" select="efes:own-names(.)"/>
-            <xsl:variable name="chain" select="efes:descendant-chain(.)"/>
+            <xsl:variable name="ownNames" select="local:own-names(.)"/>
+            <xsl:variable name="chain" select="local:descendant-chain(.)"/>
 
             <!-- Build display name with genealogical context -->
             <xsl:variable name="displayName">
@@ -173,7 +173,7 @@
                     </xsl:choose>
                     <xsl:value-of select="string-join($siblingNames, ' ')"/>
                 </xsl:if>
-                <xsl:value-of select="efes:place-qualifiers(.)"/>
+                <xsl:value-of select="local:place-qualifiers(.)"/>
             </xsl:variable>
 
             <entity indexType="persons">
@@ -191,10 +191,6 @@
     <!-- ================================================================== -->
     <idx:index id="abbreviations" title="Abbreviations" order="2">
         <idx:description>Index of abbreviations found in the edition text.</idx:description>
-        <idx:sort>
-            <idx:key field="abbr"/>
-            <idx:key field="expansion"/>
-        </idx:sort>
         <idx:columns>
             <idx:column key="abbr">Abbreviation</idx:column>
             <idx:column key="expansion">Expansion</idx:column>
@@ -229,11 +225,6 @@
     <!-- ================================================================== -->
     <idx:index id="findspots" title="Findspots" order="3">
         <idx:description>Index of findspots where inscriptions were discovered.</idx:description>
-        <idx:sort>
-            <idx:key field="upperLevel"/>
-            <idx:key field="intermediateLevel"/>
-            <idx:key field="lowerLevel"/>
-        </idx:sort>
         <idx:columns>
             <idx:column key="upperLevel">Findspots (upper level)</idx:column>
             <idx:column key="intermediateLevel">Findspots (intermediate level)</idx:column>
@@ -342,7 +333,7 @@
                 $key
             )[1]"/>
 
-            <entity indexType="divine_beings">
+            <entity indexType="divine_beings" xml:id="{$key}">
                 <name><xsl:value-of select="$displayName"/></name>
                 <sortKey><xsl:value-of select="lower-case($key)"/></sortKey>
                 <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
@@ -378,7 +369,7 @@
                     $key
                 )[1]"/>
 
-                <entity indexType="emperors">
+                <entity indexType="emperors" xml:id="{$key}">
                     <name><xsl:value-of select="$displayName"/></name>
                     <sortKey><xsl:value-of select="format-number(($auth/@n, 999)[1], '000')"/></sortKey>
                     <isRestored><xsl:value-of select="exists($el//tei:supplied) or exists($el/ancestor::tei:supplied)"/></isRestored>
@@ -497,7 +488,7 @@
                 </xsl:if>
             </xsl:variable>
 
-            <entity indexType="months">
+            <entity indexType="months" xml:id="{$key}">
                 <name><xsl:value-of select="$name"/></name>
                 <language><xsl:value-of select="string($lang)"/></language>
                 <sortKey><xsl:value-of select="string($authority-entry/@n)"/></sortKey>
@@ -513,10 +504,6 @@
     <!-- ================================================================== -->
     <idx:index id="mentioned_places" title="Places" order="11">
         <idx:description>Index of places mentioned in the inscriptions.</idx:description>
-        <idx:sort>
-            <idx:key field="name"/>
-            <idx:key field="attestedForm"/>
-        </idx:sort>
         <idx:columns>
             <idx:column key="name">Place</idx:column>
             <idx:column key="attestedForm">Attested form</idx:column>
@@ -591,7 +578,7 @@
                 if (normalize-space($glyphDisplay)) then concat(' (', $glyphDisplay, ')') else ''
             )"/>
 
-            <entity indexType="symbols">
+            <entity indexType="symbols" xml:id="{$ref-id}">
                 <name><xsl:value-of select="$displayName"/></name>
                 <sortKey><xsl:value-of select="lower-case(($textDisplay, $ref-id)[1])"/></sortKey>
                 <isRestored><xsl:value-of select="exists(.//tei:supplied) or exists(ancestor::tei:supplied)"/></isRestored>
@@ -643,40 +630,34 @@
             <idx:column key="fullCitation">Full Citation</idx:column>
             <idx:column key="references" type="references">Inscriptions</idx:column>
         </idx:columns>
-        <idx:sort>
-            <idx:key field="shortCitation"/>
-        </idx:sort>
     </idx:index>
 
     <xsl:template match="tei:TEI" mode="extract-bibliography">
         <xsl:for-each select=".//tei:body//tei:div//tei:bibl[tei:ptr[@target != '']]">
             <xsl:variable name="target" select="string(tei:ptr/@target)"/>
-            <xsl:variable name="auth" select="$bibliography-authority//tei:bibl[@xml:id = $target]"/>
+            <xsl:variable name="auth" select="$bibliography//tei:bibl[@xml:id = $target]"/>
             <xsl:variable name="shortCitation" select="normalize-space($auth/tei:bibl[@type='abbrev'])"/>
-            <xsl:variable name="fullCitation" select="normalize-space($auth)"/>
-
-            <xsl:choose>
-                <xsl:when test="tei:citedRange">
-                    <xsl:for-each select="tei:citedRange">
-                        <entity indexType="bibliography">
-                            <bibRef><xsl:value-of select="$target"/></bibRef>
-                            <sortKey><xsl:value-of select="lower-case(if ($shortCitation != '') then $shortCitation else $target)"/></sortKey>
-                            <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
-                            <fullCitation><xsl:value-of select="$fullCitation"/></fullCitation>
-                            <citedRange><xsl:value-of select="normalize-space(.)"/></citedRange>
-                        </entity>
-                    </xsl:for-each>
-                </xsl:when>
-                <xsl:otherwise>
-                    <entity indexType="bibliography">
-                        <bibRef><xsl:value-of select="$target"/></bibRef>
-                        <sortKey><xsl:value-of select="lower-case(if ($shortCitation != '') then $shortCitation else $target)"/></sortKey>
-                        <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
-                        <fullCitation><xsl:value-of select="$fullCitation"/></fullCitation>
-                        <citedRange/>
-                    </entity>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:variable name="bibl" select="."/>
+            <xsl:for-each select="if ($bibl/tei:citedRange) then $bibl/tei:citedRange else $bibl">
+                <entity indexType="bibliography" xml:id="{$target}">
+                    <bibRef><xsl:value-of select="$target"/></bibRef>
+                    <shortCitation><xsl:value-of select="$shortCitation"/></shortCitation>
+                    <fullCitation>
+                        <authors><xsl:value-of select="string-join(
+                            for $a in $auth/tei:author
+                            return normalize-space(string-join(($a/tei:forename, $a/tei:surname), ' ')),
+                            ', ')"/></authors>
+                        <title><xsl:value-of select="normalize-space($auth/tei:title[1])"/></title>
+                        <pubPlace><xsl:value-of select="normalize-space(($auth/tei:pubPlace)[1])"/></pubPlace>
+                        <publisher><xsl:value-of select="normalize-space(($auth/tei:publisher)[1])"/></publisher>
+                        <date><xsl:value-of select="normalize-space(($auth/tei:date)[1])"/></date>
+                    </fullCitation>
+                    <xsl:if test="self::tei:citedRange">
+                        <citedRange><xsl:value-of select="normalize-space(.)"/></citedRange>
+                    </xsl:if>
+                    <sortKey><xsl:value-of select="($shortCitation[not(. = '')], $target)[1]"/></sortKey>
+                </entity>
+            </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
 

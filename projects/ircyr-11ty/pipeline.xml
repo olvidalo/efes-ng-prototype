@@ -21,7 +21,7 @@
       <param name="verse-lines">on</param>
       <param name="image-loc">https://ircyr2020.inslib.kcl.ac.uk/images/</param>
       <param name="bibloc"><files>source/authority/bibliography.xml</files></param>
-      <param name="bib-link-template">../../concordances/bibliography/$1/</param>
+      <param name="bib-link-template">../../bibliography/$1/</param>
       <param name="authority-dir"><dir>source/authority</dir></param>
     </stylesheetParams>
     <output to="_assembly/en/inscriptions"
@@ -33,6 +33,7 @@
     <sourceFiles><files>source/inscriptions/*.xml</files></sourceFiles>
     <stylesheet><files>source/indices-config.xsl</files></stylesheet>
     <stylesheetParams>
+      <param name="languages">en</param>
       <param name="divine-file"><files>source/authority/divine.xml</files></param>
       <param name="emperors-file"><files>source/authority/emperors.xml</files></param>
       <param name="months-file"><files>source/authority/months.xml</files></param>
@@ -48,6 +49,7 @@
     <stylesheetParams>
       <param name="layout">layouts/document.njk</param>
       <param name="tags">inscriptions</param>
+      <param name="language">en</param>
     </stylesheetParams>
     <output to="_assembly/en/inscriptions"
             stripPrefix="source/inscriptions"
@@ -69,8 +71,9 @@
     <initialTemplate>aggregate</initialTemplate>
     <stylesheetParams>
       <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
+      <param name="language">en</param>
     </stylesheetParams>
-    <output to="_assembly/search-data" filename="documents.json"/>
+    <output to="_assembly/search-data" filename="documents_en.json"/>
   </xsltTransform>
 
   <xsltTransform name="transform-texts">

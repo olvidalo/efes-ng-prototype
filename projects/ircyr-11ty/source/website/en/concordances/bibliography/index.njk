@@ -1,10 +1,10 @@
 ---
 layout: layouts/base.njk
 title: Bibliography Concordance
-permalink: en/concordances/bibliography/index.html
+permalink: en/bibliography/index.html
 ---
 
-<p>{{ indices.bibliography.entries | length }} bibliography entries cited in the inscriptions.</p>
+<p class="entry-count-info">{{ indices.bibliography.entries | length }} bibliography entries cited in the inscriptions.</p>
 
 <table class="data-table index-table">
     <thead>
@@ -16,8 +16,14 @@ permalink: en/concordances/bibliography/index.html
     <tbody>
     {% for entry in indices.bibliography.entries %}
         <tr>
-            <td><a href="/en/concordances/bibliography/{{ entry.bibRef }}/index.html">{{ entry.shortCitation or entry.bibRef }}</a></td>
-            <td>{{ entry.fullCitation or '-' }}</td>
+            <td><a href="/en/bibliography/{{ entry.bibRef.en }}/">{{ entry.shortCitation.en or entry.bibRef.en or '-' }}</a></td>
+            {% set fc = entry.fullCitation.en %}
+            <td>
+                {%- if fc and fc.authors %}{{ fc.authors }}, {% endif %}
+                {%- if fc and fc.title %}<i>{{ fc.title }}</i>{% endif %}
+                {%- if fc and fc.pubPlace %}, {{ fc.pubPlace }}{% endif %}
+                {%- if fc and fc.date %}, {{ fc.date }}{% endif -%}
+            </td>
         </tr>
     {% endfor %}
     </tbody>

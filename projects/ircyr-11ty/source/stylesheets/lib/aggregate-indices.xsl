@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    XSLT-based Index Aggregation for SigiDoc
+    XSLT-based Index Aggregation
 
     Reads per-document metadata XML files and produces:
     - One JSON file per index type ({indexType}.json)
     - A summary file (_summary.json)
+
+    Entity identity: entities with the same @xml:id are merged into one
+    index entry. Entities without @xml:id are unique per occurrence.
+
+    Multilingual fields: fields with @xml:lang produce language-keyed
+    JSON objects (e.g., {"en": "Cephalonia", "de": "Kephalonia"}).
+    Fields without @xml:lang produce plain strings.
 
     Parameters:
     - metadata-files: space-separated list of absolute paths to metadata XML files
@@ -14,10 +21,57 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:fn="http://www.w3.org/2005/xpath-functions"
-    xmlns:idx="http://efes.info/indices"
+    xmlns:idx="urn:efes-ng:indices"
     exclude-result-prefixes="xs fn idx">
 
     <xsl:output method="text" encoding="UTF-8"/>
+
+    <!-- Serialize a field element as a JSON value (fn:string or fn:map for structured fields) -->
+    <xsl:template name="serialize-field-value">
+        <xsl:param name="field" as="element()"/>
+        <xsl:param name="key" as="xs:string"/>
+        <xsl:choose>
+            <xsl:when test="$field/*">
+                <fn:map key="{$key}">
+                    <xsl:for-each select="$field/*">
+                        <fn:string key="{local-name()}"><xsl:value-of select="."/></fn:string>
+                    </xsl:for-each>
+                </fn:map>
+            </xsl:when>
+            <xsl:otherwise>
+                <fn:string key="{$key}"><xsl:value-of select="$field"/></fn:string>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- Serialize all fields from a set of elements as JSON map entries.
+         Groups by field name, handles xml:lang → language-keyed objects. -->
+    <xsl:template name="serialize-fields">
+        <xsl:param name="elements" as="element()*"/>
+        <xsl:param name="exclude" as="xs:string*" select="()"/>
+        <xsl:for-each select="distinct-values($elements/*/local-name()[not(. = $exclude)])">
+            <xsl:variable name="field-name" select="."/>
+            <xsl:variable name="field-elements" select="$elements/*[local-name() = $field-name]"/>
+            <xsl:choose>
+                <xsl:when test="$field-elements[@xml:lang]">
+                    <fn:map key="{$field-name}">
+                        <xsl:for-each select="distinct-values($field-elements/@xml:lang)">
+                            <xsl:call-template name="serialize-field-value">
+                                <xsl:with-param name="field" select="$field-elements[@xml:lang = current()][1]"/>
+                                <xsl:with-param name="key" select="."/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+                    </fn:map>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:call-template name="serialize-field-value">
+                        <xsl:with-param name="field" select="$field-elements[1]"/>
+                        <xsl:with-param name="key" select="$field-name"/>
+                    </xsl:call-template>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:template>
 
     <!-- Space-separated list of absolute paths to metadata XML files -->
     <xsl:param name="metadata-files" as="xs:string*"/>
@@ -32,14 +86,14 @@
     <xsl:variable name="index-configs" select="$config-doc//idx:index"/>
 
     <xsl:template name="aggregate" match="/">
-        <!-- Collect all entities from all documents, grouped by index type -->
+        <!-- Collect all entities from all documents, annotated with documentId -->
         <xsl:variable name="all-entities" as="element()*">
             <xsl:for-each select="$all-docs">
                 <xsl:variable name="doc-id" select="string(/metadata/documentId)"/>
                 <xsl:for-each select="/metadata/entities/*/entity">
                     <entity-with-ref>
                         <xsl:copy-of select="@*"/>
-                        <inscriptionId><xsl:value-of select="$doc-id"/></inscriptionId>
+                        <documentId><xsl:value-of select="$doc-id"/></documentId>
                         <xsl:copy-of select="*"/>
                     </entity-with-ref>
                 </xsl:for-each>
@@ -82,55 +136,35 @@
                 </xsl:if>
             </xsl:variable>
 
-            <!-- Sort keys from config -->
-            <xsl:variable name="sort-key-fields" select="idx:sort/idx:key/@field"/>
-
             <!-- Entities for this index type -->
             <xsl:variable name="index-entities"
                 select="$all-entities[@indexType = $index-id]"/>
 
-            <!-- Group by sortKey -->
+            <!-- Group by @xml:id if present, else by sortKey -->
             <xsl:variable name="grouped-entries" as="element(fn:array)">
                 <fn:array key="entries">
                     <xsl:for-each-group select="$index-entities"
-                        group-by="string(sortKey)">
-                        <xsl:sort select="
-                            if (exists($sort-key-fields))
-                            then string-join(for $k in $sort-key-fields return string(current-group()[1]/*[local-name() = $k]), '|')
-                            else current-grouping-key()"/>
+                        group-by="if (@xml:id) then string(@xml:id) else string(sortKey[1])">
+                        <xsl:sort select="string(current-group()[1]/*[local-name() = 'sortKey'][1])"/>
 
-                        <xsl:variable name="first" select="current-group()[1]"/>
+                        <xsl:variable name="group" select="current-group()"/>
                         <fn:map>
-                            <!-- Copy all fields from first entity (excluding inscriptionId, indexType) -->
-                            <xsl:for-each select="$first/*[not(local-name() = ('inscriptionId', 'indexType'))]">
-                                <xsl:variable name="field-name" select="local-name()"/>
-                                <xsl:choose>
-                                    <xsl:when test=". = 'true' or . = 'false'">
-                                        <fn:boolean key="{$field-name}"><xsl:value-of select="."/></fn:boolean>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <fn:string key="{$field-name}"><xsl:value-of select="."/></fn:string>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:for-each>
+                            <!-- Entry-level fields (from all entities in group) -->
+                            <xsl:call-template name="serialize-fields">
+                                <xsl:with-param name="elements" select="$group"/>
+                                <xsl:with-param name="exclude" select="'documentId'"/>
+                            </xsl:call-template>
 
-                            <!-- References array -->
+                            <!-- References array (per entity, all fields) -->
                             <fn:array key="references">
-                                <xsl:for-each select="current-group()">
-                                    <xsl:sort select="string(inscriptionId)"/>
+                                <xsl:for-each select="$group">
+                                    <xsl:sort select="string(documentId)"/>
                                     <fn:map>
-                                        <fn:string key="inscriptionId"><xsl:value-of select="inscriptionId"/></fn:string>
-                                        <xsl:for-each select="*[not(local-name() = ('inscriptionId', 'indexType', 'sortKey'))]">
-                                            <xsl:variable name="field-name" select="local-name()"/>
-                                            <xsl:choose>
-                                                <xsl:when test=". = 'true' or . = 'false'">
-                                                    <fn:boolean key="{$field-name}"><xsl:value-of select="."/></fn:boolean>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    <fn:string key="{$field-name}"><xsl:value-of select="."/></fn:string>
-                                                </xsl:otherwise>
-                                            </xsl:choose>
-                                        </xsl:for-each>
+                                        <fn:string key="documentId"><xsl:value-of select="documentId"/></fn:string>
+                                        <xsl:call-template name="serialize-fields">
+                                            <xsl:with-param name="elements" select="."/>
+                                            <xsl:with-param name="exclude" select="'documentId'"/>
+                                        </xsl:call-template>
                                     </fn:map>
                                 </xsl:for-each>
                             </fn:array>
@@ -169,11 +203,10 @@
                         <xsl:variable name="index-id" select="string(@id)"/>
                         <xsl:variable name="index-entities"
                             select="$all-entities[@indexType = $index-id]"/>
-                        <xsl:variable name="unique-count">
-                            <xsl:value-of select="count(distinct-values(
-                                $index-entities/(sortKey, name, abbr, location)[normalize-space()][1]
-                            ))"/>
-                        </xsl:variable>
+                        <xsl:variable name="unique-count" select="count(distinct-values(
+                            for $e in $index-entities
+                            return if ($e/@xml:id) then string($e/@xml:id) else string($e/sortKey[1])
+                        ))"/>
                         <fn:map>
                             <fn:string key="id"><xsl:value-of select="$index-id"/></fn:string>
                             <fn:string key="title"><xsl:value-of select="@title"/></fn:string>
