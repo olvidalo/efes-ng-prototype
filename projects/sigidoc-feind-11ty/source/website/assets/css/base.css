@@ -101,6 +101,7 @@ body > header {
     transition: color 0.15s;
 }
 .nav-link:hover { color: #fff; text-decoration: none; }
+.nav-link.nav-active { color: #fff; border-bottom-color: var(--accent); }
 
 .nav-dropdown { position: relative; display: flex; align-items: stretch; }
 .nav-dropdown-toggle::after { content: '\25BE'; margin-left: 0.25rem; font-size: 0.65rem; opacity: 0.6; }
@@ -116,7 +117,9 @@ body > header {
     display: block; padding: 0.4rem 1rem; color: var(--header-text);
     text-decoration: none; font-size: 0.85rem; white-space: nowrap;
 }
+.nav-dropdown-menu li a { transition: background 0.15s; }
 .nav-dropdown-menu li a:hover { background: rgba(0,102,204,0.15); color: #fff; }
+.nav-dropdown-menu::before { content: ''; position: absolute; top: -3px; left: 0; right: 0; height: 3px; }
 
 /* Footer */
 footer {
@@ -135,7 +138,7 @@ footer a { color: var(--header-text); text-decoration: none; }
     font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;
     color: var(--slate); border: none; background: none;
 }
-.data-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+.data-table td { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; font-size: 0.9rem; }
 .data-table tbody tr { transition: background 0.1s; }
 .data-table tbody tr:hover { background: var(--accent-faint); }
 .data-table tbody tr:last-child td { border-bottom: none; }
@@ -144,14 +147,17 @@ footer a { color: var(--header-text); text-decoration: none; }
 .doc-nav { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.625rem 0; margin-bottom: 0.5rem; font-size: 0.8rem; }
 .doc-nav--bottom { margin-bottom: 0; margin-top: 1rem; justify-content: center; }
 .doc-nav-back { color: var(--slate); text-decoration: none; font-weight: 500; }
+.doc-nav-back:hover { color: var(--ink); }
 .doc-nav-pager { display: flex; gap: 0.5rem; }
-.doc-nav-link { color: var(--accent); text-decoration: none; padding: 0.25rem 0.5rem; border: 1px solid var(--border-color); background: var(--bg-light); font-weight: 500; }
+.doc-nav-link { color: var(--accent); text-decoration: none; padding: 0.25rem 0.5rem; border: 1px solid var(--border-color); background: var(--bg-light); font-weight: 500; transition: all 0.15s; }
 .doc-nav-link:hover { border-color: var(--accent); background: var(--accent-faint); }
-.doc-nav-disabled { color: var(--border-color); padding: 0.25rem 0.5rem; }
+.doc-nav-disabled { color: var(--border-color); padding: 0.25rem 0.5rem; border: 1px solid transparent; }
 
 /* Document container */
 .document { background: var(--bg-light); border: 1px solid var(--border-color); padding: 2rem 2.5rem; margin-top: 1rem; line-height: 1.7; }
+.document > * { width: 100%; float: none; }
 .doc-title { color: var(--primary); font-weight: 600; font-size: 2rem; margin: 0 0 1.5rem; padding: 0; border: none; }
+.doc-id { display: inline-block; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; color: var(--accent); background: var(--bg-light); padding: 0.1rem 0.4rem; border: 1px solid var(--border-color); text-decoration: none; }
 
 /* Intro/summary text */
 .index-intro, .list-summary { font-size: 0.9rem; color: var(--slate); margin-bottom: 1.5rem; }
@@ -159,8 +165,6 @@ footer a { color: var(--header-text); text-decoration: none; }
 
 /* Document list tables */
 .doc-list-id { white-space: nowrap; font-weight: 600; }
-.data-table td a { color: var(--ink); text-decoration: none; }
-.data-table td a:hover { color: var(--accent); }
 
 /* Index tables */
 .index-table { margin-bottom: 2rem; }
@@ -168,6 +172,9 @@ footer a { color: var(--header-text); text-decoration: none; }
 .index-table .references { font-size: 0.85rem; line-height: 1.6; }
 .index-table .references a { color: var(--accent); text-decoration: none; }
 .index-table .references a:hover { text-decoration: underline; }
+
+.index-table h3 { color: var(--ink); font-size: 1.25rem; margin-top: 2rem; }
+.group-count-info { color: var(--slate); font-size: 0.8rem; margin: 0.25rem 0 0.5rem; }
 
 /* Index notes */
 .index-notes {
@@ -192,10 +199,9 @@ footer a { color: var(--header-text); text-decoration: none; }
     padding: 1.25rem 1.5rem;
     background: var(--bg-light);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
     box-shadow: var(--shadow-sm);
     text-decoration: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.15s ease;
 }
 
 .index-card:hover {

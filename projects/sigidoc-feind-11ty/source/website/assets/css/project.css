@@ -112,35 +112,8 @@ body > header {
 
 /* ── Navigation ── */
 
-.nav-link {
-    transition: color 0.15s ease;
-}
-
-.nav-link.nav-active {
-    color: #fff;
-    border-bottom-color: var(--accent);
-}
-
-.nav-dropdown-menu {
-    border-color: rgba(184,134,11,0.3);
-}
-
-.nav-dropdown-menu::before {
-    content: '';
-    position: absolute;
-    top: -3px;
-    left: 0;
-    right: 0;
-    height: 3px;
-}
-
-.nav-dropdown-menu li a {
-    transition: background 0.15s;
-}
-
-.nav-dropdown-menu li a:hover {
-    background: rgba(184,134,11,0.15);
-}
+.nav-dropdown-menu { border-color: rgba(184,134,11,0.3); }
+.nav-dropdown-menu li a:hover { background: rgba(184,134,11,0.15); }
 
 /* ── Language switcher ── */
 
@@ -172,81 +145,29 @@ footer a:hover {
 
 /* ── Data tables ── */
 
-.data-table td {
-    font-size: 0.9rem;
-}
-
 @media (max-width: 768px) {
-    .data-table {
-        font-size: 0.85rem;
-    }
-
-    .data-table th,
-    .data-table td {
-        padding: 0.5rem;
-    }
+    .data-table { font-size: 0.85rem; }
+    .data-table th, .data-table td { padding: 0.5rem; }
 }
 
 /* ── Index cards ── */
-
-.index-card {
-    border-radius: 0;
-    transition: all 0.15s ease;
-}
 
 .index-card h3 {
     font-family: var(--font-display);
     font-size: 1.25rem;
 }
 
-.index-card .entry-count {
-    font-size: 0.75rem;
-    border-radius: 0;
-    letter-spacing: 0.02em;
-}
+.index-card .entry-count { font-size: 0.75rem; letter-spacing: 0.02em; }
 
 /* ── Document page container ── */
 
-.document {
-    display: grid;
-    grid-template-columns: 1fr auto;
-}
+.document { display: grid; grid-template-columns: 1fr auto; }
+.document > * { grid-column: 1 / -1; }
+.doc-title { grid-column: 1; grid-row: 1; align-self: baseline; font-family: var(--font-display); letter-spacing: -0.01em; }
+.doc-nav { flex-wrap: wrap; }
 
-.document > * {
-    grid-column: 1 / -1;
-    width: 100%;
-    float: none;
-}
+/* ── Monospace ID badge (seal-id) ── */
 
-.doc-title {
-    grid-column: 1;
-    grid-row: 1;
-    align-self: baseline;
-    font-family: var(--font-display);
-    letter-spacing: -0.01em;
-}
-
-/* ── Document navigation extras ── */
-
-.doc-nav {
-    flex-wrap: wrap;
-}
-
-.doc-nav-back:hover {
-    color: var(--ink);
-}
-
-.doc-nav-link {
-    transition: all 0.15s;
-}
-
-.doc-nav-disabled {
-    border: 1px solid transparent;
-}
-
-/* ── Monospace ID badge (seal-id and doc-id) ── */
-
-.doc-id,
 .seal-id a {
     font-family: var(--font-mono);
     font-size: 0.8rem;
@@ -258,11 +179,6 @@ footer a:hover {
     text-decoration: none;
 }
 
-.doc-id {
-    display: inline-block;
-    padding: 0.1rem 0.4rem;
-}
-
 /* ── Seals list page (project-specific class aliases) ── */
 
 .seal-id { white-space: nowrap; font-weight: 600; }
@@ -271,18 +187,7 @@ footer a:hover {
 
 /* ── Index table extras ── */
 
-.index-table h3 {
-    font-family: var(--font-display);
-    color: var(--ink);
-    font-size: 1.25rem;
-    margin-top: 2rem;
-}
-
-.group-count-info {
-    color: var(--slate);
-    font-size: 0.8rem;
-    margin: 0.25rem 0 0.5rem;
-}
+.index-table h3 { font-family: var(--font-display); }
 
 /* ── SigiDoc-specific responsive ── */
 
