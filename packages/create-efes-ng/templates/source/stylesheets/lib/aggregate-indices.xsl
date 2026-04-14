@@ -26,6 +26,24 @@
 
     <xsl:output method="text" encoding="UTF-8"/>
 
+    <!-- Serialize a field element as a JSON value (fn:string or fn:map) -->
+    <xsl:template name="serialize-field-value">
+        <xsl:param name="field" as="element()"/>
+        <xsl:param name="key" as="xs:string"/>
+        <xsl:choose>
+            <xsl:when test="$field/*">
+                <fn:map key="{$key}">
+                    <xsl:for-each select="$field/*">
+                        <fn:string key="{local-name()}"><xsl:value-of select="."/></fn:string>
+                    </xsl:for-each>
+                </fn:map>
+            </xsl:when>
+            <xsl:otherwise>
+                <fn:string key="{$key}"><xsl:value-of select="$field"/></fn:string>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- Space-separated list of absolute paths to metadata XML files -->
     <xsl:param name="metadata-files" as="xs:string*"/>
     <!-- Absolute path to indices-config.xsl -->
@@ -119,17 +137,19 @@
                                         <fn:map key="{$field-name}">
                                             <xsl:for-each select="distinct-values($field-elements/@xml:lang)">
                                                 <xsl:variable name="lang" select="."/>
-                                                <fn:string key="{$lang}">
-                                                    <xsl:value-of select="$field-elements[@xml:lang = $lang][1]"/>
-                                                </fn:string>
+                                                <xsl:call-template name="serialize-field-value">
+                                                    <xsl:with-param name="field" select="$field-elements[@xml:lang = $lang][1]"/>
+                                                    <xsl:with-param name="key" select="$lang"/>
+                                                </xsl:call-template>
                                             </xsl:for-each>
                                         </fn:map>
                                     </xsl:when>
-                                    <!-- No xml:lang → plain string -->
+                                    <!-- No xml:lang → plain value -->
                                     <xsl:otherwise>
-                                        <fn:string key="{$field-name}">
-                                            <xsl:value-of select="$field-elements[1]"/>
-                                        </fn:string>
+                                        <xsl:call-template name="serialize-field-value">
+                                            <xsl:with-param name="field" select="$field-elements[1]"/>
+                                            <xsl:with-param name="key" select="$field-name"/>
+                                        </xsl:call-template>
                                     </xsl:otherwise>
                                 </xsl:choose>
                             </xsl:for-each>

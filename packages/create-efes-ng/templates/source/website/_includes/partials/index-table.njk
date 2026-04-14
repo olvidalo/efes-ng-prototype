@@ -33,6 +33,18 @@
                                 {%- if not loop.last %} {% endif %}
                             {% endfor %}
                         </td>
+                    {% elif col.type == 'link' %}
+                        {% set val = entry[col.key] %}
+                        {% if val %}
+                            {% set linkVal = val[page.lang] if val[page.lang] else (val.en if val.en else val) %}
+                            {% if linkVal and linkVal.url %}
+                                <td><a href="{{ linkVal.url }}">{{ linkVal.label | default(linkVal.url) }}</a></td>
+                            {% else %}
+                                <td>-</td>
+                            {% endif %}
+                        {% else %}
+                            <td>-</td>
+                        {% endif %}
                     {% else %}
                         {% set val = entry[col.key] %}
                         {% if val is string or val is number %}
