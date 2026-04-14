@@ -21,7 +21,7 @@
     xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns:fn="http://www.w3.org/2005/xpath-functions"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:idx="http://efes.info/indices"
+    xmlns:idx="urn:efes-ng:indices"
     exclude-result-prefixes="tei fn xs idx">
 
     <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
