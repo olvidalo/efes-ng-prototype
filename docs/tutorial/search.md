@@ -12,7 +12,7 @@ The search follows the same extract-then-aggregate pattern as indices:
 
 No server needed: the search runs entirely in the reader's browser.
 
-The scaffold already provides a working `extract-search` template in `indices-config.xsl` with default fields (`title`, `material`, `fullText`), so the search data is already being extracted. We just need to enable the aggregation node and update the search page.
+The scaffold already provides a working `extract-search` template in `metadata-config.xsl` with default fields (`title`, `material`, `fullText`), so the search data is already being extracted. We just need to enable the aggregation node and update the search page.
 
 ## Adding the Aggregation Node
 
@@ -41,7 +41,7 @@ This works just like `aggregate-indices`: it uses `<initialTemplate>` to process
 > [!tip] Data flow
 > The same pattern we've seen throughout the tutorial:
 >
-> 1. The `extract-search` template in `indices-config.xsl` outputs `<title>`, `<material>`, `<fullText>` etc. for each document
+> 1. The `extract-search` template in `metadata-config.xsl` outputs `<title>`, `<material>`, `<fullText>` etc. for each document
 > 2. These end up in the `<search>` section of each metadata XML file (inspect them via `extract-epidoc-metadata`'s folder icon):
 >    ```xml
 >    <search>
@@ -104,9 +104,9 @@ Now that search works, let's improve it: add the dating to the results display a
 
 ### Adding More Info to Results
 
-> [!info] We're switching to: XSLT Configuration (source/indices-config.xsl)
+> [!info] We're switching to: XSLT Configuration (source/metadata-config.xsl)
 
-The search results currently show only the title. Let's add the dating so readers can see when a seal is from. Open `source/indices-config.xsl` and find the `extract-search` template. Uncomment the `origDate` line:
+The search results currently show only the title. Let's add the dating so readers can see when a seal is from. Open `source/metadata-config.xsl` and find the `extract-search` template. Uncomment the `origDate` line:
 
 ```xml
 <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
@@ -147,7 +147,7 @@ The entire result box is clickable. The `efes-result-title` row shows the docume
 
 The scaffold includes a commented-out `material` facet, but since all our seals are lead, that's not very useful. Let's add a `milieu` facet instead, which shows the social context of each seal issuer (military, aristocracy, civil, etc.) and has a nice distribution of values.
 
-First, add the `milieu` field to `extract-search` in `indices-config.xsl`:
+First, add the `milieu` field to `extract-search` in `metadata-config.xsl`:
 
 ```xml
 <milieu>
@@ -172,7 +172,7 @@ The `field="milieu"` must match the element name in `extract-search`. The search
 <!-- TODO: Document the `expanded` attribute on efes-facet (facets are collapsed by default, add `expanded` to start open). Mention in reference docs or a "search component" concept page -->
 
 ::: details How do I add more facets?
-To add a facet, you need two things: a field in `extract-search` (in `indices-config.xsl`) and an `<efes-facet>` element on the search page.
+To add a facet, you need two things: a field in `extract-search` (in `metadata-config.xsl`) and an `<efes-facet>` element on the search page.
 
 For single-valued fields, the extraction is straightforward:
 
@@ -182,7 +182,7 @@ For single-valued fields, the extraction is straightforward:
 
 For multi-valued fields (like our `milieu` example), use `<item>` children. The search component automatically treats these as multi-select facets.
 
-The SigiDoc FEIND project includes facets for object type, language, personal names, place names, dignities, offices, and more. See its `indices-config.xsl` for reference.
+The SigiDoc FEIND project includes facets for object type, language, personal names, place names, dignities, offices, and more. See its `metadata-config.xsl` for reference.
 :::
 
 ## What We've Built So Far

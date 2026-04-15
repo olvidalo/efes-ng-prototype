@@ -33,7 +33,7 @@ To run a scenario: open the file you want to transform, then click the Transform
 
 ### Extract Metadata
 
-Runs your `indices-config.xsl` on a source XML file, producing the intermediate metadata XML with page fields, entities, and search data.
+Runs your `metadata-config.xsl` on a source XML file, producing the intermediate metadata XML with page fields, entities, and search data.
 
 **How to use:** Open any source XML file (e.g., from `source/inscriptions/`), then run this scenario. The metadata XML appears in the XML output pane.
 

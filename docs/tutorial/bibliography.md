@@ -44,9 +44,9 @@ Add the bibliography file as a parameter to the `extract-epidoc-metadata` node, 
 </param>
 ```
 
-> [!info] We're switching to: XSLT Configuration (source/indices-config.xsl)
+> [!info] We're switching to: XSLT Configuration (source/metadata-config.xsl)
 
-And add the parameter declaration at the top of `indices-config.xsl` (next to the geography parameter):
+And add the parameter declaration at the top of `metadata-config.xsl` (next to the geography parameter):
 
 ```xml
 <xsl:param name="bibliography-file" as="xs:string"/>
@@ -55,7 +55,7 @@ And add the parameter declaration at the top of `indices-config.xsl` (next to th
 
 ## Uncommenting the Bibliography Index
 
-The scaffold includes a commented-out bibliography index definition and extraction template. Find them in `indices-config.xsl` and uncomment both the `<idx:index>` block and the `extract-bibliography` template.
+The scaffold includes a commented-out bibliography index definition and extraction template. Find them in `metadata-config.xsl` and uncomment both the `<idx:index>` block and the `extract-bibliography` template.
 
 The index definition:
 

@@ -111,7 +111,7 @@
 
   <xsltTransform name="extract-epidoc-metadata">
     <sourceFiles><files>source/feind-collection/*.xml</files></sourceFiles>
-    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
+    <stylesheet><files>source/metadata-config.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="languages">en de el</param>
       <param name="geography-file"><ref name="geography-file"/></param>
@@ -170,7 +170,7 @@
     <initialTemplate>aggregate</initialTemplate>
     <stylesheetParams>
       <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
-      <param name="indices-config"><files>source/indices-config.xsl</files></param>
+      <param name="metadata-config"><files>source/metadata-config.xsl</files></param>
     </stylesheetParams>
     <output to="_assembly/_data/indices" filename="_summary.json"/>
   </xsltTransform>

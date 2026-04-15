@@ -28,7 +28,7 @@ Uncomment this node in `pipeline.xml`, after `transform-epidoc`. Adapt `source/i
 ```xml
 <xsltTransform name="extract-epidoc-metadata">
   <sourceFiles><files>source/seals/*.xml</files></sourceFiles>
-  <stylesheet><files>source/indices-config.xsl</files></stylesheet>
+  <stylesheet><files>source/metadata-config.xsl</files></stylesheet>
   <stylesheetParams>
     <param name="languages">en</param>
   </stylesheetParams>
@@ -37,21 +37,21 @@ Uncomment this node in `pipeline.xml`, after `transform-epidoc`. Adapt `source/i
 
 Unlike `transform-epidoc`, this node reads the **raw source XML** directly, without pruning. The extraction templates use the `languages` parameter to select the right language content internally.
 
-- It transforms each file with **`indices-config.xsl`**: your project's metadata configuration stylesheet, which defines which fields to extract from the XML
+- It transforms each file with **`metadata-config.xsl`**: your project's metadata configuration stylesheet, which defines which fields to extract from the XML
 - **No `<output>`**: this node's results are only consumed by other pipeline nodes via `<from>`, so the default build directory (`.efes-build/extract-epidoc-metadata/`) is fine
 
-::: details What does `indices-config.xsl` do?
+::: details What does `metadata-config.xsl` do?
 This stylesheet is the bridge between your XML encoding and the website's metadata needs. It imports the generic `extract-metadata.xsl` library provided by the EFES-NG Prototype as part of your project and adds project-specific extraction logic.
 
 The generated scaffold already extracts two fields:
 - **`title`**: from the first `<title>` in the TEI header, falling back to the filename
 - **`sortKey`**: auto-generated from the filename for natural sort ordering
 
-You can open `source/indices-config.xsl` to see how these are extracted, and customize or add more fields later (like dates, categories, or findspots). The scaffold also has commented-out examples for additional fields and index definitions.
+You can open `source/metadata-config.xsl` to see how these are extracted, and customize or add more fields later (like dates, categories, or findspots). The scaffold also has commented-out examples for additional fields and index definitions.
 :::
 
 ::: details How do I add a new metadata field?
-The `indices-config.xsl` contains an `<xsl:template>` named `extract-metadata` that will be applied to each XML source file,
+The `metadata-config.xsl` contains an `<xsl:template>` named `extract-metadata` that will be applied to each XML source file,
 matching on it's `tei:TEI` root element. It is expected to return one XML for each metadata field you want to extract. To add 
 a new field, for instance `date`, add a `<date>` element to the template's output containing the extracted value:
 ```xml
@@ -78,7 +78,7 @@ After the build, you can inspect the generated metadata files: in the GUI, click
 </metadata>
 ```
 
-Notice how the structure reflects what's configured: `documentId` and `sourceFile` come from the framework automatically. The `<page>` section contains fields from your `indices-config.xsl`, here `title` and `sortKey`. Each field carries an `xml:lang` attribute (the framework adds this automatically based on the configured languages). The `entities` section is empty for now; we'll populate it when we add indices later.
+Notice how the structure reflects what's configured: `documentId` and `sourceFile` come from the framework automatically. The `<page>` section contains fields from your `metadata-config.xsl`, here `title` and `sortKey`. Each field carries an `xml:lang` attribute (the framework adds this automatically based on the configured languages). The `entities` section is empty for now; we'll populate it when we add indices later.
 
 ## Generating Sidecar Files
 
@@ -134,7 +134,7 @@ Once the build completes, inspect the `_assembly/en/seals/` directory again. Nex
 }
 ```
 
-Beyond the three fields we introduced earlier (`layout`, `tags`, `title`), the pipeline added `documentId` and `sortKey`. The title and sort key come from your `indices-config.xsl`. If you open that file, you can see exactly how they're extracted. The `documentId` is provided by the framework automatically.
+Beyond the three fields we introduced earlier (`layout`, `tags`, `title`), the pipeline added `documentId` and `sortKey`. The title and sort key come from your `metadata-config.xsl`. If you open that file, you can see exactly how they're extracted. The `documentId` is provided by the framework automatically.
 
 The `sortKey` ensures seals are listed in natural order (so `Feind_Kr2` comes before `Feind_Kr10`), and the `title` is what appears in the seal list and browser tab.
 

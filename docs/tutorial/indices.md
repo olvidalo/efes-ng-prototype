@@ -6,7 +6,7 @@ The seal pages and seal list work, but the Indices section is still empty. Indic
 
 An index configuration has three parts:
 
-1. **Definition**: in `indices-config.xsl`, an `<idx:index>` block declares the index (its ID, title, and column layout)
+1. **Definition**: in `metadata-config.xsl`, an `<idx:index>` block declares the index (its ID, title, and column layout)
 2. **Extraction**: an XSLT template finds the relevant entities in each XML source file and outputs `<entity>` elements
 3. **Aggregation**: a pipeline node combines all extracted entities across documents into a single JSON file
 
@@ -14,7 +14,7 @@ The data flows like this:
 
 ```mermaid
 flowchart LR
-  config["indices-config.xsl\n(define + extract)"]
+  config["metadata-config.xsl\n(define + extract)"]
   meta(["metadata XML\nwith entities"])
   agg["Node: <b>aggregate-indices</b>"]
   json(["_data/indices/persons.json"])
@@ -30,9 +30,9 @@ We already have the extraction step (`extract-epidoc-metadata`), but its `<entit
 
 ## Adding a Persons Index
 
-> [!info] We're working with: XSLT Index Configuration (source/indices-config.xsl)
+> [!info] We're working with: XSLT Index Configuration (source/metadata-config.xsl)
 
-Open `source/indices-config.xsl`. The scaffold includes a commented-out persons index example. We'll uncomment and adapt it in three places.
+Open `source/metadata-config.xsl`. The scaffold includes a commented-out persons index example. We'll uncomment and adapt it in three places.
 
 ### Define the Index
 
@@ -148,8 +148,8 @@ Uncomment it in `pipeline.xml`:
         <param name="metadata-files">
             <from node="extract-epidoc-metadata" output="transformed"/>
         </param>
-        <param name="indices-config">
-            <files>source/indices-config.xsl</files>
+        <param name="metadata-config">
+            <files>source/metadata-config.xsl</files>
         </param>
     </stylesheetParams>
     <output to="_assembly/_data/indices" filename="_summary.json"/>
@@ -159,7 +159,7 @@ Uncomment it in `pipeline.xml`:
 This node is different from the ones we've seen before:
 
 - **`metadata-files`**: passes all the metadata XML files from `extract-epidoc-metadata` as a parameter to the stylesheet. This is how the aggregation gets access to entity data from every document at once
-- **`indices-config`**: passes your `indices-config.xsl` so the aggregation knows which indices are defined and how their columns are structured
+- **`metadata-config`**: passes your `metadata-config.xsl` so the aggregation knows which indices are defined and how their columns are structured
 - **`<initialTemplate>`**: instead of processing input files one by one, this node calls a named template (`aggregate`) that processes all metadata files at once to produce combined output
 - **`<output filename="_summary.json">`**: produces a single file rather than one per input. The aggregation stylesheet also produces individual JSON files for each index (e.g., `persons.json`) alongside the summary
 
@@ -199,7 +199,7 @@ Rebuild and open the output directory for `aggregate-indices` (click the **folde
 
 The indices landing page (`en/indices/index.njk`) reads this file to show an overview card for each index.
 
-**`persons.json`**: the full data for the persons index. You might wonder how this file got here. The pipeline only specifies `_summary.json` as the output filename. The aggregation stylesheet uses an XSLT feature called `xsl:result-document` to write additional files alongside the primary output. For each index it defines, it produces a separate JSON file. The file names are derived from the index IDs in your `indices-config.xsl`.
+**`persons.json`**: the full data for the persons index. You might wonder how this file got here. The pipeline only specifies `_summary.json` as the output filename. The aggregation stylesheet uses an XSLT feature called `xsl:result-document` to write additional files alongside the primary output. For each index it defines, it produces a separate JSON file. The file names are derived from the index IDs in your `metadata-config.xsl`.
 
 Here's what `persons.json` looks like:
 
@@ -260,18 +260,18 @@ Rebuild and navigate to the Indices page. You should see a "Persons" card with a
 
 > [!tip] Adding More Indices
 > To add another index (places, dignities, offices, etc.), repeat the pattern:
-> 1. Add an `<idx:index>` definition in `indices-config.xsl`
+> 1. Add an `<idx:index>` definition in `metadata-config.xsl`
 > 2. Add an extraction template (`mode="extract-yourindex"`)
 > 3. Register it in `extract-all-entities`
 > 4. Create a page template (`en/indices/yourindex.njk`)
 >
-> The SigiDoc FEIND project has complete examples with five indices. See its `indices-config.xsl` for reference.
+> The SigiDoc FEIND project has complete examples with five indices. See its `metadata-config.xsl` for reference.
 
 ## Advanced: Showing Greek Names
 
 The persons index shows transliterated names ("Basileios Apokapes"), but the SigiDoc XML also has the original Greek. Let's add a column for it.
 
-First, add the column to the index definition in `indices-config.xsl`:
+First, add the column to the index definition in `metadata-config.xsl`:
 
 ```xml
 <idx:index id="persons" title="Persons" nav="indices" order="10">

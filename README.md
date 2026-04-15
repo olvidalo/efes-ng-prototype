@@ -39,10 +39,10 @@ Generates a static site from the IRCyr (Inscriptions of Roman Cyrenaica) EpiDoc 
 - `epidoc-stylesheets/`: EpiDoc XSLT stylesheet submodule from https://github.com/EpiDoc/Stylesheets/
 - `inscriptions/`: EpiDoc XML source files from the IRCyR EFES repo
 - `authority/`: XML authority files from the IRCyR EFES repo
-- `indices-config.xsl`: Central configuration — defines all entity extraction templates, search facets
+- `metadata-config.xsl`: Central configuration — defines all entity extraction templates, search facets
 - `eleventy-site/`: Eleventy templates, layouts, index/search pages, partials, and static assets
 - `stylesheets/`:
-    - `create-11ty-frontmatter-for-epidoc.xsl`: Thin wrapper importing the shared generic XSL and `indices-config.xsl`
+    - `create-11ty-frontmatter-for-epidoc.xsl`: Thin wrapper importing the shared generic XSL and `metadata-config.xsl`
 
 ### SigiDoc-Feind-11ty
 
@@ -53,10 +53,10 @@ Generates a trilingual (EN/DE/EL) static site from the Robert Feind seal collect
 - `sigidoc-stylesheets/`: SigiDoc XSLT stylesheet submodule from https://github.com/SigiDoc/Stylesheets/
 - `feind-collection/`: SigiDoc XML source file submodule from https://github.com/byzantinistik-koeln/feind-collection
 - `authority/`: Authority file submodule from https://github.com/byzantinistik-koeln/authority
-- `indices-config.xsl`: Central configuration — entity extraction, search facets
+- `metadata-config.xsl`: Central configuration — entity extraction, search facets
 - `eleventy-site/`: Eleventy templates with multilingual support, index/search/bibliography pages, partials, and static assets
 - `stylesheets/`:
-    - `create-11ty-frontmatter-for-sigidoc.xsl`: Thin wrapper importing the shared generic XSL and `indices-config.xsl`
+    - `create-11ty-frontmatter-for-sigidoc.xsl`: Thin wrapper importing the shared generic XSL and `metadata-config.xsl`
     - `epidoc-to-html.xsl`: Imports SigiDoc stylesheets and performs i18n label replacement
     - `prune-to-language.xsl`: Filters multilingual content to produce language-specific outputs (based on the original EFES)
 

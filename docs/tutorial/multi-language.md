@@ -19,7 +19,7 @@ Two kinds of changes are needed in `pipeline.xml`:
 ```xml
 <xsltTransform name="extract-epidoc-metadata">
     <sourceFiles><files>source/seals/*.xml</files></sourceFiles>
-    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
+    <stylesheet><files>source/metadata-config.xsl</files></stylesheet>
     <stylesheetParams>
         <param name="languages">en de</param>
     </stylesheetParams>

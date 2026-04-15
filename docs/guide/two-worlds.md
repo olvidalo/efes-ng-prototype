@@ -15,7 +15,7 @@ If you've worked with EFES or Oxygen XML Editor before, this world will feel fam
 - Which metadata is extracted for indices and search
 - How authority files are resolved
 
-**Files:** `source/stylesheets/`, `source/indices-config.xsl`, `pipeline.xml`
+**Files:** `source/stylesheets/`, `source/metadata-config.xsl`, `pipeline.xml`
 
 ### HTML/Nunjucks — Your Site
 
@@ -71,4 +71,4 @@ The `.11tydata.json` sidecar file is the contract between the two worlds. It tel
 | Change *which files* are processed | Pipeline config (`pipeline.xml`) |
 | Change site colors or fonts | CSS (`source/website/assets/css/`) |
 | Add a new static page | New `.njk` file in `source/website/` |
-| Change index/search fields | `source/indices-config.xsl` |
+| Change index/search fields | `source/metadata-config.xsl` |

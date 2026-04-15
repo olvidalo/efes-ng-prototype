@@ -6818,7 +6818,7 @@ oxy:current-selected-element()[ancestor-or-self::*:th][namespace-uri()= 'http://
                                             <field name="paramDescription">
                                                 <paramDescriptor>
                                                     <field name="localName">
-                                                        <String>indices-config</String>
+                                                        <String>metadata-config</String>
                                                     </field>
                                                     <field name="prefix">
                                                         <null/>
@@ -6829,7 +6829,7 @@ oxy:current-selected-element()[ancestor-or-self::*:th][namespace-uri()= 'http://
                                                 </paramDescriptor>
                                             </field>
                                             <field name="value">
-                                                <String>${pd}/source/indices-config.xsl</String>
+                                                <String>${pd}/source/metadata-config.xsl</String>
                                             </field>
                                             <field name="hasXPathValue">
                                                 <Boolean>false</Boolean>
@@ -7092,7 +7092,7 @@ oxy:current-selected-element()[ancestor-or-self::*:th][namespace-uri()= 'http://
                                     <String></String>
                                 </field>
                                 <field name="inputXSLURL">
-                                    <String>${pdu}/source/indices-config.xsl</String>
+                                    <String>${pdu}/source/metadata-config.xsl</String>
                                 </field>
                                 <field name="inputXMLURL">
                                     <String>${currentFileURL}</String>

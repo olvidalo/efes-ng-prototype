@@ -6,9 +6,9 @@ This involves both worlds: first we add the metadata fields in the XSLT configur
 
 ## Step 1: Add Metadata Fields
 
-> [!info] We're working with: XSLT Configuration (source/indices-config.xsl)
+> [!info] We're working with: XSLT Configuration (source/metadata-config.xsl)
 
-Open `source/indices-config.xsl` and find the `extract-metadata` template. You'll see two commented-out lines:
+Open `source/metadata-config.xsl` and find the `extract-metadata` template. You'll see two commented-out lines:
 
 ```xml
 <!-- Uncomment to add more page metadata fields:
@@ -63,7 +63,7 @@ The data flows from your XML source through the metadata extraction into the sid
 Open `source/website/en/seals/index.njk`. You'll see a commented-out Dating column:
 
 ```html
-{# To add a column, uncomment below and add the corresponding field to indices-config.xsl #}
+{# To add a column, uncomment below and add the corresponding field to metadata-config.xsl #}
 {# <th>Dating</th> #}
 ```
 
@@ -91,7 +91,7 @@ And in the `{% for document in sorted %}` loop:
 </tr>
 ```
 
-Notice how `document.data.category` and `document.data.origDate` match the field names from the sidecar JSON, which in turn match the element names in `indices-config.xsl`. The names you choose in the XSLT are the names you use in the template.
+Notice how `document.data.category` and `document.data.origDate` match the field names from the sidecar JSON, which in turn match the element names in `metadata-config.xsl`. The names you choose in the XSLT are the names you use in the template.
 
 ::: details How does Eleventy make this data available?
 When Eleventy finds a `.11tydata.json` file next to an `.html` file, it reads the JSON and attaches all its fields to that page. In the seal list template, `{% for document in sorted %}` loops over all seal pages, and `document.data` gives you access to everything from the corresponding sidecar JSON.
@@ -100,7 +100,7 @@ When Eleventy finds a `.11tydata.json` file next to an `.html` file, it reads th
 ```xml
 <origDate notBefore="0941" notAfter="0960">mid-10th c.</origDate>
 ```
-**2. You extract it** in `indices-config.xsl`:
+**2. You extract it** in `metadata-config.xsl`:
 ```xml
 <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
 ```
@@ -117,7 +117,7 @@ When Eleventy finds a `.11tydata.json` file next to an `.html` file, it reads th
 {{ document.data.origDate }}
 ```
 
-This means any field you add in `indices-config.xsl` automatically becomes available in templates as `document.data.yourFieldName`. 
+This means any field you add in `metadata-config.xsl` automatically becomes available in templates as `document.data.yourFieldName`. 
 :::
 
 ## See It Work
@@ -129,13 +129,13 @@ This is the full data flow in action:
 ```mermaid
 flowchart LR
   xml["<b>XML source</b>\n(tei:origDate,\ntei:summary)"]
-  config["<b>indices-config.xsl</b>\n(origDate, category)"]
+  config["<b>metadata-config.xsl</b>\n(origDate, category)"]
   json["<b>Sidecar JSON</b>\n(origDate, category)"]
   template["<b>en/seals/index.njk</b>\n(document.data.origDate,\ndocument.data.category)"]
 
   xml --> config --> json --> template
 ```
 
-To add more columns, repeat this pattern: add an extraction element in `indices-config.xsl`, then add the `<th>` and `<td>` in the template. The element name you choose becomes the field name in the JSON and the property name in the template.
+To add more columns, repeat this pattern: add an extraction element in `metadata-config.xsl`, then add the `<th>` and `<td>` in the template. The element name you choose becomes the field name in the JSON and the property name in the template.
 
 Next, let's add browsable indices: [Indices →](./indices)

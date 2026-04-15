@@ -15,7 +15,7 @@
 
     Parameters:
     - metadata-files: space-separated list of absolute paths to metadata XML files
-    - indices-config: absolute path to indices-config.xsl (for reading idx:index metadata)
+    - metadata-config: absolute path to metadata-config.xsl (for reading idx:index metadata)
 -->
 <xsl:stylesheet version="3.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -75,14 +75,14 @@
 
     <!-- Space-separated list of absolute paths to metadata XML files -->
     <xsl:param name="metadata-files" as="xs:string*"/>
-    <!-- Absolute path to indices-config.xsl -->
-    <xsl:param name="indices-config" as="xs:string"/>
+    <!-- Absolute path to metadata-config.xsl -->
+    <xsl:param name="metadata-config" as="xs:string"/>
 
     <!-- Load all metadata documents -->
     <xsl:variable name="all-docs" select="for $f in $metadata-files return doc('file://' || $f)"/>
 
-    <!-- Load index configuration from indices-config.xsl -->
-    <xsl:variable name="config-doc" select="doc('file://' || $indices-config)"/>
+    <!-- Load index configuration from metadata-config.xsl -->
+    <xsl:variable name="config-doc" select="doc('file://' || $metadata-config)"/>
     <xsl:variable name="index-configs" select="$config-doc//idx:index"/>
 
     <xsl:template name="aggregate" match="/">

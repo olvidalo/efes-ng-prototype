@@ -4,7 +4,7 @@
 
     Shared boilerplate for extracting XML metadata from TEI XML documents.
     Iterates over configured languages and calls project-specific hook
-    templates (in indices-config.xsl) once per language:
+    templates (in metadata-config.xsl) once per language:
 
     - extract-metadata: page display fields (title, sortKey, etc.)
     - extract-all-entities: dispatches to individual extraction templates
@@ -34,7 +34,7 @@
         <xsl:value-of select="substring-before($full-name, '.xml')"/>
     </xsl:variable>
 
-    <!-- Default hooks (overridden by indices-config via import precedence) -->
+    <!-- Default hooks (overridden by metadata-config via import precedence) -->
     <xsl:template match="tei:TEI" mode="extract-all-entities"/>
     <xsl:template match="tei:TEI" mode="extract-search"/>
     <xsl:template match="tei:TEI" mode="extract-metadata"/>

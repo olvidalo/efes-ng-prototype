@@ -32,7 +32,7 @@
 
   <xsltTransform name="extract-epidoc-metadata">
     <sourceFiles><files>source/inscriptions/*.xml</files></sourceFiles>
-    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
+    <stylesheet><files>source/metadata-config.xsl</files></stylesheet>
     <stylesheetParams>
       <param name="languages">en</param>
       <param name="divine-file"><files>source/authority/divine.xml</files></param>
@@ -62,7 +62,7 @@
     <initialTemplate>aggregate</initialTemplate>
     <stylesheetParams>
       <param name="metadata-files"><from node="extract-epidoc-metadata" output="transformed"/></param>
-      <param name="indices-config"><files>source/indices-config.xsl</files></param>
+      <param name="metadata-config"><files>source/metadata-config.xsl</files></param>
     </stylesheetParams>
     <output to="_assembly/_data/indices" filename="_summary.json"/>
   </xsltTransform>

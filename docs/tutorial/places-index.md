@@ -46,7 +46,7 @@ The extraction node needs access to the geography authority file. Add it as a st
 ```xml
 <xsltTransform name="extract-epidoc-metadata">
     <sourceFiles><files>source/seals/*.xml</files></sourceFiles>
-    <stylesheet><files>source/indices-config.xsl</files></stylesheet>
+    <stylesheet><files>source/metadata-config.xsl</files></stylesheet>
     <stylesheetParams>
         <param name="languages">en de</param>
         <param name="geography-file">
@@ -60,9 +60,9 @@ Wrapping the path in `<files>` registers it as a tracked dependency: If you upda
 
 ## Defining the Places Index
 
-> [!info] We're switching to: XSLT Configuration (source/indices-config.xsl)
+> [!info] We're switching to: XSLT Configuration (source/metadata-config.xsl)
 
-In `indices-config.xsl`, add a parameter declaration so we can access the `geography-file` parameter we added to the pipeline config, and load the authority file. At the top of the `<xsl:stylesheet>` element, after this line:
+In `metadata-config.xsl`, add a parameter declaration so we can access the `geography-file` parameter we added to the pipeline config, and load the authority file. At the top of the `<xsl:stylesheet>` element, after this line:
 
 ```xml
 <xsl:import href="stylesheets/lib/extract-metadata.xsl"/>

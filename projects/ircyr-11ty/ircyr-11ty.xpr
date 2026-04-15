@@ -192,7 +192,7 @@
                                             <field name="paramDescription">
                                                 <paramDescriptor>
                                                     <field name="localName">
-                                                        <String>indices-config</String>
+                                                        <String>metadata-config</String>
                                                     </field>
                                                     <field name="prefix">
                                                         <null/>
@@ -203,7 +203,7 @@
                                                 </paramDescriptor>
                                             </field>
                                             <field name="value">
-                                                <String>${pd}/source/indices-config.xsl</String>
+                                                <String>${pd}/source/metadata-config.xsl</String>
                                             </field>
                                             <field name="hasXPathValue">
                                                 <Boolean>false</Boolean>
@@ -466,7 +466,7 @@
                                     <String></String>
                                 </field>
                                 <field name="inputXSLURL">
-                                    <String>${pdu}/source/indices-config.xsl</String>
+                                    <String>${pdu}/source/metadata-config.xsl</String>
                                 </field>
                                 <field name="inputXMLURL">
                                     <String>${currentFileURL}</String>
