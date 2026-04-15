@@ -153,7 +153,19 @@ export class PipelineManager {
   getNodeOutputDir(nodeName: string): string | null {
     if (!this.pipeline) return null
     try {
-      return this.pipeline.getNodeOutputDir(nodeName)
+      const dir = this.pipeline.getNodeOutputDir(nodeName)
+      if (fs.existsSync(dir)) return dir
+      // For composite nodes: fall back to last child's output dir
+      const children = this.pipeline.getNodeNames()
+        .filter((n) => n.startsWith(nodeName + ':'))
+        .sort()
+      for (const child of children.reverse()) {
+        try {
+          const childDir = this.pipeline.getNodeOutputDir(child)
+          if (fs.existsSync(childDir)) return childDir
+        } catch { /* skip */ }
+      }
+      return dir
     } catch {
       return null
     }
