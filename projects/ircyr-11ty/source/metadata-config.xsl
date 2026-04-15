@@ -694,11 +694,21 @@
         <findspot><xsl:value-of select="string-join(.//tei:placeName[@type='ancientFindspot'], ', ')"/></findspot>
 
         <!-- Facet and filter fields -->
-        <material><xsl:value-of select="normalize-space(string-join(.//tei:support//tei:material, ', '))"/></material>
-        <objectType><xsl:value-of select="normalize-space(string-join(.//tei:support//tei:objectType, ', '))"/></objectType>
+        <material>
+            <xsl:for-each select=".//tei:support//tei:material">
+                <item>
+                    <xsl:value-of select="normalize-space(upper-case(substring(., 1, 1)) || substring(., 2))"/>
+                </item>
+            </xsl:for-each>
+        </material>
+        <objectType>
+            <xsl:for-each select=".//tei:support//tei:objectType">
+                <item><xsl:value-of select="normalize-space(upper-case(substring(., 1, 1)) || substring(., 2))"/></item>
+            </xsl:for-each>
+        </objectType>
         <textType>
-            <xsl:for-each select=".//tei:titleStmt//tei:rs[@type='textType']/normalize-space(.)">
-                <item><xsl:value-of select="."/></item>
+            <xsl:for-each select=".//tei:titleStmt//tei:rs[@type='textType']">
+                <item><xsl:value-of select="normalize-space(upper-case(substring(., 1, 1)) || substring(., 2))"/></item>
             </xsl:for-each>
         </textType>
         <repository><xsl:value-of select="normalize-space(.//tei:msIdentifier/tei:repository)"/></repository>
