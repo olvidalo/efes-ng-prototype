@@ -295,10 +295,14 @@
         <origDate><xsl:value-of select="normalize-space(
             (//tei:origDate/tei:seg[@xml:lang=$language], //tei:origDate)[1]
         )"/></origDate>
+        <placeName>
+            <xsl:value-of select="
+            .//tei:div[@type='textpart']//tei:placeName/@ref[starts-with(., '#geo')]
+            ! $geography//tei:place[@xml:id = .]/tei:placeName[@xml:lang='en']
+        "/>
+        </placeName>
 
         <!-- Facets -->
-        <objectType><xsl:value-of select="normalize-space(//tei:objectType/tei:term/tei:seg[@xml:lang='en'])"/></objectType>
-        <material><xsl:value-of select="normalize-space(//tei:material/tei:seg[@xml:lang='en'])"/></material>
         <xsl:variable name="lang" select="string((//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']/@xml:lang)[1])"/>
         <language>
             <xsl:choose>
@@ -331,7 +335,11 @@
         <milieu>
             <xsl:for-each select="//tei:listPerson[@type='issuer']/tei:person/@role">
                 <xsl:for-each select="tokenize(normalize-space(.), ' ')">
-                    <item><xsl:value-of select="translate(., '-', ' ')"/></item>
+                    <!-- Replace - with space and capitalize each word (e.g. "secular-church" -> "Secular Church" -->
+                    <item><xsl:value-of select="string-join(
+                      tokenize(translate(., '-', ' '), '\s+') ! (upper-case(substring(., 1, 1)) || substring(., 2)),
+                      ' '
+                    )"/></item>
                 </xsl:for-each>
             </xsl:for-each>
         </milieu>
@@ -383,12 +391,20 @@
                 <xsl:if test="$displayName"><item><xsl:value-of select="$displayName"/></item></xsl:if>
             </xsl:for-each>
         </militaryOffices>
-        <metrical><xsl:value-of select="if (//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']//tei:lg) then 'yes' else 'no'"/></metrical>
-        <monogram><xsl:value-of select="string-join(distinct-values(
-            //tei:div[@type='edition'][@subtype='editorial']
-                //tei:div[@type='textpart'][starts-with(@rend, 'monogram')]
-                /@rend ! replace(., '^monogram-?', '')), ', ')"/></monogram>
-        <collection><xsl:value-of select="normalize-space(//tei:rs[@type='collection-name'][@xml:lang='en'])"/></collection>
+        <metrical><xsl:value-of select="if (//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']//tei:lg) then 'Yes' else 'No'"/></metrical>
+        <monogram>
+            <xsl:for-each select="
+                distinct-values(
+                  //tei:div[@type='edition'][@subtype='editorial']
+                    //tei:div[@type='textpart'][starts-with(@rend, 'monogram-')]
+                    /@rend ! replace(., '^monogram-', '')
+                )
+            ">
+                <item>
+                    <xsl:value-of select="upper-case(substring(., 1, 1)) || substring(., 2)"/>
+                </item>
+            </xsl:for-each>
+        </monogram>
         <xsl:variable name="notBefore" select="string(//tei:origDate/@notBefore)"/>
         <xsl:variable name="notAfter" select="string(//tei:origDate/@notAfter)"/>
         <dateNotBefore><xsl:value-of select="if ($notBefore castable as xs:integer) then xs:integer($notBefore) else $notBefore"/></dateNotBefore>

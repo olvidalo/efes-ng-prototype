@@ -22,19 +22,16 @@ eleventyComputed:
             from-label="{{ "fromYear" | t }}"
             to-label="{{ "toYear" | t }}"></efes-date-range>
 
-        <efes-facet field="material" label="{{ "material" | t }}" expanded></efes-facet>
-        <efes-facet field="objectType" label="{{ "objectType" | t }}" expanded></efes-facet>
         <efes-facet field="language" label="{{ "language" | t }}" expanded></efes-facet>
         <efes-facet field="personalNames" label="{{ "personalNames" | t }}"></efes-facet>
         <efes-facet field="familyNames" label="{{ "familyNames" | t }}"></efes-facet>
-        <efes-facet field="gender" label="{{ "gender" | t }}" expanded></efes-facet>
-        <efes-facet field="milieu" label="{{ "milieu" | t }}"></efes-facet>
-        <efes-facet field="placeNames" label="{{ "placeNames" | t }}"></efes-facet>
+        <efes-facet field="gender" label="{{ "gender" | t }}"></efes-facet>
+        <efes-facet field="milieu" label="{{ "milieu" | t }}" expanded></efes-facet>
+        <efes-facet field="placeNames" label="{{ "placeNames" | t }}" expanded></efes-facet>
         <efes-facet field="dignities" label="{{ "dignities" | t }}"></efes-facet>
         <efes-facet field="civilOffices" label="{{ "civilOffices" | t }}"></efes-facet>
         <efes-facet field="ecclesiasticalOffices" label="{{ "ecclesiasticalOffices" | t }}"></efes-facet>
         <efes-facet field="militaryOffices" label="{{ "militaryOffices" | t }}"></efes-facet>
-        <efes-facet field="collection" label="{{ "collection" | t }}"></efes-facet>
         <efes-facet field="metrical" label="{{ "metrical" | t }}"></efes-facet>
         <efes-facet field="monogram" label="{{ "monogram" | t }}"></efes-facet>
 
@@ -57,8 +54,7 @@ eleventyComputed:
                 </a>
                 <div class="efes-result-details">
                     <span data-field="origDate"></span>
-                    <span data-field="material"></span>
-                    <span data-field="collection"></span>
+                    <span data-field="placeNames"></span>
                 </div>
             </template>
         </efes-results>
