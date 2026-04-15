@@ -32,3 +32,5 @@ pages/*
 
 docs/.vitepress/cache
 docs/.vitepress/dist
+
+_debug/

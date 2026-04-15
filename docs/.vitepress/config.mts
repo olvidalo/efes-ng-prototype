@@ -77,6 +77,12 @@ export default withMermaid(
             ],
           },
           {
+            text: 'Tools',
+            items: [
+              { text: 'Oxygen XML Editor Project', link: '/guide/oxygen-project' },
+            ],
+          },
+          {
             text: 'Deployment',
             items: [
               { text: 'Publishing Your Site', link: '/guide/deployment' },

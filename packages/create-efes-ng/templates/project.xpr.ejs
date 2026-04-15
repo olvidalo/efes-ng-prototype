@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <meta>
+        <filters directoryPatterns="" filePatterns="" positiveFilePatterns="" showHiddenFiles="false"/>
+        <options>
+            <serialized xml:space="preserve">
+                <serializableOrderedMap>
+                    <entry>
+                        <String>key.file.types.option.pane</String>
+                        <Boolean>true</Boolean>
+                    </entry>
+                    <entry>
+                        <String>files.types.association.v12</String>
+                        <fileTypeAssociation-array>
+                            <fileTypeAssociation>
+                                <field name="extension"><String>njk</String></field>
+                                <field name="contentType"><String>text/html</String></field>
+                                <field name="defaultExtension"><Boolean>false</Boolean></field>
+                            </fileTypeAssociation>
+                        </fileTypeAssociation-array>
+                    </entry>
+                    <entry>
+                        <String>scenarios</String>
+                        <scenario-array>
+                            <scenario>
+                                <field name="advancedOptionsMap"><null/></field>
+                                <field name="name"><String>Extract Metadata</String></field>
+                                <field name="inputXSLURL"><String>${pdu}/source/indices-config.xsl</String></field>
+                                <field name="inputXMLURL"><String>${currentFileURL}</String></field>
+                                <field name="type"><String>XSL</String></field>
+                                <field name="showInXMLPane"><Boolean>true</Boolean></field>
+                                <field name="useXSLTInput"><Boolean>true</Boolean></field>
+                                <field name="xsltParams">
+                                    <list>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>languages</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>en</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                    </list>
+                                </field>
+                                <field name="xslTransformer"><String>Saxon-PE</String></field>
+                            </scenario>
+                            <scenario>
+                                <field name="advancedOptionsMap"><null/></field>
+                                <field name="name"><String>Transform EpiDoc</String></field>
+                                <field name="inputXSLURL"><String>${pdu}/source/stylesheets/lib/epidoc-to-html.xsl</String></field>
+                                <field name="inputXMLURL"><String>${currentFileURL}</String></field>
+                                <field name="type"><String>XSL</String></field>
+                                <field name="showInHTMLPane"><Boolean>true</Boolean></field>
+                                <field name="useXSLTInput"><Boolean>true</Boolean></field>
+                                <field name="xsltParams">
+                                    <list>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>edn-structure</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>inslib</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>edition-type</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>interpretive</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>leiden-style</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>panciera</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>line-inc</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>5</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>bibloc</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>${pd}/source/authority/bibliography.xml</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>bib-link-template</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>../../bibliography/$1/</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>language</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>en</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>messages-file</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>${pd}/source/translations/messages_en.xml</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                    </list>
+                                </field>
+                                <field name="xslTransformer"><String>Saxon-PE</String></field>
+                            </scenario>
+                            <scenario>
+                                <field name="advancedOptionsMap"><null/></field>
+                                <field name="name"><String>Prune EpiDoc to Language</String></field>
+                                <field name="inputXSLURL"><String>${pdu}/source/stylesheets/lib/prune-to-language.xsl</String></field>
+                                <field name="inputXMLURL"><String>${currentFileURL}</String></field>
+                                <field name="type"><String>XSL</String></field>
+                                <field name="showInXMLPane"><Boolean>true</Boolean></field>
+                                <field name="useXSLTInput"><Boolean>true</Boolean></field>
+                                <field name="xsltParams">
+                                    <list>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>language</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>en</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                    </list>
+                                </field>
+                                <field name="xslTransformer"><String>Saxon-PE</String></field>
+                            </scenario>
+                            <scenario>
+                                <field name="advancedOptionsMap"><null/></field>
+                                <field name="name"><String>Generate Eleventy Data</String></field>
+                                <field name="inputXSLURL"><String>${pdu}/source/stylesheets/lib/create-11ty-data.xsl</String></field>
+                                <field name="inputXMLURL"><String>${currentFileURL}</String></field>
+                                <field name="type"><String>XSL</String></field>
+                                <field name="showInXMLPane"><Boolean>true</Boolean></field>
+                                <field name="useXSLTInput"><Boolean>true</Boolean></field>
+                                <field name="xsltParams">
+                                    <list>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>layout</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>layouts/document.njk</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>tags</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>inscriptions</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>language</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>en</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                    </list>
+                                </field>
+                                <field name="xslTransformer"><String>Saxon-PE</String></field>
+                            </scenario>
+                            <scenario>
+                                <field name="advancedOptionsMap">
+                                    <serializableOrderedMap>
+                                        <entry>
+                                            <String>Saxon-PE</String>
+                                            <xsltSaxonBAdvancedOptions>
+                                                <field name="allowCallsOnExtensionFunctions"><Boolean>true</Boolean></field>
+                                                <field name="registerSaxonCEExtensions"><Boolean>true</Boolean></field>
+                                                <field name="enableAssertions"><Boolean>false</Boolean></field>
+                                                <field name="allowSyntaxExtensions"><Boolean>false</Boolean></field>
+                                                <field name="showVersionWarnings"><Boolean>false</Boolean></field>
+                                                <field name="dtdSourceValidation"><Boolean>false</Boolean></field>
+                                                <field name="dtdSourceValidationRecover"><Boolean>false</Boolean></field>
+                                                <field name="lineNumbering"><Boolean>false</Boolean></field>
+                                                <field name="initialMode"><null/></field>
+                                                <field name="initialTemplate"><String>aggregate</String></field>
+                                                <field name="traceXPathExpression"><Boolean>true</Boolean></field>
+                                                <field name="expandAttributeDefaults"><Boolean>true</Boolean></field>
+                                                <field name="stripWS"><String>saxon.strip.ws.none</String></field>
+                                                <field name="optimizationEnabled"><Boolean>true</Boolean></field>
+                                                <field name="useConfigFile"><Boolean>false</Boolean></field>
+                                                <field name="configSystemID"><null/></field>
+                                                <field name="initializer"><String></String></field>
+                                                <field name="profilingOutputFile"><String></String></field>
+                                                <field name="isProfilingEnabled"><Boolean>false</Boolean></field>
+                                            </xsltSaxonBAdvancedOptions>
+                                        </entry>
+                                    </serializableOrderedMap>
+                                </field>
+                                <field name="name"><String>Aggregate Indices</String></field>
+                                <field name="inputXSLURL"><String>${pdu}/source/stylesheets/lib/aggregate-indices.xsl</String></field>
+                                <field name="inputXMLURL"><null/></field>
+                                <field name="type"><String>XSL</String></field>
+                                <field name="saveAs"><Boolean>true</Boolean></field>
+                                <field name="outputResource"><String>${pd}/_debug/_summary.json</String></field>
+                                <field name="showInXMLPane"><Boolean>true</Boolean></field>
+                                <field name="useXSLTInput"><Boolean>true</Boolean></field>
+                                <field name="xsltParams">
+                                    <list>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>indices-config</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>${pd}/source/indices-config.xsl</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>metadata-files</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>for $uri in uri-collection('${pd}/.efes-build/extract-epidoc-metadata__transform/source/inscriptions/?select=*.xml') return replace($uri, '^file://', '')</String></field>
+                                            <field name="hasXPathValue"><Boolean>true</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                    </list>
+                                </field>
+                                <field name="xslTransformer"><String>Saxon-PE</String></field>
+                            </scenario>
+                            <scenario>
+                                <field name="advancedOptionsMap">
+                                    <serializableOrderedMap>
+                                        <entry>
+                                            <String>Saxon-PE</String>
+                                            <xsltSaxonBAdvancedOptions>
+                                                <field name="allowCallsOnExtensionFunctions"><Boolean>true</Boolean></field>
+                                                <field name="registerSaxonCEExtensions"><Boolean>true</Boolean></field>
+                                                <field name="enableAssertions"><Boolean>false</Boolean></field>
+                                                <field name="allowSyntaxExtensions"><Boolean>false</Boolean></field>
+                                                <field name="showVersionWarnings"><Boolean>false</Boolean></field>
+                                                <field name="dtdSourceValidation"><Boolean>false</Boolean></field>
+                                                <field name="dtdSourceValidationRecover"><Boolean>false</Boolean></field>
+                                                <field name="lineNumbering"><Boolean>false</Boolean></field>
+                                                <field name="initialMode"><null/></field>
+                                                <field name="initialTemplate"><String>aggregate</String></field>
+                                                <field name="traceXPathExpression"><Boolean>true</Boolean></field>
+                                                <field name="expandAttributeDefaults"><Boolean>true</Boolean></field>
+                                                <field name="stripWS"><String>saxon.strip.ws.none</String></field>
+                                                <field name="optimizationEnabled"><Boolean>true</Boolean></field>
+                                                <field name="useConfigFile"><Boolean>false</Boolean></field>
+                                                <field name="configSystemID"><null/></field>
+                                                <field name="initializer"><String></String></field>
+                                                <field name="profilingOutputFile"><String></String></field>
+                                                <field name="isProfilingEnabled"><Boolean>false</Boolean></field>
+                                            </xsltSaxonBAdvancedOptions>
+                                        </entry>
+                                    </serializableOrderedMap>
+                                </field>
+                                <field name="name"><String>Aggregate Search Data</String></field>
+                                <field name="inputXSLURL"><String>${pdu}/source/stylesheets/lib/aggregate-search-data.xsl</String></field>
+                                <field name="inputXMLURL"><null/></field>
+                                <field name="type"><String>XSL</String></field>
+                                <field name="saveAs"><Boolean>true</Boolean></field>
+                                <field name="outputResource"><String>${pd}/_debug/documents_en.json</String></field>
+                                <field name="showInXMLPane"><Boolean>true</Boolean></field>
+                                <field name="useXSLTInput"><Boolean>true</Boolean></field>
+                                <field name="xsltParams">
+                                    <list>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>metadata-files</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>for $uri in uri-collection('${pd}/.efes-build/extract-epidoc-metadata__transform/source/inscriptions/?select=*.xml') return replace($uri, '^file://', '')</String></field>
+                                            <field name="hasXPathValue"><Boolean>true</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                        <transformationParameter>
+                                            <field name="paramDescription">
+                                                <paramDescriptor>
+                                                    <field name="localName"><String>language</String></field>
+                                                    <field name="prefix"><null/></field>
+                                                    <field name="namespace"><null/></field>
+                                                </paramDescriptor>
+                                            </field>
+                                            <field name="value"><String>en</String></field>
+                                            <field name="hasXPathValue"><Boolean>false</Boolean></field>
+                                            <field name="isStatic"><Boolean>false</Boolean></field>
+                                        </transformationParameter>
+                                    </list>
+                                </field>
+                                <field name="xslTransformer"><String>Saxon-PE</String></field>
+                            </scenario>
+                        </scenario-array>
+                    </entry>
+                </serializableOrderedMap>
+            </serialized>
+        </options>
+    </meta>
+    <projectTree name="<%= projectSlug %>.xpr">
+        <folder path="."/>
+    </projectTree>
+</project>
