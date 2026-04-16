@@ -1,10 +1,11 @@
 /**
  * Eleventy build workload — runs in a worker thread, forks a child process.
  *
- * Eleventy uses process.cwd() internally for path resolution (via
- * TemplatePath.getWorkingDir), which breaks on Windows when the project
- * is on a different drive than the code. We fork a child process that
- * can safely chdir without affecting other threads or the main process.
+ * Call chain: EleventyBuildNode → worker pool → this file (worker thread) → fork() → eleventyRunner (child process)
+ *
+ * The forked child process allows safe chdir(), which Eleventy needs for
+ * path resolution (TemplatePath.getWorkingDir) but would affect other
+ * threads if done in the worker.
  */
 import type { WorkloadModule } from "../core/runtimeHelpers";
 import { resolveWorkloadPath, electronSafeEnv } from "../core/runtimeHelpers.ts";
