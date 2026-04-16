@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title | default('EpiDoc Collection') }}</title>
 
-    <!-- Foundation 4.3.1 — required for XSLT-generated tabs and grid markup
-         NOTE: Must use 4.3.1, not 4.3.2. The Section plugin in 4.3.2 has a regression
-         where set_active_from_hash() only activates tabs when a URL hash matches a
-         data-slug, so tabs with no hash never get their first section activated. -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/css/foundation.min.css"
-          crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/css/normalize.min.css"
-          crossorigin="anonymous">
+    <!-- Foundation 4.3.1 — required for XSLT-generated tabs and grid markup -->
+    <link rel="stylesheet" href="/assets/vendor/foundation/normalize-4.3.1.min.css">
+    <link rel="stylesheet" href="/assets/vendor/foundation/foundation-4.3.1.min.css">
 
+    <link rel="stylesheet" href="/assets/fonts/fonts.css">
     <link rel="stylesheet" href="/assets/css/base.css">
     <link rel="stylesheet" href="/assets/css/epidoc.css">
     <link rel="stylesheet" href="/assets/css/project.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+    <script src="/assets/vendor/foundation/modernizr-2.6.2.min.js"></script>
 </head>
 <body>
 {% include "header.njk" %}
@@ -35,9 +31,8 @@
 {% include "footer.njk" %}
 
 <!-- jQuery + Foundation JS — required for XSLT-generated tabs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/js/foundation.min.js"
-        crossorigin="anonymous"></script>
+<script src="/assets/vendor/foundation/jquery-1.10.2.min.js"></script>
+<script src="/assets/vendor/foundation/foundation-4.3.1.min.js"></script>
 <script>
     $(document).foundation();
 </script>

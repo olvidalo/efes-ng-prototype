@@ -26,7 +26,7 @@ html { scrollbar-gutter: stable; }
     --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
 
     --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-greek: 'Times New Roman', Times, serif;
+    --font-greek: 'Athena Ruby', 'Times New Roman', Times, serif;
     --font-mono: 'Courier New', Courier, monospace;
 }
 

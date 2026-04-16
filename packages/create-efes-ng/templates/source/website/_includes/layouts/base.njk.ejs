@@ -6,9 +6,10 @@
     <title>{{ title | default('<%= projectName %>') }}</title>
 
     <!-- Foundation 4.3.1 — required for XSLT-generated tabs -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/css/foundation.min.css" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/css/normalize.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="/assets/vendor/foundation/normalize-4.3.1.min.css">
+    <link rel="stylesheet" href="/assets/vendor/foundation/foundation-4.3.1.min.css">
 
+    <link rel="stylesheet" href="/assets/fonts/fonts.css">
     <link rel="stylesheet" href="/assets/css/base.css">
     <link rel="stylesheet" href="/assets/css/epidoc.css">
     <link rel="stylesheet" href="/assets/css/project.css">
@@ -28,8 +29,8 @@
 
 <%- '{% include "footer.njk" %}' %>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/4.3.1/js/foundation.min.js" crossorigin="anonymous"></script>
+<script src="/assets/vendor/foundation/jquery-1.10.2.min.js"></script>
+<script src="/assets/vendor/foundation/foundation-4.3.1.min.js"></script>
 <script>
     $(document).foundation();
 </script>

@@ -1,0 +1,10 @@
+/* Athena Ruby — Dumbarton Oaks' font for Byzantine inscriptions (SIL Open Font License 1.1)
+   https://www.doaks.org/resources/athena-ruby */
+
+@font-face {
+  font-family: 'Athena Ruby';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(athena-ruby.woff2) format('woff2');
+}
