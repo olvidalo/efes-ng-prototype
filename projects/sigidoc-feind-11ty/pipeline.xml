@@ -211,10 +211,6 @@
 
   <eleventyBuild name="eleventy-build">
     <sourceDir><collect>_assembly</collect></sourceDir>
-    <passthroughCopy>
-      <param name="search-data">search-data</param>
-      <param name="assets">assets</param>
-    </passthroughCopy>
     <output to="_output"/>
   </eleventyBuild>
 

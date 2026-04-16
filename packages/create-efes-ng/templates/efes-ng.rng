@@ -241,7 +241,6 @@
       <attribute name="name"><data type="ID"/></attribute>
       <interleave>
         <element name="sourceDir"><a:documentation>The directory containing the assembled Eleventy site (templates, data, content). Must use a collect reference.</a:documentation><ref name="inputContent"/></element>
-        <optional><element name="passthroughCopy"><a:documentation>Files to copy directly into the Eleventy output without processing (e.g. search data, CSS, images).</a:documentation><ref name="mapContent"/></element></optional>
         <optional><ref name="outputConfig"/></optional>
       </interleave>
     </element>

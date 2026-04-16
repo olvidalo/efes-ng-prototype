@@ -13,7 +13,6 @@ import { fork } from "node:child_process";
 export async function performWork(job: {
   sourceDir: string
   outputDir: string
-  passthroughCopy?: Record<string, string>
 }): Promise<{ outputDir: string }> {
   const runnerScript = resolveWorkloadPath(
     import.meta.url, 'eleventyRunner.mts', 'eleventyRunner.mjs'

@@ -16,7 +16,6 @@ import { Eleventy } from '@11ty/eleventy';
 process.on('message', async (job: {
     sourceDir: string
     outputDir: string
-    passthroughCopy?: Record<string, string>
 }) => {
     try {
         // Safe to chdir — this is an isolated child process
@@ -25,10 +24,6 @@ process.on('message', async (job: {
         const elev = new Eleventy(job.sourceDir, job.outputDir, {
             config: (eleventyConfig: any) => {
                 eleventyConfig.setUseGitIgnore(false);
-                for (const [from, to] of Object.entries(job.passthroughCopy ?? {})) {
-                    const absFrom = path.resolve(job.sourceDir, from);
-                    eleventyConfig.addPassthroughCopy({ [absFrom]: to });
-                }
             }
         });
 

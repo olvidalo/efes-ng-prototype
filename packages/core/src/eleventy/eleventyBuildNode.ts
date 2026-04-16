@@ -6,8 +6,7 @@ import {resolveWorkloadPath} from "../core/runtimeHelpers";
 import type {NodeConfigSchema, ConfigFromSchema} from "../core/nodeConfigSchema";
 
 const configSchema = {
-    sourceDir:       { type: 'input', description: 'The directory containing the assembled Eleventy site (templates, data, content). Must use a collect reference.' },
-    passthroughCopy: { type: 'map', optional: true, description: 'Files to copy directly into the Eleventy output without processing (e.g. search data, CSS, images).' },
+    sourceDir: { type: 'input', description: 'The directory containing the assembled Eleventy site (templates, data, content). Must use a collect reference.' },
 } as const satisfies NodeConfigSchema;
 
 interface EleventyBuildConfig extends PipelineNodeConfig {
@@ -60,7 +59,6 @@ export class EleventyBuildNode extends PipelineNode<EleventyBuildConfig, typeof 
             sourcePath: sourceDir,
             sourceDir,
             outputDir,
-            passthroughCopy: cfg.passthroughCopy ?? {}
         }, { recycleAfter: true });
 
         this.log(context, `Eleventy build completed: ${result.outputDir}`);
