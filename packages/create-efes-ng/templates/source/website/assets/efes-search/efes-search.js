@@ -27,11 +27,10 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 // (disabled):worker_threads
 var require_worker_threads = __commonJS({
   "(disabled):worker_threads"() {
-    "use strict";
   }
 });
 
-// ../../node_modules/flexsearch/dist/flexsearch.bundle.module.min.mjs
+// node_modules/.pnpm/flexsearch@0.8.212/node_modules/flexsearch/dist/flexsearch.bundle.module.min.mjs
 var w;
 function H(a, c, b) {
   const e = typeof b, d = typeof a;
@@ -2286,7 +2285,7 @@ function Z(a, c) {
 }
 var Document = Na;
 
-// client/efes-search/engine.js
+// src/engine.js
 var SearchEngine = class _SearchEngine extends EventTarget {
   #documents = [];
   #index = null;
@@ -2305,6 +2304,9 @@ var SearchEngine = class _SearchEngine extends EventTarget {
   #url;
   #textFields;
   #matchMode;
+  #sortField = "documentId";
+  #sortDirection = "asc";
+  #sortNumeric = false;
   static #matchModes = { exact: "strict", prefix: "forward", substring: "full" };
   constructor({ url, textFields = ["fullText", "title"], matchMode = "prefix" }) {
     super();
@@ -2339,6 +2341,12 @@ var SearchEngine = class _SearchEngine extends EventTarget {
   }
   get documentCount() {
     return this.#documents.length;
+  }
+  get sortField() {
+    return this.#sortField;
+  }
+  get sortDirection() {
+    return this.#sortDirection;
   }
   // --- Lifecycle ---
   async load() {
@@ -2425,6 +2433,13 @@ var SearchEngine = class _SearchEngine extends EventTarget {
     this.#emit("filters-change");
     this.#recompute();
   }
+  // --- Sort ---
+  setSort(field, direction = "asc", numeric = false) {
+    this.#sortField = field;
+    this.#sortDirection = direction;
+    this.#sortNumeric = numeric;
+    this.#recompute();
+  }
   // --- Helpers ---
   hasActiveFilters() {
     if (this.#query) return true;
@@ -2456,10 +2471,10 @@ var SearchEngine = class _SearchEngine extends EventTarget {
       resultIds = idSet;
     }
     let candidates = resultIds !== null ? this.#documents.filter((doc) => resultIds.has(String(doc.documentId))) : this.#documents;
-    for (const [field, selectedValues] of Object.entries(this.#facetFilters)) {
+    for (const [field2, selectedValues] of Object.entries(this.#facetFilters)) {
       if (selectedValues.size === 0) continue;
       candidates = candidates.filter((doc) => {
-        const val = doc[field];
+        const val = doc[field2];
         if (Array.isArray(val)) {
           return [...selectedValues].some((v) => val.includes(v));
         }
@@ -2478,7 +2493,15 @@ var SearchEngine = class _SearchEngine extends EventTarget {
         return true;
       });
     }
-    candidates.sort((a, b) => (a.documentId || "").localeCompare(b.documentId || ""));
+    const field = this.#sortField;
+    const dir = this.#sortDirection === "desc" ? -1 : 1;
+    const numeric = this.#sortNumeric;
+    candidates.sort((a, b) => {
+      const va2 = a[field] ?? "";
+      const vb2 = b[field] ?? "";
+      if (numeric) return dir * ((Number(va2) || 0) - (Number(vb2) || 0));
+      return dir * String(va2).localeCompare(String(vb2));
+    });
     this.#filtered = candidates;
     this.#facetCounts = this.#computeFacetCounts(candidates);
     this.#emit("results-change", { results: this.#filtered });
@@ -2504,23 +2527,25 @@ var SearchEngine = class _SearchEngine extends EventTarget {
   }
 };
 
-// client/efes-search/efes-search.js
+// src/efes-search.js
 var EfesSearch = class extends HTMLElement {
   #engine = null;
   get engine() {
     return this.#engine;
   }
   connectedCallback() {
+    var _a;
     const url = this.getAttribute("data-url");
     if (!url) throw new Error("<efes-search>: data-url attribute is required");
-    const textFields = this.getAttribute("text-fields")?.split(",").map((s) => s.trim()) || ["fullText", "title"];
+    const textFields = ((_a = this.getAttribute("text-fields")) == null ? void 0 : _a.split(",").map((s) => s.trim())) || ["fullText", "title"];
     const matchMode = this.getAttribute("match-mode") || "prefix";
     this.#engine = new SearchEngine({ url, textFields, matchMode });
     this.#engine.addEventListener("status-change", (e) => {
       this.setAttribute("data-status", e.detail.status);
     });
     this.addEventListener("click", (e) => {
-      const action = e.target.closest("[data-action]")?.getAttribute("data-action");
+      var _a2;
+      const action = (_a2 = e.target.closest("[data-action]")) == null ? void 0 : _a2.getAttribute("data-action");
       if (action === "clear-all") {
         this.#engine.clearAll();
       }
@@ -2529,7 +2554,7 @@ var EfesSearch = class extends HTMLElement {
   }
 };
 
-// client/efes-search/efes-search-input.js
+// src/efes-search-input.js
 var EfesSearchInput = class extends HTMLElement {
   #engine = null;
   #input = null;
@@ -2566,7 +2591,7 @@ var EfesSearchInput = class extends HTMLElement {
   }
 };
 
-// client/efes-search/efes-facet.js
+// src/efes-facet.js
 var EfesFacet = class extends HTMLElement {
   #engine = null;
   #field = null;
@@ -2647,7 +2672,7 @@ var EfesFacet = class extends HTMLElement {
   }
 };
 
-// client/efes-search/efes-date-range.js
+// src/efes-date-range.js
 var EfesDateRange = class extends HTMLElement {
   #engine = null;
   #fromInput = null;
@@ -2725,7 +2750,7 @@ var EfesDateRange = class extends HTMLElement {
   }
 };
 
-// client/efes-search/efes-active-filters.js
+// src/efes-active-filters.js
 var EfesActiveFilters = class extends HTMLElement {
   #engine = null;
   connectedCallback() {
@@ -2736,8 +2761,8 @@ var EfesActiveFilters = class extends HTMLElement {
   }
   #getFacetLabel(field) {
     const root = this.closest("efes-search");
-    const facetEl = root?.querySelector(`efes-facet[field="${field}"]`);
-    return facetEl?.getAttribute("label") || field;
+    const facetEl = root == null ? void 0 : root.querySelector(`efes-facet[field="${field}"]`);
+    return (facetEl == null ? void 0 : facetEl.getAttribute("label")) || field;
   }
   #render() {
     this.innerHTML = "";
@@ -2780,12 +2805,11 @@ var EfesActiveFilters = class extends HTMLElement {
   }
 };
 
-// client/efes-search/efes-results.js
+// src/efes-results.js
 var EfesResults = class extends HTMLElement {
   #engine = null;
   #template = null;
   #resultUrl = null;
-  #statusEl = null;
   #listEl = null;
   connectedCallback() {
     const root = this.closest("efes-search");
@@ -2793,23 +2817,13 @@ var EfesResults = class extends HTMLElement {
     this.#engine = root.engine;
     this.#template = this.querySelector("template");
     this.#resultUrl = this.getAttribute("result-url") || "{documentId}.html";
-    this.#statusEl = document.createElement("p");
-    this.#statusEl.className = "efes-results-status";
-    this.#statusEl.textContent = "Loading...";
     this.#listEl = document.createElement("ul");
     this.#listEl.className = "efes-results-list";
     this.#listEl.style.display = "none";
-    this.appendChild(this.#statusEl);
     this.appendChild(this.#listEl);
     this.#engine.addEventListener("status-change", (e) => {
       const { status } = e.detail;
-      if (status === "loading") {
-        this.#statusEl.textContent = "Loading search data...";
-        this.#statusEl.style.display = "";
-        this.#listEl.style.display = "none";
-      } else if (status === "error") {
-        this.#statusEl.textContent = "Error loading search data: " + this.#engine.error?.message;
-        this.#statusEl.style.display = "";
+      if (status === "loading" || status === "error") {
         this.#listEl.style.display = "none";
       }
     });
@@ -2817,18 +2831,6 @@ var EfesResults = class extends HTMLElement {
   }
   #render() {
     const results = this.#engine.results;
-    const query = this.#engine.query;
-    const hasFilters = this.#engine.hasActiveFilters();
-    if (query && hasFilters) {
-      this.#statusEl.textContent = "Found " + results.length + ' result(s) for "' + query + '" with filters:';
-    } else if (query) {
-      this.#statusEl.textContent = "Found " + results.length + ' result(s) for "' + query + '":';
-    } else if (hasFilters) {
-      this.#statusEl.textContent = "Found " + results.length + " document(s) matching filters:";
-    } else {
-      this.#statusEl.textContent = "Showing all " + results.length + " documents:";
-    }
-    this.#statusEl.style.display = "";
     this.#listEl.style.display = "";
     this.#listEl.innerHTML = "";
     for (const doc of results) {
@@ -2867,20 +2869,110 @@ var EfesResults = class extends HTMLElement {
   }
 };
 
-// client/efes-search/index.js
+// src/efes-sort.js
+var EfesSort = class extends HTMLElement {
+  #engine = null;
+  #select = null;
+  #dirButton = null;
+  #fields = [];
+  #direction = "asc";
+  connectedCallback() {
+    this.#fields = [...this.querySelectorAll("field")].map((el) => ({
+      key: el.getAttribute("key"),
+      label: el.textContent.trim(),
+      numeric: el.hasAttribute("numeric")
+    }));
+    if (this.#fields.length === 0) return;
+    this.#select = document.createElement("select");
+    this.#select.className = "efes-sort-select";
+    for (const field of this.#fields) {
+      const opt = document.createElement("option");
+      opt.value = field.key;
+      opt.textContent = field.label;
+      this.#select.appendChild(opt);
+    }
+    this.#dirButton = document.createElement("button");
+    this.#dirButton.className = "efes-sort-dir";
+    this.#dirButton.textContent = "A\u2192Z";
+    this.#dirButton.title = "Toggle sort direction";
+    this.innerHTML = "";
+    this.appendChild(this.#select);
+    this.appendChild(this.#dirButton);
+    this.#select.addEventListener("change", () => this.#apply());
+    this.#dirButton.addEventListener("click", () => {
+      this.#direction = this.#direction === "asc" ? "desc" : "asc";
+      this.#dirButton.textContent = this.#direction === "asc" ? "A\u2192Z" : "Z\u2192A";
+      this.#apply();
+    });
+    const root = this.closest("efes-search");
+    if (root) {
+      const tryConnect = () => {
+        if (root.engine) {
+          this.#engine = root.engine;
+          this.#apply();
+        } else {
+          setTimeout(tryConnect, 10);
+        }
+      };
+      tryConnect();
+    }
+  }
+  #apply() {
+    if (!this.#engine) return;
+    const field = this.#fields.find((f) => f.key === this.#select.value);
+    if (field) {
+      this.#engine.setSort(field.key, this.#direction, field.numeric);
+    }
+  }
+};
+
+// src/efes-result-count.js
+var EfesResultCount = class extends HTMLElement {
+  connectedCallback() {
+    this.style.display = "inline";
+    const root = this.closest("efes-search");
+    if (!root) return;
+    const tpl = this.getAttribute("template") || "{total}";
+    const filteredTpl = this.getAttribute("filtered-template") || "{count} of {total}";
+    const tryConnect = () => {
+      if (root.engine) {
+        const engine = root.engine;
+        const update = () => {
+          const total = engine.documentCount;
+          const count = engine.results.length;
+          const pattern = engine.hasActiveFilters() ? filteredTpl : tpl;
+          this.textContent = pattern.replace("{count}", count).replace("{total}", total);
+        };
+        engine.addEventListener("results-change", update);
+        engine.addEventListener("status-change", (e) => {
+          if (e.detail.status === "ready") update();
+        });
+      } else {
+        setTimeout(tryConnect, 10);
+      }
+    };
+    tryConnect();
+  }
+};
+
+// src/index.js
 customElements.define("efes-search", EfesSearch);
 customElements.define("efes-search-input", EfesSearchInput);
 customElements.define("efes-facet", EfesFacet);
 customElements.define("efes-date-range", EfesDateRange);
 customElements.define("efes-active-filters", EfesActiveFilters);
 customElements.define("efes-results", EfesResults);
+customElements.define("efes-sort", EfesSort);
+customElements.define("efes-result-count", EfesResultCount);
 export {
   EfesActiveFilters,
   EfesDateRange,
   EfesFacet,
+  EfesResultCount,
   EfesResults,
   EfesSearch,
   EfesSearchInput,
+  EfesSort,
   SearchEngine
 };
 //# sourceMappingURL=efes-search.js.map

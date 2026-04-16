@@ -1,27 +1,7 @@
 import { defineConfig } from 'tsup';
-import { copyFileSync, mkdirSync } from 'node:fs';
 
-export default defineConfig([
-    // Client bundle — browser, single file, readable
-    {
-        entry: { 'client/efes-search': 'client/efes-search/index.js' },
-        format: ['esm'],
-        platform: 'browser',
-        bundle: true,
-        splitting: false,
-        minify: false,
-        sourcemap: true,
-        outDir: 'dist',
-        outExtension: () => ({ js: '.js' }),
-        noExternal: ['flexsearch'],
-        onSuccess: () => {
-            mkdirSync('dist/client', { recursive: true });
-            copyFileSync('client/efes-search/efes-search.css', 'dist/client/efes-search.css');
-        },
-    },
-
+export default defineConfig({
     // Framework — Node library + CLI + workers
-    {
         entry: {
             index: 'src/index.ts',
             cli: 'src/cli.ts',
@@ -42,5 +22,4 @@ export default defineConfig([
         treeshake: true,
         outDir: 'dist',
         external: ['saxonjs-he', 'xslt3-he', '@11ty/eleventy', '@11ty/eleventy-utils'],
-    },
-]);
+});

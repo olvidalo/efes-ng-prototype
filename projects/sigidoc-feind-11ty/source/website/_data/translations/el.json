@@ -49,5 +49,11 @@
     "militaryOffices": "Στρατιωτικά αξιώματα",
     "collection": "Συλλογή",
     "metrical": "Μετρικό",
-    "monogram": "Μονόγραμμα"
+    "monogram": "Μονόγραμμα",
+    "sortBy": "Ταξινόμηση",
+    "sealId": "Αρ. σφραγίδας",
+    "earliestDate": "Πρωιμότερη χρονολογία",
+    "latestDate": "Τελευταία χρονολογία",
+    "resultCount": "Βρέθηκαν {total} σφραγίδες.",
+    "resultCountFiltered": "Βρέθηκαν {count} από {total} σφραγίδες."
 }

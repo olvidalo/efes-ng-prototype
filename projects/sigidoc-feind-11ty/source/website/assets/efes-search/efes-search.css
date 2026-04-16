@@ -7,14 +7,13 @@
 
 /* --- Theme integration --- */
 efes-search {
-    --efes-accent: var(--gold, #b8860b);
-    --efes-accent-light: var(--gold-light, #d4a843);
-    --efes-accent-faint: var(--gold-faint, #f5ecd7);
-    --efes-ink: var(--ink, #1a1a2e);
-    --efes-slate: var(--slate, #4a4a5a);
-    --efes-border: var(--border-color, #d5cfc4);
-    --efes-bg: var(--parchment-light, #faf7f2);
-    --efes-shadow: var(--shadow-sm, 0 1px 3px rgba(26,26,46,0.08));
+    --efes-accent-color: var(--accent-color, #0066cc);
+    --efes-primary-color: var(--primary-color, #2c5282);
+    --efes-primary-hover: var(--primary-hover, #1a365d);
+    --efes-text-color: var(--text-color, #2d3748);
+    --efes-border-color: var(--border-color, #e2e8f0);
+    --efes-bg-light: var(--bg-light, #f7fafc);
+    --efes-shadow-sm: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08));
 }
 
 /* --- Search layout --- */
@@ -33,11 +32,9 @@ efes-search > .efes-facet-sidebar {
 }
 
 efes-search > .efes-facet-sidebar h2 {
-    font-family: var(--font-display, Georgia, serif);
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: 1rem;
     margin: 0 0 0.75rem;
-    color: var(--efes-ink);
+    color: var(--efes-primary-color);
     border: none;
 }
 
@@ -58,23 +55,23 @@ efes-search-input {
     flex: 1;
     padding: 0.6rem 1rem;
     font-size: 1rem;
-    font-family: var(--font-body, sans-serif);
-    border: 1px solid var(--efes-border);
-    background: #fff;
-    transition: border-color 0.15s;
+    border: 2px solid var(--efes-border-color);
+    border-radius: 6px;
+    transition: border-color 0.2s;
 }
 
 .efes-search-input:focus {
     outline: none;
-    border-color: var(--efes-accent);
+    border-color: var(--efes-accent-color);
 }
 
 /* --- Shared facet header/content (used by efes-facet and efes-date-range) --- */
 efes-facet,
 efes-date-range {
     display: block;
-    background: var(--efes-bg);
-    border: 1px solid var(--efes-border);
+    background: var(--efes-bg-light);
+    border: 1px solid var(--efes-border-color);
+    border-radius: 6px;
     margin-bottom: 0.5rem;
     overflow: hidden;
 }
@@ -88,14 +85,13 @@ efes-date-range {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #fff;
-    color: var(--efes-ink);
+    background: white;
 }
 
 .efes-facet-header::after {
     content: '\25BC';
     font-size: 0.65rem;
-    color: var(--efes-border);
+    color: #a0aec0;
     transition: transform 0.2s;
 }
 
@@ -122,13 +118,11 @@ efes-date-range {
     padding: 0.2rem 0;
     font-size: 0.85rem;
     cursor: pointer;
-    color: var(--efes-ink);
 }
 
 .efes-facet-item input[type="checkbox"] {
     margin: 0;
     flex-shrink: 0;
-    accent-color: var(--efes-accent);
 }
 
 .efes-facet-label {
@@ -140,10 +134,9 @@ efes-date-range {
 }
 
 .efes-facet-count {
-    color: var(--efes-slate);
+    color: #a0aec0;
     font-size: 0.8rem;
     flex-shrink: 0;
-    opacity: 0.6;
 }
 
 .efes-facet-item-disabled {
@@ -167,26 +160,18 @@ efes-date-range .efes-facet-content {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    color: var(--efes-ink);
 }
 
 .efes-date-range-inputs input {
     padding: 0.35rem 0.5rem;
-    border: 1px solid var(--efes-border);
+    border: 1px solid var(--efes-border-color);
+    border-radius: 4px;
     font-size: 0.85rem;
-    font-family: var(--font-body, sans-serif);
-    background: #fff;
-}
-
-.efes-date-range-inputs input:focus {
-    outline: none;
-    border-color: var(--efes-accent);
 }
 
 .efes-date-hint {
-    color: var(--efes-slate);
+    color: #a0aec0;
     font-size: 0.75rem;
-    opacity: 0.6;
 }
 
 .efes-clear-dates-btn {
@@ -194,16 +179,14 @@ efes-date-range .efes-facet-content {
     padding: 0.3rem 0.6rem;
     font-size: 0.8rem;
     background: none;
-    border: 1px solid var(--efes-border);
+    border: 1px solid var(--efes-border-color);
+    border-radius: 4px;
     cursor: pointer;
-    color: var(--efes-slate);
-    font-family: var(--font-body, sans-serif);
+    color: #718096;
 }
 
 .efes-clear-dates-btn:hover {
-    background: var(--efes-accent-faint);
-    border-color: var(--efes-accent);
-    color: var(--efes-ink);
+    background: #edf2f7;
 }
 
 /* --- Active filters --- */
@@ -218,8 +201,8 @@ efes-active-filters {
     align-items: center;
     margin-bottom: 1rem;
     padding: 0.75rem;
-    background: var(--efes-accent-faint);
-    border: 1px solid var(--efes-border);
+    background: #ebf8ff;
+    border-radius: 6px;
 }
 
 .efes-filter-tag {
@@ -227,8 +210,9 @@ efes-active-filters {
     align-items: center;
     gap: 0.25rem;
     padding: 0.25rem 0.5rem;
-    background: var(--efes-accent);
+    background: #1976d2;
     color: white;
+    border-radius: 4px;
     font-size: 0.8rem;
 }
 
@@ -254,7 +238,7 @@ efes-results {
 
 .efes-results-status {
     font-size: 0.9rem;
-    color: var(--efes-slate);
+    color: #718096;
     margin-bottom: 1rem;
 }
 
@@ -266,25 +250,25 @@ efes-results {
 
 .efes-result-item {
     padding: 0.75rem;
-    border: 1px solid var(--efes-border);
+    border: 1px solid var(--efes-border-color);
+    border-radius: 6px;
     margin-bottom: 0.5rem;
-    background: #fff;
-    transition: border-color 0.15s;
+    transition: box-shadow 0.2s;
 }
 
 .efes-result-item:hover {
-    border-color: var(--efes-accent);
+    box-shadow: var(--efes-shadow-sm);
 }
 
 .efes-result-item a {
-    color: var(--efes-accent);
+    color: var(--efes-accent-color);
     text-decoration: none;
     font-weight: 500;
     font-size: 0.95rem;
 }
 
 .efes-result-item a:hover {
-    color: var(--efes-accent-light);
+    text-decoration: underline;
 }
 
 .efes-result-details {
@@ -293,7 +277,7 @@ efes-results {
     gap: 0.75rem;
     margin-top: 0.35rem;
     font-size: 0.8rem;
-    color: var(--efes-slate);
+    color: #718096;
 }
 
 /* --- Clear all button --- */
@@ -305,17 +289,17 @@ efes-results {
     width: 100%;
     padding: 0.5rem;
     font-size: 0.85rem;
-    font-family: var(--font-body, sans-serif);
     background: none;
-    border: 1px solid var(--efes-border);
+    border: 1px solid var(--efes-border-color);
+    border-radius: 6px;
     cursor: pointer;
-    color: var(--efes-slate);
-    transition: all 0.15s;
+    color: #718096;
+    transition: all 0.2s;
 }
 
 .efes-filter-actions button:hover {
-    background: #fde8e8;
-    border-color: #e53e3e;
+    background: #fed7d7;
+    border-color: #fc8181;
     color: #c53030;
 }
 
@@ -335,4 +319,69 @@ efes-search[data-status="loading"] .efes-results-status {
         width: 100%;
         position: static;
     }
+}
+
+/* --- Results bar (status + sort on one line) --- */
+.efes-results-bar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* --- Sort control --- */
+efes-sort {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.efes-sort-label {
+    font-size: 0.75rem;
+    color: #a0aec0;
+}
+
+.efes-sort-select {
+    padding: 0.2rem 1.2rem 0.2rem 0.4rem;
+    border: none;
+    border-bottom: 1px solid var(--efes-border-color);
+    border-radius: 0;
+    font-size: 0.8rem;
+    color: var(--efes-text-color, #2d3748);
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a0aec0'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.2rem center;
+}
+
+.efes-sort-select:hover,
+.efes-sort-select:focus {
+    border-bottom-color: var(--efes-accent-color, #0066cc);
+}
+
+.efes-sort-dir {
+    padding: 0.15rem 0.35rem;
+    border: none;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #a0aec0;
+    line-height: 1;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+
+.efes-sort-dir:hover {
+    color: var(--efes-accent-color, #0066cc);
+    border-bottom-color: var(--efes-accent-color, #0066cc);
 }

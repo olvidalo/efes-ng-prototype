@@ -60,22 +60,70 @@ This works just like `aggregate-indices`: it uses `<initialTemplate>` to process
 The scaffold already includes a search page at `source/website/en/search/index.njk` with the search component set up. Open it and update the `result-url` on `<efes-results>` to point to your seal pages:
 
 ```html
-<efes-search data-url="/search-data/documents_{{ page.lang }}.json" text-fields="fullText,title" match-mode="prefix">
-    <efes-search-input placeholder="Search..."></efes-search-input>
-    <efes-results result-url="/en/seals/{documentId}/">
-        <template>
-            <a>
-                <div class="efes-result-title">
-                    <span class="doc-id" data-field="documentId"></span>
-                    <span data-field="title"></span>
-                </div>
-            </a>
-        </template>
-    </efes-results>
-</efes-search>
+{% set resultUrl = "/" + page.lang + "/seals/{documentId}/" %}
+<efes-results result-url="{{ resultUrl | url }}">
 ```
 
 The `{documentId}` placeholder is replaced with each result's `documentId` field to create the link to the seal page for each result.
+
+Let's look at the full structure of the search page:
+
+```html
+<efes-search data-url="{{ searchDataUrl | url }}" text-fields="fullText,title" match-mode="prefix">
+    <aside class="efes-facet-sidebar">
+        <h2>Filter Results</h2>
+        <efes-search-input placeholder="Search..."></efes-search-input>
+
+        <!-- facet filters go here -->
+
+        <div class="efes-filter-actions">
+            <button data-action="clear-all">Clear All Filters</button>
+        </div>
+    </aside>
+
+    <div class="efes-search-main">
+        <efes-active-filters></efes-active-filters>
+
+        <div class="efes-results-bar">
+            <span class="efes-results-status">
+                <efes-result-count
+                    template="Found {total} documents."
+                    filtered-template="Found {count} of {total} documents.">
+                </efes-result-count>
+            </span>
+            <span class="efes-sort-label">Sort by</span>
+            <efes-sort>
+                <field key="sortKey">Document ID</field>
+                <field key="title">Title</field>
+            </efes-sort>
+        </div>
+
+        {% set resultUrl = "/" + page.lang + "/seals/{documentId}/" %}
+        <efes-results result-url="{{ resultUrl | url }}">
+            <template>
+                <a>
+                    <div class="efes-result-title">
+                        <span class="doc-id" data-field="documentId"></span>
+                        <span data-field="title"></span>
+                    </div>
+                </a>
+            </template>
+        </efes-results>
+    </div>
+</efes-search>
+```
+
+The page is split into a **sidebar** (search input, facets, clear button) and a **main area** (active filters, results bar, results list).
+
+### The Results Bar
+
+The `.efes-results-bar` sits above the results list and contains two components:
+
+**`<efes-result-count>`** displays the current result count. The `template` attribute is shown when no filters are active (e.g. `"Found {total} documents."`), and `filtered-template` when filters narrow the results (e.g. `"Found {count} of {total} documents."`). The component replaces `{total}` and `{count}` at runtime.
+
+**`<efes-sort>`** renders a dropdown for sorting results. Each `<field>` child defines a sort option, where `key` is the JSON field name and the element text becomes the label. Add the `numeric` attribute for numeric fields (dates, counts) so they sort as numbers rather than alphabetically.
+
+### Search Configuration
 
 Three attributes on `<efes-search>` configure the component:
 - **`data-url`**: where to load the search data from (the `documents_en.json` our pipeline produces). The `page.lang` variable in the URL ensures the correct language file is loaded when multi-language support is added
@@ -100,7 +148,7 @@ Rebuild and navigate to the Search page. Type a search term. Results appear inst
 
 ## Customizing the Search
 
-Now that search works, let's improve it: add the dating to the results display and a material filter facet.
+Now that search works, let's improve it: add the dating to the results display, a filter facet, and sort options.
 
 ### Adding More Info to Results
 
@@ -184,6 +232,53 @@ For multi-valued fields (like our `milieu` example), use `<item>` children. The 
 
 The SigiDoc FEIND project includes facets for object type, language, personal names, place names, dignities, offices, and more. See its `metadata-config.xsl` for reference.
 :::
+
+### Adding Sort Options
+
+The scaffold provides two default sort fields (Document ID and Title). Let's add sorting by date. Add `dateNotBefore` and `dateNotAfter` to `extract-search` in `metadata-config.xsl`:
+
+```xml
+<dateNotBefore><xsl:value-of select="//tei:origDate/@notBefore"/></dateNotBefore>
+<dateNotAfter><xsl:value-of select="//tei:origDate/@notAfter"/></dateNotAfter>
+```
+
+Then add the sort fields to `<efes-sort>` in the search page:
+
+```html
+<efes-sort>
+    <field key="sortKey">Seal ID</field>
+    <field key="dateNotBefore" numeric>Earliest Date</field>
+    <field key="dateNotAfter" numeric>Latest Date</field>
+    <field key="title">Title</field>
+</efes-sort>
+```
+
+The `numeric` attribute tells the sort component to compare values as numbers rather than alphabetically. Readers can toggle between ascending and descending order with the direction button next to the dropdown.
+
+### Sorting Mixed Alphanumeric Identifiers
+
+If your document IDs mix letters and numbers (like `Feind_Kr1`, `Feind_Kr2`, ... `Feind_Kr12`), alphabetical sorting will put `Feind_Kr10` before `Feind_Kr2`. The scaffold already handles this: at the top of `metadata-config.xsl`, a `$sortKey` variable zero-pads the trailing number:
+
+```xml
+<xsl:variable name="sortKey" select="
+    replace($filename, '\d+$', '')
+    || format-number(xs:integer(replace($filename, '^\D+', '')), '00000')
+"/>
+```
+
+This turns `Feind_Kr12` into `Feind_Kr00012`, so alphabetical sort gives the expected order. Both `extract-metadata` and `extract-search` output it as `<sortKey>`:
+
+```xml
+<sortKey><xsl:value-of select="$sortKey"/></sortKey>
+```
+
+In the search page, the default sort already uses `sortKey`:
+
+```html
+<field key="sortKey">Seal ID</field>
+```
+
+The dropdown label says "Seal ID", but the sort uses the zero-padded value behind the scenes. The `documentId` displayed in each result is unaffected.
 
 ## What We've Built So Far
 

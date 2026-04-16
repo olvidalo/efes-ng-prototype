@@ -5,6 +5,9 @@
     The framework calls each hook template once per configured language,
     passing $language as a tunnel param. Output plain elements; the
     framework auto-stamps xml:lang.
+
+    Globally available variables from extract-metadata.xsl:
+    $filename   - document filename without .xml extension
 -->
 <xsl:stylesheet version="3.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -32,6 +35,21 @@
     <xsl:variable name="bibliography" select="document('file://' || $bibliography-file)"/>
 
     <!-- ================================================================== -->
+    <!-- SHARED VARIABLES                                                       -->
+    <!-- ================================================================== -->
+
+    <!--
+        Create a variant of the document ID that sorts naturally with mixed alphanumeric document
+        IDs such as Feind_SB123 or M.23. Alphabetical sort puts Feind_Kr10 before Feind_Kr2,
+        so we pad the numeric part with zeros:
+            Feind_Kr2   -> Feind_Kr00002
+            Feind_Kr10  -> Feind_Kr00010
+    -->
+    <xsl:variable name="sortKey" select="
+       replace($filename, '\d+$', '') || format-number(xs:integer(replace($filename, '^\D+', '')), '00000')
+    "/>
+
+    <!-- ================================================================== -->
     <!-- PAGE METADATA                                                       -->
     <!-- ================================================================== -->
 
@@ -41,19 +59,10 @@
             (//tei:titleStmt/tei:title[@xml:lang=$language], //tei:titleStmt/tei:title)[1]
         )"/>
         <title><xsl:value-of select="if (string-length($tei-title) > 0) then $tei-title else $filename"/></title>
-        <sortKey>
-            <xsl:analyze-string select="$filename" regex="([a-zA-Z]+)|([0-9]+)">
-                <xsl:matching-substring>
-                    <xsl:choose>
-                        <xsl:when test="regex-group(2)">
-                            <xsl:value-of select="format-number(xs:integer(regex-group(2)), '00000')"/>
-                        </xsl:when>
-                        <xsl:otherwise><xsl:value-of select="regex-group(1)"/></xsl:otherwise>
-                    </xsl:choose>
-                    <xsl:text>.</xsl:text>
-                </xsl:matching-substring>
-            </xsl:analyze-string>
-        </sortKey>
+
+        <!-- Re-use sortKey variable defined above -->
+        <sortKey><xsl:value-of select="$sortKey"/></sortKey>
+
         <origDate><xsl:value-of select="normalize-space(
             (//tei:origDate/tei:seg[@xml:lang=$language], //tei:origDate)[1]
         )"/></origDate>
@@ -301,6 +310,8 @@
             ! $geography//tei:place[@xml:id = .]/tei:placeName[@xml:lang='en']
         "/>
         </placeName>
+        <!-- Re-use sortKey variable defined above -->
+        <sortKey><xsl:value-of select="$sortKey"/></sortKey>
 
         <!-- Facets -->
         <xsl:variable name="lang" select="string((//tei:div[@type='edition'][@subtype='editorial']//tei:div[@type='textpart']/@xml:lang)[1])"/>

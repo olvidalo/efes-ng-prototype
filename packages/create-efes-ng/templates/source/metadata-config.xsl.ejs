@@ -19,6 +19,15 @@
 
     <xsl:import href="stylesheets/lib/extract-metadata.xsl"/>
 
+    <!--
+        Sort key: variant of the document ID that sorts naturally with mixed
+        alphanumeric IDs (e.g. "Doc_2" before "Doc_10"). Zero-pads the trailing
+        numeric part. Available to all templates below via $sortKey.
+    -->
+    <xsl:variable name="sortKey" select="
+        replace($filename, '\d+$', '') || format-number(xs:integer(replace($filename, '^\D+', '')), '00000')
+    "/>
+
     <!-- ═══════════════════════════════════════════════
          PAGE METADATA
          Fields used for page display, sorting, and the
@@ -42,22 +51,7 @@
             </xsl:choose>
         </title>
 
-        <!-- Sort key: splits filename on letter/number boundaries, zero-pads numbers -->
-        <sortKey>
-            <xsl:analyze-string select="$filename" regex="([a-zA-Z]+)|([0-9]+)">
-                <xsl:matching-substring>
-                    <xsl:choose>
-                        <xsl:when test="regex-group(2)">
-                            <xsl:value-of select="format-number(xs:integer(regex-group(2)), '00000')"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="regex-group(1)"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                    <xsl:text>.</xsl:text>
-                </xsl:matching-substring>
-            </xsl:analyze-string>
-        </sortKey>
+        <sortKey><xsl:value-of select="$sortKey"/></sortKey>
 
         <!-- Uncomment to add more page metadata fields:
         <origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
@@ -167,6 +161,7 @@
         <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
         <title><xsl:value-of select="if (string-length($tei-title) > 0)
             then $tei-title else $filename"/></title>
+        <sortKey><xsl:value-of select="$sortKey"/></sortKey>
         <material><xsl:value-of select="normalize-space(//tei:material)"/></material>
 
         <!-- Uncomment to add more search/filter fields:

@@ -24,13 +24,18 @@ export default function (eleventyConfig) {
         }
     }
 
-    // Translation filter: {{ "seals" | t }}
+    // Translation filter: {{ "seals" | t }} or {{ "resultCount" | t(123) }}
+    // Supports %s placeholders: "Found %s seals" | t(42) → "Found 42 seals"
     // Resolves from page.lang, falls back to English, then to the raw key in brackets.
-    eleventyConfig.addFilter('t', function (key) {
+    eleventyConfig.addFilter('t', function (key, ...args) {
         const lang = this.page?.lang || 'en';
-        return translations[lang]?.[key]
+        let value = translations[lang]?.[key]
             ?? translations['en']?.[key]
             ?? `[${key}]`;
+        for (const arg of args) {
+            value = value.replace('%s', arg);
+        }
+        return value;
     });
 
     return {

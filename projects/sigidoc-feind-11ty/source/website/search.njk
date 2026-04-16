@@ -45,6 +45,20 @@ eleventyComputed:
 
         <efes-active-filters></efes-active-filters>
 
+        <div class="efes-results-bar">
+            <span class="efes-results-status">
+                <efes-result-count
+                        template="{{ "resultCount" | t }}" filtered-template="{{  "resultCountFiltered" | t }}"></efes-result-count>
+            </span>
+            <span class="efes-sort-label">{{ "sortBy" | t }}</span>
+            <efes-sort>
+                <field key="sortKey">{{ "sealId" | t }}</field>
+                <field key="dateNotBefore" numeric>{{ "earliestDate" | t }}</field>
+                <field key="dateNotAfter" numeric>{{ "latestDate" | t}}</field>
+                <field key="title">{{ "title" | t }}</field>
+            </efes-sort>
+        </div>
+
         {% set resultBaseUrl = "/" + page.lang + "/seals/{documentId}/" %}
         <efes-results result-url="{{ resultBaseUrl | url }}">
             <template>

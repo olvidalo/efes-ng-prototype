@@ -49,5 +49,11 @@
     "militaryOffices": "Militärische Ämter",
     "collection": "Sammlung",
     "metrical": "Metrisch",
-    "monogram": "Monogramm"
+    "monogram": "Monogramm",
+    "sortBy": "Sortieren nach",
+    "resultCountFiltered": "{total} Siegel gefunden.",
+    "resultCount": "{count} von {total} Siegeln gefunden.",
+    "sealId": "Siegel-ID",
+    "earliestDate": "Frühestes Datum",
+    "latestDate": "Spätestes Datum"
 }

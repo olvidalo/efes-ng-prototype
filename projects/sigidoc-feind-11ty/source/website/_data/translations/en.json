@@ -49,5 +49,11 @@
     "militaryOffices": "Military Offices",
     "collection": "Collection",
     "metrical": "Metrical",
-    "monogram": "Monogram"
+    "monogram": "Monogram",
+    "sortBy": "Sort by",
+    "resultCount": "Found {total} seals.",
+    "resultCountFiltered": "Found {count} of {total} seals.",
+    "sealId": "Seal ID",
+    "earliestDate": "Earliest Date",
+    "latestDate": "Latest Date"
 }

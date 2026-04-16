@@ -24,7 +24,6 @@
     "commander": "^14.0.3",
     "dependency-graph": "^1.0.0",
     "fflate": "^0.8.2",
-    "flexsearch": "^0.8.212",
     "glob": "^11.0.3",
     "leven": "^4.1.0",
     "saxonjs-he": "^3.0.0-beta2",

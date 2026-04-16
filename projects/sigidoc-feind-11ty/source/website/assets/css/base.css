@@ -163,6 +163,26 @@ footer a { color: var(--header-text); text-decoration: none; }
 .index-intro, .list-summary { font-size: 0.9rem; color: var(--slate); margin-bottom: 1.5rem; }
 .entry-count-info { color: var(--slate); font-size: 0.85rem; margin-bottom: 0.75rem; }
 
+/* Search results bar (status + sort on one line) */
+.efes-results-bar { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.9rem; color: var(--slate); }
+.efes-results-bar .efes-results-status { margin-right: auto; }
+.efes-sort-label { font-size: 0.75rem; color: var(--slate); opacity: 0.6; }
+efes-sort { display: inline-flex; align-items: baseline; gap: 0.35rem; white-space: nowrap; }
+.efes-sort-select {
+    padding: 0.2rem 1.2rem 0.2rem 0.4rem; border: none; border-bottom: 1px solid var(--border-color);
+    border-radius: 0; font-size: 0.8rem; color: var(--ink); background: transparent;
+    cursor: pointer; outline: none; transition: border-color 0.2s; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a0aec0'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 0.2rem center;
+}
+.efes-sort-select:hover, .efes-sort-select:focus { border-bottom-color: var(--accent); }
+.efes-sort-dir {
+    padding: 0.2rem 0.45rem; border: none; border-bottom: 1px solid transparent; border-radius: 0;
+    background: transparent; cursor: pointer; font-size: 0.7rem; font-weight: 500;
+    color: var(--slate); opacity: 0.6; line-height: 1; transition: color 0.2s, border-color 0.2s; white-space: nowrap;
+}
+.efes-sort-dir:hover { opacity: 1; color: var(--accent); border-bottom-color: var(--accent); }
+
 /* Document list tables */
 .doc-list-id { white-space: nowrap; font-weight: 600; }
 

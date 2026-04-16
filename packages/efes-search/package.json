@@ -1,0 +1,15 @@
+{
+  "name": "@efes-ng/search",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "flexsearch": "^0.8.212"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1"
+  }
+}

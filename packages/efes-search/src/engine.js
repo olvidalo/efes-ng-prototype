@@ -27,6 +27,9 @@ export class SearchEngine extends EventTarget {
     #url;
     #textFields;
     #matchMode;
+    #sortField = 'documentId';
+    #sortDirection = 'asc';
+    #sortNumeric = false;
 
     static #matchModes = { exact: 'strict', prefix: 'forward', substring: 'full' };
 
@@ -48,6 +51,8 @@ export class SearchEngine extends EventTarget {
     get activeFilters() { return this.#facetFilters; }
     get dateRange() { return { ...this.#dateRange }; }
     get documentCount() { return this.#documents.length; }
+    get sortField() { return this.#sortField; }
+    get sortDirection() { return this.#sortDirection; }
 
     // --- Lifecycle ---
 
@@ -151,6 +156,15 @@ export class SearchEngine extends EventTarget {
         this.#recompute();
     }
 
+    // --- Sort ---
+
+    setSort(field, direction = 'asc', numeric = false) {
+        this.#sortField = field;
+        this.#sortDirection = direction;
+        this.#sortNumeric = numeric;
+        this.#recompute();
+    }
+
     // --- Helpers ---
 
     hasActiveFilters() {
@@ -220,8 +234,16 @@ export class SearchEngine extends EventTarget {
             });
         }
 
-        // Sort by documentId
-        candidates.sort((a, b) => (a.documentId || '').localeCompare(b.documentId || ''));
+        // Sort
+        const field = this.#sortField;
+        const dir = this.#sortDirection === 'desc' ? -1 : 1;
+        const numeric = this.#sortNumeric;
+        candidates.sort((a, b) => {
+            const va = a[field] ?? '';
+            const vb = b[field] ?? '';
+            if (numeric) return dir * ((Number(va) || 0) - (Number(vb) || 0));
+            return dir * String(va).localeCompare(String(vb));
+        });
 
         this.#filtered = candidates;
         this.#facetCounts = this.#computeFacetCounts(candidates);

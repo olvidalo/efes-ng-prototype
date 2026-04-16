@@ -35,6 +35,19 @@ permalink: en/search/index.html
 
         <efes-active-filters></efes-active-filters>
 
+        <div class="efes-results-bar">
+            <span class="efes-results-status">
+                <efes-result-count template="Found {total} inscriptions." filtered-template="Found {count} of {total} inscriptions."></efes-result-count>
+            </span>
+            <span class="efes-sort-label">Sort by</span>
+            <efes-sort>
+                <field key="documentId">Document ID</field>
+                <field key="dateNotBefore" numeric>Earliest Date</field>
+                <field key="dateNotAfter" numeric>Latest Date</field>
+                <field key="title">Title</field>
+            </efes-sort>
+        </div>
+
         {% set resultUrl = "/en/inscriptions/{documentId}/" %}
         <efes-results result-url="{{ resultUrl | url }}">
             <template>

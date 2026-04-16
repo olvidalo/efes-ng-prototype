@@ -320,3 +320,68 @@ efes-search[data-status="loading"] .efes-results-status {
         position: static;
     }
 }
+
+/* --- Results bar (status + sort on one line) --- */
+.efes-results-bar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* --- Sort control --- */
+efes-sort {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.efes-sort-label {
+    font-size: 0.75rem;
+    color: #a0aec0;
+}
+
+.efes-sort-select {
+    padding: 0.2rem 1.2rem 0.2rem 0.4rem;
+    border: none;
+    border-bottom: 1px solid var(--efes-border-color);
+    border-radius: 0;
+    font-size: 0.8rem;
+    color: var(--efes-text-color, #2d3748);
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a0aec0'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.2rem center;
+}
+
+.efes-sort-select:hover,
+.efes-sort-select:focus {
+    border-bottom-color: var(--efes-accent-color, #0066cc);
+}
+
+.efes-sort-dir {
+    padding: 0.15rem 0.35rem;
+    border: none;
+    border-bottom: 1px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #a0aec0;
+    line-height: 1;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+
+.efes-sort-dir:hover {
+    color: var(--efes-accent-color, #0066cc);
+    border-bottom-color: var(--efes-accent-color, #0066cc);
+}

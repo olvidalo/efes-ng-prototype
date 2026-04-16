@@ -17,7 +17,6 @@ export class EfesResults extends HTMLElement {
     #engine = null;
     #template = null;
     #resultUrl = null;
-    #statusEl = null;
     #listEl = null;
 
     connectedCallback() {
@@ -28,28 +27,15 @@ export class EfesResults extends HTMLElement {
         this.#template = this.querySelector('template');
         this.#resultUrl = this.getAttribute('result-url') || '{documentId}.html';
 
-        // Create status and list elements
-        this.#statusEl = document.createElement('p');
-        this.#statusEl.className = 'efes-results-status';
-        this.#statusEl.textContent = 'Loading...';
-
         this.#listEl = document.createElement('ul');
         this.#listEl.className = 'efes-results-list';
         this.#listEl.style.display = 'none';
-
-        this.appendChild(this.#statusEl);
         this.appendChild(this.#listEl);
 
         // Loading / error states
         this.#engine.addEventListener('status-change', (e) => {
             const { status } = e.detail;
-            if (status === 'loading') {
-                this.#statusEl.textContent = 'Loading search data...';
-                this.#statusEl.style.display = '';
-                this.#listEl.style.display = 'none';
-            } else if (status === 'error') {
-                this.#statusEl.textContent = 'Error loading search data: ' + this.#engine.error?.message;
-                this.#statusEl.style.display = '';
+            if (status === 'loading' || status === 'error') {
                 this.#listEl.style.display = 'none';
             }
         });
@@ -60,21 +46,6 @@ export class EfesResults extends HTMLElement {
 
     #render() {
         const results = this.#engine.results;
-        const query = this.#engine.query;
-        const hasFilters = this.#engine.hasActiveFilters();
-
-        // Status text
-        if (query && hasFilters) {
-            this.#statusEl.textContent = 'Found ' + results.length + ' result(s) for "' + query + '" with filters:';
-        } else if (query) {
-            this.#statusEl.textContent = 'Found ' + results.length + ' result(s) for "' + query + '":';
-        } else if (hasFilters) {
-            this.#statusEl.textContent = 'Found ' + results.length + ' document(s) matching filters:';
-        } else {
-            this.#statusEl.textContent = 'Showing all ' + results.length + ' documents:';
-        }
-
-        this.#statusEl.style.display = '';
         this.#listEl.style.display = '';
         this.#listEl.innerHTML = '';
 

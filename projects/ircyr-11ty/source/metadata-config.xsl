@@ -27,22 +27,14 @@
 
     <xsl:import href="stylesheets/lib/extract-metadata.xsl"/>
 
-    <!-- Sort key: used by page metadata and entity records -->
-    <xsl:variable name="sortKey">
-        <xsl:analyze-string select="$filename" regex="([a-zA-Z]+)|([0-9]+)">
-            <xsl:matching-substring>
-                <xsl:choose>
-                    <xsl:when test="regex-group(2)">
-                        <xsl:value-of select="format-number(xs:integer(regex-group(2)), '00000')"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="regex-group(1)"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-                <xsl:text>.</xsl:text>
-            </xsl:matching-substring>
-        </xsl:analyze-string>
-    </xsl:variable>
+    <!--
+        Sort key: variant of the document ID that sorts naturally with mixed
+        alphanumeric IDs. Zero-pads the trailing numeric part so that
+        IRCyr-C.001 sorts before IRCyr-C.010 instead of after.
+    -->
+    <xsl:variable name="sortKey" select="
+        replace($filename, '\d+$', '') || format-number(xs:integer(replace($filename, '^\D+', '')), '00000')
+    "/>
 
     <!-- ================================================================== -->
     <!-- CONFIGURATION                                                       -->

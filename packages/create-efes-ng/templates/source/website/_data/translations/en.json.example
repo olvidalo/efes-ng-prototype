@@ -10,5 +10,8 @@
     "shortCitation": "Citation",
     "fullCitation": "Full Citation",
     "backToList": "Back to list",
-    "citedRange": "Cited Range"
+    "citedRange": "Cited Range",
+    "resultCount": "Found {total} documents.",
+    "resultCountFiltered": "Found {count} of {total} documents.",
+    "sortBy": "Sort by"
 }

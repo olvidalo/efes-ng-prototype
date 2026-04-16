@@ -25,6 +25,17 @@ title: Search
     <div class="efes-search-main">
         <efes-active-filters></efes-active-filters>
 
+        <div class="efes-results-bar">
+            <span class="efes-results-status">
+                <efes-result-count template="Found {total} documents." filtered-template="Found {count} of {total} documents."></efes-result-count>
+            </span>
+            <span class="efes-sort-label">Sort by</span>
+            <efes-sort>
+                <field key="sortKey">Document ID</field>
+                <field key="title">Title</field>
+            </efes-sort>
+        </div>
+
         {% set resultUrl = "/" + page.lang + "/inscriptions/{documentId}/" %}
         <efes-results result-url="{{ resultUrl | url }}">
             <template>
