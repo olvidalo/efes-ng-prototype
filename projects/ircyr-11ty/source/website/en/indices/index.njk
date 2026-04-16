@@ -10,9 +10,9 @@ permalink: en/indices/index.html
 {% if indices._summary and indices._summary.indices %}
     {% for idx in indices._summary.indices %}
     <a href="/en/indices/{{ idx.id }}/" class="index-card">
-        <h3>{{ idx.title }}</h3>
+        <h3>{{ idx.title[page.lang] | default(idx.title.en) }}</h3>
         {% if idx.description %}
-        <p>{{ idx.description }}</p>
+        <p>{{ idx.description[page.lang] | default(idx.description.en) }}</p>
         {% endif %}
         <span class="entry-count">{{ idx.entryCount }} occurrences</span>
     </a>

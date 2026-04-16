@@ -75,11 +75,24 @@
     <!-- ================================================================== -->
     <!-- INDEX: persons                                                      -->
     <!-- ================================================================== -->
-    <idx:index id="persons" title="Persons" order="1">
-        <idx:description>Prosopography of seal issuers.</idx:description>
+    <idx:index id="persons" order="1">
+        <idx:title xml:lang="en">Persons</idx:title>
+        <idx:title xml:lang="de">Personen</idx:title>
+        <idx:title xml:lang="el">Πρόσωπα</idx:title>
+        <idx:description xml:lang="en">Prosopography of seal issuers.</idx:description>
+        <idx:description xml:lang="de">Prosopographie der Siegelaussteller.</idx:description>
+        <idx:description xml:lang="el">Προσωπογραφία εκδοτών σφραγίδων.</idx:description>
         <idx:columns>
-            <idx:column key="name">Name</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
+            <idx:column key="name">
+                <idx:label xml:lang="en">Name</idx:label>
+                <idx:label xml:lang="de">Name</idx:label>
+                <idx:label xml:lang="el">Όνομα</idx:label>
+            </idx:column>
+            <idx:column key="references" type="references">
+                <idx:label xml:lang="en">Seals</idx:label>
+                <idx:label xml:lang="de">Siegel</idx:label>
+                <idx:label xml:lang="el">Σφραγίδες</idx:label>
+            </idx:column>
         </idx:columns>
     </idx:index>
 
@@ -102,14 +115,27 @@
     <!-- ================================================================== -->
     <!-- INDEX: places                                                       -->
     <!-- ================================================================== -->
-    <idx:index id="places" title="Place Names" order="2">
-        <idx:description>Place names attested on seals.</idx:description>
+    <idx:index id="places" order="2">
+        <idx:title xml:lang="en">Place Names</idx:title>
+        <idx:title xml:lang="de">Ortsnamen</idx:title>
+        <idx:title xml:lang="el">Τοπωνύμια</idx:title>
+        <idx:description xml:lang="en">Place names attested on seals.</idx:description>
+        <idx:description xml:lang="de">Auf Siegeln belegte Ortsnamen.</idx:description>
+        <idx:description xml:lang="el">Τοπωνύμια που μαρτυρούνται σε σφραγίδες.</idx:description>
         <idx:columns>
-            <idx:column key="name">Name</idx:column>
-            <idx:column key="pleiades" type="link">Pleiades</idx:column>
-            <idx:column key="geonames" type="link">Geonames</idx:column>
-            <idx:column key="tib" type="link">TIB</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
+            <idx:column key="name">
+                <idx:label xml:lang="en">Name</idx:label>
+                <idx:label xml:lang="de">Name</idx:label>
+                <idx:label xml:lang="el">Όνομα</idx:label>
+            </idx:column>
+            <idx:column key="pleiades" type="link"><idx:label>Pleiades</idx:label></idx:column>
+            <idx:column key="geonames" type="link"><idx:label>Geonames</idx:label></idx:column>
+            <idx:column key="tib" type="link"><idx:label>TIB</idx:label></idx:column>
+            <idx:column key="references" type="references">
+                <idx:label xml:lang="en">Seals</idx:label>
+                <idx:label xml:lang="de">Siegel</idx:label>
+                <idx:label xml:lang="el">Σφραγίδες</idx:label>
+            </idx:column>
         </idx:columns>
     </idx:index>
 
@@ -156,11 +182,20 @@
     <!-- ================================================================== -->
     <!-- INDEX: dignities                                                    -->
     <!-- ================================================================== -->
-    <idx:index id="dignities" title="Dignities" order="3">
-        <idx:description>Dignities and titles attested on seals.</idx:description>
+    <idx:index id="dignities" order="3">
+        <idx:title xml:lang="en">Dignities</idx:title>
+        <idx:title xml:lang="de">Würden</idx:title>
+        <idx:title xml:lang="el">Αξιώματα</idx:title>
+        <idx:description xml:lang="en">Dignities and titles attested on seals.</idx:description>
+        <idx:description xml:lang="de">Auf Siegeln belegte Würden und Titel.</idx:description>
+        <idx:description xml:lang="el">Αξιώματα και τίτλοι που μαρτυρούνται σε σφραγίδες.</idx:description>
         <idx:columns>
-            <idx:column key="name">Dignity</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
+            <idx:column key="name"><idx:label>Dignity</idx:label></idx:column>
+            <idx:column key="references" type="references">
+                <idx:label xml:lang="en">Seals</idx:label>
+                <idx:label xml:lang="de">Siegel</idx:label>
+                <idx:label xml:lang="el">Σφραγίδες</idx:label>
+            </idx:column>
         </idx:columns>
     </idx:index>
 
@@ -184,12 +219,21 @@
     <!-- ================================================================== -->
     <!-- INDEX: offices                                                      -->
     <!-- ================================================================== -->
-    <idx:index id="offices" title="Offices" order="4">
-        <idx:description>Offices attested on seals.</idx:description>
+    <idx:index id="offices" order="4">
+        <idx:title xml:lang="en">Offices</idx:title>
+        <idx:title xml:lang="de">Ämter</idx:title>
+        <idx:title xml:lang="el">Υπηρεσίες</idx:title>
+        <idx:description xml:lang="en">Offices attested on seals.</idx:description>
+        <idx:description xml:lang="de">Auf Siegeln belegte Ämter.</idx:description>
+        <idx:description xml:lang="el">Υπηρεσίες που μαρτυρούνται σε σφραγίδες.</idx:description>
         <idx:columns>
-            <idx:column key="name">Office</idx:column>
-            <idx:column key="officeType">Type</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
+            <idx:column key="name"><idx:label>Office</idx:label></idx:column>
+            <idx:column key="officeType"><idx:label>Type</idx:label></idx:column>
+            <idx:column key="references" type="references">
+                <idx:label xml:lang="en">Seals</idx:label>
+                <idx:label xml:lang="de">Siegel</idx:label>
+                <idx:label xml:lang="el">Σφραγίδες</idx:label>
+            </idx:column>
         </idx:columns>
     </idx:index>
 
@@ -214,11 +258,20 @@
     <!-- ================================================================== -->
     <!-- INDEX: invocations                                                  -->
     <!-- ================================================================== -->
-    <idx:index id="invocations" title="Invocations" order="5">
-        <idx:description>Invocations attested on seals.</idx:description>
+    <idx:index id="invocations" order="5">
+        <idx:title xml:lang="en">Invocations</idx:title>
+        <idx:title xml:lang="de">Anrufungen</idx:title>
+        <idx:title xml:lang="el">Επικλήσεις</idx:title>
+        <idx:description xml:lang="en">Invocations attested on seals.</idx:description>
+        <idx:description xml:lang="de">Auf Siegeln belegte Anrufungen.</idx:description>
+        <idx:description xml:lang="el">Επικλήσεις που μαρτυρούνται σε σφραγίδες.</idx:description>
         <idx:columns>
-            <idx:column key="name">Invocation</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
+            <idx:column key="name"><idx:label>Invocation</idx:label></idx:column>
+            <idx:column key="references" type="references">
+                <idx:label xml:lang="en">Seals</idx:label>
+                <idx:label xml:lang="de">Siegel</idx:label>
+                <idx:label xml:lang="el">Σφραγίδες</idx:label>
+            </idx:column>
         </idx:columns>
     </idx:index>
 
@@ -242,12 +295,19 @@
     <!-- ================================================================== -->
     <!-- INDEX: bibliography                                                 -->
     <!-- ================================================================== -->
-    <idx:index id="bibliography" title="Bibliography" nav="bibliography" order="10">
-        <idx:description>Bibliographic references cited in the seals.</idx:description>
+    <idx:index id="bibliography" nav="bibliography" order="10">
+        <idx:title xml:lang="en">Bibliography</idx:title>
+        <idx:title xml:lang="de">Bibliographie</idx:title>
+        <idx:title xml:lang="el">Βιβλιογραφία</idx:title>
+        <idx:description xml:lang="en">Bibliographic references cited in the seals.</idx:description>
         <idx:columns>
-            <idx:column key="shortCitation">Citation</idx:column>
-            <idx:column key="fullCitation">Full Citation</idx:column>
-            <idx:column key="references" type="references">Seals</idx:column>
+            <idx:column key="shortCitation"><idx:label>Citation</idx:label></idx:column>
+            <idx:column key="fullCitation"><idx:label>Full Citation</idx:label></idx:column>
+            <idx:column key="references" type="references">
+                <idx:label xml:lang="en">Seals</idx:label>
+                <idx:label xml:lang="de">Siegel</idx:label>
+                <idx:label xml:lang="el">Σφραγίδες</idx:label>
+            </idx:column>
         </idx:columns>
     </idx:index>
 

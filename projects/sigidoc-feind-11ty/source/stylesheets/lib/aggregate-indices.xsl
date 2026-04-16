@@ -73,6 +73,21 @@
         </xsl:for-each>
     </xsl:template>
 
+    <!-- Serialize idx:title, idx:description, or idx:label elements as JSON.
+         Always produces a language-keyed object {"en":"...","de":"..."}.
+         Elements without xml:lang are filed under "en". -->
+    <xsl:template name="serialize-lang-text">
+        <xsl:param name="elements" as="element()*"/>
+        <xsl:param name="key" as="xs:string"/>
+        <xsl:if test="$elements">
+            <fn:map key="{$key}">
+                <xsl:for-each select="$elements">
+                    <fn:string key="{(@xml:lang, 'en')[1]}"><xsl:value-of select="."/></fn:string>
+                </xsl:for-each>
+            </fn:map>
+        </xsl:if>
+    </xsl:template>
+
     <!-- Space-separated list of absolute paths to metadata XML files -->
     <xsl:param name="metadata-files" as="xs:string*"/>
     <!-- Absolute path to metadata-config.xsl -->
@@ -103,9 +118,7 @@
         <!-- Process each configured index type -->
         <xsl:for-each select="$index-configs">
             <xsl:variable name="index-id" select="string(@id)"/>
-            <xsl:variable name="index-title" select="string(@title)"/>
             <xsl:variable name="index-order" select="(@order, 99)[1]"/>
-            <xsl:variable name="index-description" select="string(idx:description)"/>
 
             <!-- Columns config as JSON array -->
             <xsl:variable name="columns-json" as="element(fn:array)">
@@ -113,12 +126,12 @@
                     <xsl:for-each select="idx:columns/idx:column">
                         <fn:map>
                             <fn:string key="key"><xsl:value-of select="@key"/></fn:string>
-                            <fn:string key="header"><xsl:value-of select="."/></fn:string>
+                            <xsl:call-template name="serialize-lang-text">
+                                <xsl:with-param name="elements" select="idx:label"/>
+                                <xsl:with-param name="key" select="'header'"/>
+                            </xsl:call-template>
                             <xsl:if test="@type">
                                 <fn:string key="type"><xsl:value-of select="@type"/></fn:string>
-                            </xsl:if>
-                            <xsl:if test="@labelKey">
-                                <fn:string key="labelKey"><xsl:value-of select="@labelKey"/></fn:string>
                             </xsl:if>
                         </fn:map>
                     </xsl:for-each>
@@ -177,10 +190,14 @@
             <xsl:variable name="index-json" as="element(fn:map)">
                 <fn:map>
                     <fn:string key="id"><xsl:value-of select="$index-id"/></fn:string>
-                    <fn:string key="title"><xsl:value-of select="$index-title"/></fn:string>
-                    <xsl:if test="$index-description != ''">
-                        <fn:string key="description"><xsl:value-of select="$index-description"/></fn:string>
-                    </xsl:if>
+                    <xsl:call-template name="serialize-lang-text">
+                        <xsl:with-param name="elements" select="idx:title"/>
+                        <xsl:with-param name="key" select="'title'"/>
+                    </xsl:call-template>
+                    <xsl:call-template name="serialize-lang-text">
+                        <xsl:with-param name="elements" select="idx:description"/>
+                        <xsl:with-param name="key" select="'description'"/>
+                    </xsl:call-template>
                     <xsl:sequence select="$columns-json"/>
                     <xsl:if test="$notes-json">
                         <xsl:sequence select="$notes-json"/>
@@ -209,10 +226,14 @@
                         ))"/>
                         <fn:map>
                             <fn:string key="id"><xsl:value-of select="$index-id"/></fn:string>
-                            <fn:string key="title"><xsl:value-of select="@title"/></fn:string>
-                            <xsl:if test="idx:description != ''">
-                                <fn:string key="description"><xsl:value-of select="idx:description"/></fn:string>
-                            </xsl:if>
+                            <xsl:call-template name="serialize-lang-text">
+                                <xsl:with-param name="elements" select="idx:title"/>
+                                <xsl:with-param name="key" select="'title'"/>
+                            </xsl:call-template>
+                            <xsl:call-template name="serialize-lang-text">
+                                <xsl:with-param name="elements" select="idx:description"/>
+                                <xsl:with-param name="key" select="'description'"/>
+                            </xsl:call-template>
                             <fn:number key="order"><xsl:value-of select="(@order, 99)[1]"/></fn:number>
                             <fn:string key="nav"><xsl:value-of select="(@nav, 'indices')[1]"/></fn:string>
                             <fn:number key="entryCount"><xsl:value-of select="$unique-count"/></fn:number>

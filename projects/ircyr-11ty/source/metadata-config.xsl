@@ -62,11 +62,12 @@
     <!-- ================================================================== -->
     <!-- INDEX: personal_names (Personal Names)                              -->
     <!-- ================================================================== -->
-    <idx:index id="personal_names" title="Personal Names" order="1">
+    <idx:index id="personal_names" order="1">
+        <idx:title>Personal Names</idx:title>
         <idx:description>Index of personal names attested in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="name">Name</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Name</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -92,12 +93,13 @@
     <!-- ================================================================== -->
     <!-- INDEX: persons (People)                                             -->
     <!-- ================================================================== -->
-    <idx:index id="persons" title="People" order="10">
+    <idx:index id="persons" order="10">
+        <idx:title>People</idx:title>
         <idx:description>Index of people attested in the inscriptions, showing genealogical relationships.</idx:description>
         <idx:columns>
-            <idx:column key="name">Person</idx:column>
-            <idx:column key="externalResource" type="link">LGPN</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Person</idx:label></idx:column>
+            <idx:column key="externalResource" type="link"><idx:label>LGPN</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -181,12 +183,13 @@
     <!-- ================================================================== -->
     <!-- INDEX: abbreviations                                                -->
     <!-- ================================================================== -->
-    <idx:index id="abbreviations" title="Abbreviations" order="2">
+    <idx:index id="abbreviations" order="2">
+        <idx:title>Abbreviations</idx:title>
         <idx:description>Index of abbreviations found in the edition text.</idx:description>
         <idx:columns>
-            <idx:column key="abbr">Abbreviation</idx:column>
-            <idx:column key="expansion">Expansion</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="abbr"><idx:label>Abbreviation</idx:label></idx:column>
+            <idx:column key="expansion"><idx:label>Expansion</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -215,14 +218,15 @@
     <!-- ================================================================== -->
     <!-- INDEX: findspots                                                    -->
     <!-- ================================================================== -->
-    <idx:index id="findspots" title="Findspots" order="3">
+    <idx:index id="findspots" order="3">
+        <idx:title>Findspots</idx:title>
         <idx:description>Index of findspots where inscriptions were discovered.</idx:description>
         <idx:columns>
-            <idx:column key="upperLevel">Findspots (upper level)</idx:column>
-            <idx:column key="intermediateLevel">Findspots (intermediate level)</idx:column>
-            <idx:column key="lowerLevel">Findspots (lower level)</idx:column>
-            <idx:column key="externalResource" type="link">HGL</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="upperLevel"><idx:label>Findspots (upper level)</idx:label></idx:column>
+            <idx:column key="intermediateLevel"><idx:label>Findspots (intermediate level)</idx:label></idx:column>
+            <idx:column key="lowerLevel"><idx:label>Findspots (lower level)</idx:label></idx:column>
+            <idx:column key="externalResource" type="link"><idx:label>HGL</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
     </idx:index>
 
@@ -257,11 +261,12 @@
     <!-- ================================================================== -->
     <!-- INDEX: death (Age at Death)                                         -->
     <!-- ================================================================== -->
-    <idx:index id="death" title="Age at Death" order="4">
+    <idx:index id="death" order="4">
+        <idx:title>Age at Death</idx:title>
         <idx:description>Index of ages at death recorded in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="age">Age</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="age"><idx:label>Age</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -303,12 +308,13 @@
     <!-- ================================================================== -->
     <!-- INDEX: divine_beings (Divine Beings)                                -->
     <!-- ================================================================== -->
-    <idx:index id="divine_beings" title="Divine Beings" order="5">
+    <idx:index id="divine_beings" order="5">
+        <idx:title>Divine Beings</idx:title>
         <idx:description>Index of divine beings and deities mentioned in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="name">Divine Being</idx:column>
-            <idx:column key="externalResource" type="link">Wikidata</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Divine Being</idx:label></idx:column>
+            <idx:column key="externalResource" type="link"><idx:label>Wikidata</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -338,12 +344,13 @@
     <!-- ================================================================== -->
     <!-- INDEX: emperors (Emperors and Imperial Family)                      -->
     <!-- ================================================================== -->
-    <idx:index id="emperors" title="Emperors and Imperial Family" order="6">
+    <idx:index id="emperors" order="6">
+        <idx:title>Emperors and Imperial Family</idx:title>
         <idx:description>Index of emperors and members of the imperial family mentioned in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="name">Person</idx:column>
-            <idx:column key="externalResource" type="link">Wikidata</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Person</idx:label></idx:column>
+            <idx:column key="externalResource" type="link"><idx:label>Wikidata</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -375,11 +382,12 @@
     <!-- ================================================================== -->
     <!-- INDEX: fragments (Fragments of Text)                                -->
     <!-- ================================================================== -->
-    <idx:index id="fragments" title="Fragments of Text" order="7">
+    <idx:index id="fragments" order="7">
+        <idx:title>Fragments of Text</idx:title>
         <idx:description>Index of incomplete or fragmentary text in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="fragment">Fragment</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="fragment"><idx:label>Fragment</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -408,12 +416,13 @@
     <!-- ================================================================== -->
     <!-- INDEX: numerals (Numerals)                                          -->
     <!-- ================================================================== -->
-    <idx:index id="numerals" title="Numerals" order="8">
+    <idx:index id="numerals" order="8">
+        <idx:title>Numerals</idx:title>
         <idx:description>Index of numerals found in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="numeral">Numeral</idx:column>
-            <idx:column key="value">Value</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="numeral"><idx:label>Numeral</idx:label></idx:column>
+            <idx:column key="value"><idx:label>Value</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -441,16 +450,17 @@
     <!-- ================================================================== -->
     <!-- INDEX: months (Months)                                              -->
     <!-- ================================================================== -->
-    <idx:index id="months" title="Months" order="9">
+    <idx:index id="months" order="9">
+        <idx:title>Months</idx:title>
         <idx:description>Index of months mentioned in the inscriptions.</idx:description>
         <idx:groupBy field="language">
             <idx:group value="la" label="Latin"/>
             <idx:group value="grc" label="Greek"/>
         </idx:groupBy>
         <idx:columns>
-            <idx:column key="name">Name</idx:column>
-            <idx:column key="externalResource" type="link">Wikidata</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Name</idx:label></idx:column>
+            <idx:column key="externalResource" type="link"><idx:label>Wikidata</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate partially or completely restored text.</idx:p>
@@ -494,14 +504,15 @@
     <!-- ================================================================== -->
     <!-- INDEX: mentioned_places (Places)                                    -->
     <!-- ================================================================== -->
-    <idx:index id="mentioned_places" title="Places" order="11">
+    <idx:index id="mentioned_places" order="11">
+        <idx:title>Places</idx:title>
         <idx:description>Index of places mentioned in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="name">Place</idx:column>
-            <idx:column key="attestedForm">Attested form</idx:column>
-            <idx:column key="placeType">Toponym / Ethnic</idx:column>
-            <idx:column key="externalResource" type="link">External resource</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Place</idx:label></idx:column>
+            <idx:column key="attestedForm"><idx:label>Attested form</idx:label></idx:column>
+            <idx:column key="placeType"><idx:label>Toponym / Ethnic</idx:label></idx:column>
+            <idx:column key="externalResource" type="link"><idx:label>External resource</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
         <idx:notes>
             <idx:p>Square brackets [ ] indicate that the name/word is partially or completely restored in this inscription.</idx:p>
@@ -549,11 +560,12 @@
     <!-- ================================================================== -->
     <!-- INDEX: symbols (Symbols)                                            -->
     <!-- ================================================================== -->
-    <idx:index id="symbols" title="Symbols" order="12">
+    <idx:index id="symbols" order="12">
+        <idx:title>Symbols</idx:title>
         <idx:description>Index of symbols found in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="name">Symbol</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Symbol</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
     </idx:index>
 
@@ -582,12 +594,13 @@
     <!-- ================================================================== -->
     <!-- INDEX: words (Words / Lemmata)                                      -->
     <!-- ================================================================== -->
-    <idx:index id="words" title="Words" order="13">
+    <idx:index id="words" order="13">
+        <idx:title>Words</idx:title>
         <idx:description>Index of words (lemmata) found in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="name">Lemma</idx:column>
-            <idx:column key="language">Language code</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Lemma</idx:label></idx:column>
+            <idx:column key="language"><idx:label>Language code</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
     </idx:index>
 
@@ -615,12 +628,13 @@
     <!-- ================================================================== -->
     <!-- INDEX: bibliography (Bibliography)                                  -->
     <!-- ================================================================== -->
-    <idx:index id="bibliography" title="Bibliography" order="20" nav="bibliography">
+    <idx:index id="bibliography" order="20" nav="bibliography">
+        <idx:title>Bibliography</idx:title>
         <idx:description>Bibliographic references cited in the inscriptions.</idx:description>
         <idx:columns>
-            <idx:column key="shortCitation">Citation</idx:column>
-            <idx:column key="fullCitation">Full Citation</idx:column>
-            <idx:column key="references" type="references">Inscriptions</idx:column>
+            <idx:column key="shortCitation"><idx:label>Citation</idx:label></idx:column>
+            <idx:column key="fullCitation"><idx:label>Full Citation</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>Inscriptions</idx:label></idx:column>
         </idx:columns>
     </idx:index>
 

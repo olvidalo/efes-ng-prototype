@@ -16,7 +16,7 @@
                         {% if indices and indices._summary and indices._summary.indices %}
                             {% for idx in indices._summary.indices %}
                             {% if idx.nav == "indices" or not idx.nav %}
-                            <li><a href="/{{ page.lang }}/indices/{{ idx.id }}/">{{ idx.title }}</a></li>
+                            <li><a href="/{{ page.lang }}/indices/{{ idx.id }}/">{{ idx.title[page.lang] | default(idx.title.en) }}</a></li>
                             {% endif %}
                             {% endfor %}
                         {% endif %}

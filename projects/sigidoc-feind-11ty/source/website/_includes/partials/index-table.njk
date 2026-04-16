@@ -10,7 +10,7 @@
 
 {% if indexData %}
     {% if indexData.description %}
-    <p class="index-intro">{{ indexData.description }}</p>
+    <p class="index-intro">{{ indexData.description[page.lang] | default(indexData.description.en) }}</p>
     {% endif %}
 
     {% macro renderTable(entries, columns, basePath) %}
@@ -18,7 +18,7 @@
         <thead>
             <tr>
                 {% for col in columns %}
-                <th>{{ col.header }}</th>
+                <th>{{ col.header[page.lang] | default(col.header.en) }}</th>
                 {% endfor %}
             </tr>
         </thead>

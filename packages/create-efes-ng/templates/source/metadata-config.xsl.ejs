@@ -70,11 +70,12 @@
     apply-templates call in extract-all-entities below.
     Adapt the XPath in extract-persons to match your TEI encoding.
 
-    <idx:index id="persons" title="Persons" nav="indices" order="10">
+    <idx:index id="persons" nav="indices" order="10">
+        <idx:title>Persons</idx:title>
         <idx:description>Persons attested in the collection.</idx:description>
         <idx:columns>
-            <idx:column key="name">Name</idx:column>
-            <idx:column key="references" type="references">References</idx:column>
+            <idx:column key="name"><idx:label>Name</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>References</idx:label></idx:column>
         </idx:columns>
     </idx:index>
     -->
@@ -103,12 +104,13 @@
     Example: Bibliography index
     Uncomment and add bibliography-file parameter to pipeline and stylesheet.
 
-    <idx:index id="bibliography" title="Bibliography" nav="bibliography" order="10">
+    <idx:index id="bibliography" nav="bibliography" order="10">
+        <idx:title>Bibliography</idx:title>
         <idx:description>Bibliographic references cited in the collection.</idx:description>
         <idx:columns>
-            <idx:column key="shortCitation">Citation</idx:column>
-            <idx:column key="fullCitation">Full Citation</idx:column>
-            <idx:column key="references" type="references">Documents</idx:column>
+            <idx:column key="shortCitation"><idx:label>Citation</idx:label></idx:column>
+            <idx:column key="fullCitation"><idx:label>Full Citation</idx:label></idx:column>
+            <idx:column key="references" type="references"><idx:label>Documents</idx:label></idx:column>
         </idx:columns>
     </idx:index>
 
