@@ -23,7 +23,7 @@ export function generateRngSchema(): string {
     const outputKeyAsserts = entries
         .map(([name, node]) => {
             const valueTests = node.outputKeys.map(k => `@output = '${k}'`).join(' or ');
-            return `      <sch:assert test="not(/pipeline/${name}[@name = $target]) or ${valueTests}">
+            return `      <sch:assert test="not(/p:pipeline/p:${name}[@name = $target]) or ${valueTests}">
         Invalid output "<sch:value-of select="@output"/>" for ${name} node. Valid: ${[...node.outputKeys].join(', ')}.
       </sch:assert>`;
         })
@@ -33,6 +33,7 @@ export function generateRngSchema(): string {
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
          xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
          xmlns:sch="http://purl.oclc.org/dsdl/schematron"
+         ns="urn:efes-ng:pipeline"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
 
   <start>
@@ -171,15 +172,104 @@ ${outputKeyValues}
 
 ${nodeDefinitions}
 
+  <!-- ====== Index configuration elements (urn:efes-ng:indices) ====== -->
+  <!-- Used in metadata-config.xsl to define index structure and labels -->
+
+  <define name="idx-index">
+    <element name="index" ns="urn:efes-ng:indices">
+      <a:documentation>Define an index type with its title, description, and column structure.</a:documentation>
+      <attribute name="id"><data type="NCName"/></attribute>
+      <optional><attribute name="order"><data type="integer"/></attribute></optional>
+      <optional>
+        <attribute name="nav">
+          <a:documentation>Navigation group for this index. Use "indices" (default) for the indices dropdown, or a custom value like "bibliography" to exclude from the dropdown.</a:documentation>
+        </attribute>
+      </optional>
+      <oneOrMore><ref name="idx-title"/></oneOrMore>
+      <zeroOrMore><ref name="idx-description"/></zeroOrMore>
+      <optional><ref name="idx-columns"/></optional>
+      <optional><ref name="idx-notes"/></optional>
+      <optional><ref name="idx-groupBy"/></optional>
+    </element>
+  </define>
+
+  <define name="idx-title">
+    <element name="title" ns="urn:efes-ng:indices">
+      <a:documentation>Display title for the index. Add xml:lang for translations.</a:documentation>
+      <optional><attribute name="xml:lang"/></optional>
+      <text/>
+    </element>
+  </define>
+
+  <define name="idx-description">
+    <element name="description" ns="urn:efes-ng:indices">
+      <a:documentation>Description text shown on the index page. Add xml:lang for translations.</a:documentation>
+      <optional><attribute name="xml:lang"/></optional>
+      <text/>
+    </element>
+  </define>
+
+  <define name="idx-columns">
+    <element name="columns" ns="urn:efes-ng:indices">
+      <oneOrMore><ref name="idx-column"/></oneOrMore>
+    </element>
+  </define>
+
+  <define name="idx-column">
+    <element name="column" ns="urn:efes-ng:indices">
+      <a:documentation>Define a column in the index table. The key must match a field name output by the extraction template.</a:documentation>
+      <attribute name="key"><data type="NCName"/></attribute>
+      <optional>
+        <attribute name="type">
+          <choice>
+            <value>references</value>
+            <value>link</value>
+          </choice>
+        </attribute>
+      </optional>
+      <oneOrMore><ref name="idx-label"/></oneOrMore>
+    </element>
+  </define>
+
+  <define name="idx-label">
+    <element name="label" ns="urn:efes-ng:indices">
+      <a:documentation>Display label for a column header. Add xml:lang for translations.</a:documentation>
+      <optional><attribute name="xml:lang"/></optional>
+      <text/>
+    </element>
+  </define>
+
+  <define name="idx-notes">
+    <element name="notes" ns="urn:efes-ng:indices">
+      <oneOrMore>
+        <element name="p" ns="urn:efes-ng:indices"><text/></element>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="idx-groupBy">
+    <element name="groupBy" ns="urn:efes-ng:indices">
+      <a:documentation>Group index entries by a field value, rendering separate tables per group.</a:documentation>
+      <attribute name="field"><data type="NCName"/></attribute>
+      <oneOrMore>
+        <element name="group" ns="urn:efes-ng:indices">
+          <attribute name="value"/>
+          <attribute name="label"/>
+        </element>
+      </oneOrMore>
+    </element>
+  </define>
+
   <!-- ====== Schematron rules ====== -->
+  <sch:ns prefix="p" uri="urn:efes-ng:pipeline"/>
   <sch:pattern>
-    <sch:rule context="ref">
-      <sch:assert test="/pipeline/variable[@name = current()/@name]">
+    <sch:rule context="p:ref">
+      <sch:assert test="/p:pipeline/p:variable[@name = current()/@name]">
         Variable "<sch:value-of select="@name"/>" is not defined in this pipeline.
       </sch:assert>
     </sch:rule>
-    <sch:rule context="from">
-      <sch:assert test="/pipeline/*[not(self::variable)][@name = current()/@node]">
+    <sch:rule context="p:from">
+      <sch:assert test="/p:pipeline/*[not(self::p:variable)][@name = current()/@node]">
         Node "<sch:value-of select="@node"/>" is not defined in this pipeline.
       </sch:assert>
       <sch:let name="target" value="@node"/>
