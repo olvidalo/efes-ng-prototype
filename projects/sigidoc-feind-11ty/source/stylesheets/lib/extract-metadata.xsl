@@ -75,15 +75,16 @@
                             <xsl:with-param name="language" select="$lang" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <xsl:for-each select="$hook-output/entity">
-                        <xsl:variable name="my-type" select="string(@indexType)"/>
-                        <entity>
-                            <xsl:copy-of select="@*"/>
-                            <xsl:attribute name="xml:lang" select="$lang"/>
-                            <xsl:attribute name="_pos" select="1 + count(preceding-sibling::entity[@indexType = $my-type])"/>
-                            <xsl:copy-of select="*"/>
-                        </entity>
-                    </xsl:for-each>
+                    <xsl:for-each-group select="$hook-output/entity" group-by="string(@indexType)">
+                        <xsl:for-each select="current-group()">
+                            <entity>
+                                <xsl:copy-of select="@*"/>
+                                <xsl:attribute name="xml:lang" select="$lang"/>
+                                <xsl:attribute name="_pos" select="position()"/>
+                                <xsl:copy-of select="*"/>
+                            </entity>
+                        </xsl:for-each>
+                    </xsl:for-each-group>
                 </xsl:for-each>
             </xsl:variable>
 
