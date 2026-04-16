@@ -6,6 +6,7 @@ export default withMermaid(
     title: 'EFES-NG Prototype',
     description: 'A modern pipeline-based framework for publishing EpiDoc/TEI XML as static websites',
     themeConfig: {
+      search: { provider: 'local', options: { detailedView: true } },
       outline: { level: [2, 3] },
       nav: [
         { text: 'Guide', link: '/' },
