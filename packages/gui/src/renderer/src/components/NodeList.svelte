@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronRight, FolderOpen } from 'lucide-svelte'
+  import { ChevronRight, FolderOpen, MessageSquareText } from 'lucide-svelte'
 
   interface NodeState {
     name: string
@@ -9,6 +9,7 @@
     fullyCached?: boolean
     itemCompleted?: number
     itemTotal?: number
+    messages: { text: string, sourceFile: string | null }[]
   }
 
   interface Props {
@@ -16,9 +17,10 @@
     refreshTrigger?: number
     selectedNode?: string | null
     onSelectNode?: (name: string | null) => void
+    onShowMessages?: (nodeName: string) => void
   }
 
-  let { nodes, refreshTrigger = 0, selectedNode = null, onSelectNode }: Props = $props()
+  let { nodes, refreshTrigger = 0, selectedNode = null, onSelectNode, onShowMessages }: Props = $props()
 
   let outputExists: Record<string, boolean> = $state({})
   let collapsed: Record<string, boolean> = $state({})
@@ -186,6 +188,17 @@
     collapsed[name] = !collapsed[name]
   }
 
+  /** Count messages for a node, including descendants when collapsed */
+  function getMessageCount(node: NodeState): number {
+    let count = node.messages.length
+    if (collapsed[node.name]) {
+      for (const d of getDescendants(node.name)) {
+        count += d.messages.length
+      }
+    }
+    return count
+  }
+
   /**
    * Reorder nodes for display: parents before children, preserving original
    * order for unrelated nodes. The pipeline's topological order puts children
@@ -293,6 +306,16 @@
             <span class="item-progress">{node.itemCompleted} / {node.itemTotal}</span>
           {/if}
           <span class="spacer"></span>
+          {#if getMessageCount(node) > 0}
+            <button
+              class="message-badge"
+              title={`${getMessageCount(node)} message${getMessageCount(node) === 1 ? '' : 's'}`}
+              onclick={(e) => { e.stopPropagation(); onShowMessages?.(node.name) }}
+            >
+              <MessageSquareText size={12} />
+              <span class="message-count">{getMessageCount(node)}</span>
+            </button>
+          {/if}
           {#if outputExists[node.name]}
             <button class="open-output" title={`Open output directory: ${node.name}`} onclick={(e) => { e.stopPropagation(); window.api.openNodeOutput(node.name) }}>
               <FolderOpen size={14} />
@@ -480,6 +503,29 @@
 
   .spacer {
     flex: 1;
+  }
+
+  .message-badge {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 2px;
+    color: var(--ev-c-accent);
+    opacity: 0.7;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+
+  .message-badge:hover {
+    opacity: 1;
+  }
+
+  .message-count {
+    font-variant-numeric: tabular-nums;
   }
 
   .open-output {

@@ -11,6 +11,13 @@
   let statusMessage = $state('')
   let selectedNode = $state<string | null>(null)
   let nodeInfo = $state<any>(null)
+  let activeLogTab = $state<'log' | 'messages'>('log')
+  let messageFilterNode = $state<string | null>(null)
+
+  function handleShowMessages(nodeName: string) {
+    messageFilterNode = nodeName
+    activeLogTab = 'messages'
+  }
 
   async function handleSelectNode(name: string | null) {
     selectedNode = name
@@ -108,7 +115,7 @@
     onOpenPreview={handleOpenPreview}
   />
   <div class="content">
-    <NodeList nodes={pipelineState.nodes} {refreshTrigger} {selectedNode} onSelectNode={handleSelectNode} />
+    <NodeList nodes={pipelineState.nodes} {refreshTrigger} {selectedNode} onSelectNode={handleSelectNode} onShowMessages={handleShowMessages} />
     {#if selectedNode}
       <NodeInspector
         nodeName={selectedNode}
@@ -121,7 +128,14 @@
   {#if statusMessage}
     <div class="status-flash">{statusMessage}</div>
   {/if}
-  <LogPanel logs={pipelineState.logs} />
+  <LogPanel
+    logs={pipelineState.logs}
+    messages={pipelineState.getMessages(messageFilterNode ?? undefined)}
+    activeTab={activeLogTab}
+    filterNode={messageFilterNode}
+    onTabChange={(tab) => { activeLogTab = tab; if (tab === 'log') messageFilterNode = null }}
+    onFilterClear={() => { messageFilterNode = null }}
+  />
 </main>
 
 <style>

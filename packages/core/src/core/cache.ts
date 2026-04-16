@@ -60,6 +60,9 @@ interface CacheEntry {
    * Example: 'book.xml-a3f2b1' or 'stylesheet-compile-2af3e5'
    */
   itemKey: string;
+
+  /** User-facing messages (e.g. xsl:message output) produced during processing */
+  messages?: string[];
 }
 
 /**

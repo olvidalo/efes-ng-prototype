@@ -29,7 +29,11 @@ parentPort.on("message", async (message) => {
             parentPort!.postMessage({ type: 'log', message: msg });
         };
 
-        const result = await workloadModule.performWork(message, log);
+        const onMessage = (text: string) => {
+            parentPort!.postMessage({ type: 'node-message', text, sourceFile: message.sourcePath ?? null });
+        };
+
+        const result = await workloadModule.performWork(message, log, onMessage);
         parentPort!.postMessage({ type: 'result', success: true, result });
     } catch (error: any) {
         parentPort!.postMessage({

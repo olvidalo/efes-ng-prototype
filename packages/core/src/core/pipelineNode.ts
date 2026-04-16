@@ -621,6 +621,13 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             if (info.source === 'discovered') this.rootDependencies.add(filePath);
         }
 
+        // Replay cached messages so they appear in the GUI on cached builds
+        if (cached.messages?.length) {
+            for (const text of cached.messages) {
+                context.message(this.name, text, item);
+            }
+        }
+
         return newOutputsByKey;
     }
 
@@ -644,6 +651,8 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
             upstreamOutputSignatures: deps.upstreamOutputSignatures,
             precomputedHashes: deps.sharedFileHashes,
         });
+        const messages = context.getItemMessages(this.name, item);
+        if (messages.length > 0) cacheEntry.messages = messages;
         await context.cache.setCache(deps.contentSignature, cacheKey, cacheEntry);
     }
 

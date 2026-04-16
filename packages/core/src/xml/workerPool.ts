@@ -22,6 +22,7 @@ export class WorkerPool {
         poolSize: number,
         private workerPath: string,
         private onLog?: (nodeName: string, message: string) => void,
+        private onNodeMessage?: (nodeName: string, text: string, sourceFile: string | null) => void,
     ) {
         for (let i = 0; i < poolSize; i++) {
             this.spawnWorker(i);
@@ -43,6 +44,14 @@ export class WorkerPool {
                 const job = this.activeJobs.get(worker);
                 if (job && this.onLog) {
                     this.onLog(job.job.nodeName, message.message);
+                }
+                return;
+            }
+
+            if (message.type === 'node-message') {
+                const job = this.activeJobs.get(worker);
+                if (job && this.onNodeMessage) {
+                    this.onNodeMessage(job.job.nodeName, message.text, message.sourceFile);
                 }
                 return;
             }

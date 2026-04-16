@@ -19,6 +19,12 @@ export interface PipelineContext {
     /** Report item-level progress within a node (e.g. 3 of 50 files processed) */
     progress(nodeName: string, completed: number, total: number): void;
 
+    /** Emit a user-facing message from a node (e.g. xsl:message output) */
+    message(nodeName: string, text: string, sourceFile?: string): void;
+
+    /** Retrieve collected messages for a specific node + source file (used by withCache for persistence) */
+    getItemMessages(nodeName: string, sourceFile: string): string[];
+
     signal: AbortSignal;
     cache: CacheManager;
     buildDir: string;
@@ -40,6 +46,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     private needsWiring = false;
     private abortController: AbortController | null = null;
     private resolveInputCache = new Map<string, Promise<string[]>>();
+    private _messagesByItem = new Map<string, string[]>();
 
     /** Project-level metadata. Not used by the pipeline itself — consumed by CLI, GUI, etc. */
     public meta: Record<string, string> = {};
@@ -105,6 +112,21 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         this.emit('node:progress', { name: nodeName, completed, total });
     }
 
+    /** Emit a user-facing message from a node (e.g. xsl:message output) */
+    message(nodeName: string, text: string, sourceFile?: string): void {
+        this.emit('node:message', { name: nodeName, text, sourceFile: sourceFile ?? null });
+        // Collect for cache storage
+        const key = `${nodeName}\0${sourceFile ?? ''}`;
+        const msgs = this._messagesByItem.get(key);
+        if (msgs) msgs.push(text);
+        else this._messagesByItem.set(key, [text]);
+    }
+
+    /** Retrieve collected messages for a specific node + source file (used by withCache for persistence) */
+    getItemMessages(nodeName: string, sourceFile: string): string[] {
+        return this._messagesByItem.get(`${nodeName}\0${sourceFile}`) ?? [];
+    }
+
     getNodeInstance(nodeName: string): PipelineNode {
         return this.graph.getNodeData(nodeName);
     }
@@ -131,14 +153,25 @@ export class Pipeline extends EventEmitter implements PipelineContext {
             console.log(`  [${this.name}]     ✗ Failed: ${name}`);
             console.log(`  [${this.name}]       ${error.message}`);
         });
+        this.on('node:message', ({ name, text, sourceFile }) => {
+            const source = sourceFile ? path.basename(sourceFile) + ': ' : '';
+            console.log(`  [${this.name}]   [${name}] 💬 ${source}${text}`);
+        });
     }
 
     private getOrCreateWorkerPool(): WorkerPool {
         if (!this._workerPool) {
             const workerPath = resolveWorkloadPath(import.meta.url, '../xml/genericWorker.mts', 'genericWorker.mjs');
-            this._workerPool = new WorkerPool(this.workerThreads, workerPath, (nodeName, message) => {
-                console.log(`  [${this.name}]   [${nodeName}] ${message}`);
-            });
+            this._workerPool = new WorkerPool(
+                this.workerThreads,
+                workerPath,
+                (nodeName, message) => {
+                    console.log(`  [${this.name}]   [${nodeName}] ${message}`);
+                },
+                (nodeName, text, sourceFile) => {
+                    this.message(nodeName, text, sourceFile ?? undefined);
+                },
+            );
         }
         return this._workerPool;
     }
@@ -352,6 +385,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         this.nodeOutputs.clear();
         this.nodeTimings.clear();
         this.resolveInputCache.clear();
+        this._messagesByItem.clear();
         this.abortController = new AbortController();
 
         const pipelineStart = performance.now();

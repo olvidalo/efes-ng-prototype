@@ -1,3 +1,8 @@
+interface NodeMessage {
+  text: string
+  sourceFile: string | null
+}
+
 interface NodeState {
   name: string
   status: 'pending' | 'running' | 'done' | 'error'
@@ -6,6 +11,7 @@ interface NodeState {
   fullyCached?: boolean
   itemCompleted?: number
   itemTotal?: number
+  messages: NodeMessage[]
 }
 
 interface LogEntry {
@@ -29,12 +35,13 @@ function createPipelineState() {
       node.status = 'pending'
       node.durationMs = undefined
       node.error = undefined
+      node.messages = []
     }
   }
 
   function setPipelineInfo(name: string, nodeNames: string[], url: string) {
     pipelineName = name
-    nodes = nodeNames.map((n) => ({ name: n, status: 'pending' as const }))
+    nodes = nodeNames.map((n) => ({ name: n, status: 'pending' as const, messages: [] }))
     serverUrl = url
     phase = 'ready'
     logs = []
@@ -90,6 +97,14 @@ function createPipelineState() {
         break
       }
 
+      case 'node:message': {
+        const node = nodes.find((n) => n.name === event.name)
+        if (node) {
+          node.messages.push({ text: event.text, sourceFile: event.sourceFile })
+        }
+        break
+      }
+
       case 'node:error': {
         const node = nodes.find((n) => n.name === event.name)
         if (node) {
@@ -125,10 +140,22 @@ function createPipelineState() {
 
       case 'pipeline:reloaded':
         pipelineName = event.name
-        nodes = event.nodeNames.map((n: string) => ({ name: n, status: 'pending' as const }))
+        nodes = event.nodeNames.map((n: string) => ({ name: n, status: 'pending' as const, messages: [] }))
         addLog(`Pipeline config reloaded: ${event.name} (${event.nodeNames.length} nodes)`)
         break
     }
+  }
+
+  /** All node messages from the current build. filterNode matches exact name or child nodes (prefix match). */
+  function getMessages(filterNode?: string): { nodeName: string, text: string, sourceFile: string | null }[] {
+    const result: { nodeName: string, text: string, sourceFile: string | null }[] = []
+    for (const node of nodes) {
+      if (filterNode && node.name !== filterNode && !node.name.startsWith(filterNode + ':')) continue
+      for (const msg of node.messages) {
+        result.push({ nodeName: node.name, text: msg.text, sourceFile: msg.sourceFile })
+      }
+    }
+    return result
   }
 
   return {
@@ -153,9 +180,13 @@ function createPipelineState() {
     set serverUrl(v) {
       serverUrl = v
     },
+    get totalMessageCount() {
+      return nodes.reduce((sum, n) => sum + n.messages.length, 0)
+    },
     setPipelineInfo,
     handleEvent,
-    addLog
+    addLog,
+    getMessages
   }
 }
 

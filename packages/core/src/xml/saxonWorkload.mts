@@ -1,4 +1,4 @@
-import type { WorkloadModule, WorkerLog } from "../core/runtimeHelpers";
+import type { WorkloadModule, WorkerLog, WorkerMessage } from "../core/runtimeHelpers";
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
 import path from "node:path";
@@ -74,11 +74,18 @@ export interface TransformResult {
     resultDocumentPaths: string[];
 }
 
-export async function performWork(job: TransformJob, log: WorkerLog): Promise<TransformResult> {
+export async function performWork(job: TransformJob, log: WorkerLog, onMessage?: WorkerMessage): Promise<TransformResult> {
     const transformOptions: any = {
         // stylesheetFileName: job.sefStylesheetPath,
         stylesheetInternal: job.stylesheetInternal,
         destination: "serialized",
+        // Capture xsl:message output and forward as node messages
+        deliverMessage: (content: any, _errorCode: string) => {
+            if (onMessage) {
+                const text = content.textContent?.trim();
+                if (text) onMessage(text);
+            }
+        },
         // Handle XSLT collection() function calls
         collectionFinder: (uri: string) => {
             const collectionPath = uri.startsWith('file:')

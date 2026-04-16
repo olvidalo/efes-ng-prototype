@@ -3,10 +3,11 @@ import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 
 export type WorkerLog = (message: string) => void;
+export type WorkerMessage = (text: string) => void;
 
 /** Contract that workload modules must satisfy. */
 export interface WorkloadModule {
-    performWork(job: any, log: WorkerLog): Promise<any>;
+    performWork(job: any, log: WorkerLog, onMessage?: WorkerMessage): Promise<any>;
 }
 
 /**
