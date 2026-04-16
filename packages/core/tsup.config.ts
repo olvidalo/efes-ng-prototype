@@ -1,4 +1,8 @@
 import { defineConfig } from 'tsup';
+import { execFileSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+
+const scaffoldSchema = '../create-efes-ng/templates/efes-ng.rng';
 
 export default defineConfig({
     // Framework — Node library + CLI + workers
@@ -22,4 +26,9 @@ export default defineConfig({
         treeshake: true,
         outDir: 'dist',
         external: ['saxonjs-he', 'xslt3-he', '@11ty/eleventy', '@11ty/eleventy-utils'],
+        onSuccess: () => {
+            // Keep scaffold schema in sync with node registry
+            const rng = execFileSync('node', ['dist/cli.mjs', 'schema'], { encoding: 'utf-8' });
+            writeFileSync(scaffoldSchema, rng);
+        },
 });
