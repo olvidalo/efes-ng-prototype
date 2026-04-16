@@ -1,4 +1,4 @@
-import { NodeRegistry } from './nodeRegistry';
+import { nodeRegistry } from './nodeRegistry';
 import type { SchemaField } from './nodeConfigSchema';
 import './builtinNodes';
 
@@ -7,7 +7,7 @@ import './builtinNodes';
  * Auto-generated from the node registry and each node's configSchema.
  */
 export function generateRngSchema(): string {
-    const entries = NodeRegistry.all();
+    const entries = nodeRegistry.all();
 
     const nodeRefs = entries
         .map(([name]) => `          <ref name="${name}"/>`)

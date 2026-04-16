@@ -2,7 +2,7 @@ import { BrowserWindow } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import { DevServer } from './dev-server'
-import { NodeRegistry } from '@efes-ng/core'
+import { nodeRegistry } from '@efes-ng/core'
 import type { DescribedNode } from '@efes-ng/core'
 
 export interface NodeInfo {
@@ -201,7 +201,7 @@ export class PipelineManager {
       const outputDir = path.relative(this.pipeline.projectDir, absOutputDir)
 
       // Node type name
-      const nodeType = NodeRegistry.nameOf(ctor as DescribedNode) || ctor.name || 'unknown'
+      const nodeType = nodeRegistry.nameOf(ctor as DescribedNode) || ctor.name || 'unknown'
 
       // Description
       const description = ctor.description || null

@@ -1,6 +1,6 @@
 import type { DescribedNode } from './nodeConfigSchema';
 
-class NodeRegistryImpl {
+class NodeRegistry {
     private byName = new Map<string, DescribedNode>();
     private byClass = new Map<DescribedNode, string>();
 
@@ -32,4 +32,4 @@ class NodeRegistryImpl {
     }
 }
 
-export const NodeRegistry = new NodeRegistryImpl();
+export const nodeRegistry = new NodeRegistry();

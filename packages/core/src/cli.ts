@@ -111,11 +111,11 @@ program
     .action(async (nodeType?: string) => {
         // Side-effect import registers all built-in nodes
         await import('./core/builtinNodes');
-        const { NodeRegistry } = await import('./core/nodeRegistry');
+        const { nodeRegistry } = await import('./core/nodeRegistry');
 
         if (!nodeType) {
             console.log('Available node types:\n');
-            for (const [name, node] of NodeRegistry.all()) {
+            for (const [name, node] of nodeRegistry.all()) {
                 console.log(`  ${name}`);
                 if (node.description) console.log(`    ${node.description}`);
             }
@@ -123,9 +123,9 @@ program
             return;
         }
 
-        const node = NodeRegistry.get(nodeType);
+        const node = nodeRegistry.get(nodeType);
         if (!node) {
-            console.error(`Unknown node type "${nodeType}". Available: ${NodeRegistry.names().join(', ')}`);
+            console.error(`Unknown node type "${nodeType}". Available: ${nodeRegistry.names().join(', ')}`);
             process.exit(1);
         }
 

@@ -3,7 +3,7 @@ import { closestMatch } from 'leven';
 import fs from 'node:fs/promises';
 import { from, files, collect, dir, absolutePath } from './pipelineNode';
 import { Pipeline } from './pipeline';
-import { NodeRegistry } from './nodeRegistry';
+import { nodeRegistry } from './nodeRegistry';
 import type { SchemaField } from './nodeConfigSchema';
 
 // Import builtinNodes as side effect to register all built-in nodes
@@ -58,12 +58,12 @@ export function parsePipelineXml(xml: string): Pipeline {
         if (child.localName === 'variable' || child.localName === 'meta') continue;
 
         const elementName = child.localName;
-        const nodeClass = NodeRegistry.get(elementName);
+        const nodeClass = nodeRegistry.get(elementName);
         if (!nodeClass) {
-            const suggestion = closestMatch(elementName, NodeRegistry.names(), { maxDistance: 3 });
+            const suggestion = closestMatch(elementName, nodeRegistry.names(), { maxDistance: 3 });
             throw new Error(
                 `Unknown node type <${elementName}>.${suggestion ? ` Did you mean <${suggestion}>?` : ''}\n` +
-                `Available node types: ${NodeRegistry.names().join(', ')}`
+                `Available node types: ${nodeRegistry.names().join(', ')}`
             );
         }
 

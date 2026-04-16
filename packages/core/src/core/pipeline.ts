@@ -93,7 +93,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
             return cached;
         }
 
-        const resultPromise = this.resolveInputImpl(input);
+        const resultPromise = this.resolveInputUncached(input);
         this.resolveInputCache.set(cacheKey, resultPromise);
         return resultPromise;
     }
@@ -577,7 +577,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
     /**
      * Implementation of resolveInput without caching (used internally by cached version)
      */
-    private async resolveInputImpl(input: Input): Promise<string[]> {
+    private async resolveInputUncached(input: Input): Promise<string[]> {
         switch (input.type) {
             case 'from': {
                 const nodeName = typeof input.node === 'string' ? input.node : input.node.name;

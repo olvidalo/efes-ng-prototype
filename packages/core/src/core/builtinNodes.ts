@@ -1,4 +1,4 @@
-import { NodeRegistry } from './nodeRegistry';
+import { nodeRegistry } from './nodeRegistry';
 import type { DescribedNode } from './nodeConfigSchema';
 
 import { XsltTransformNode } from '../xml/nodes/xsltTransformNode';
@@ -20,5 +20,5 @@ const builtinNodes: Record<string, DescribedNode> = {
 };
 
 for (const [name, nodeClass] of Object.entries(builtinNodes)) {
-    NodeRegistry.register(name, nodeClass);
+    nodeRegistry.register(name, nodeClass);
 }
