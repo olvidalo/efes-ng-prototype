@@ -35,6 +35,8 @@ function createPipelineState() {
       node.status = 'pending'
       node.durationMs = undefined
       node.error = undefined
+      node.itemCompleted = undefined
+      node.itemTotal = undefined
       node.messages = []
     }
   }
