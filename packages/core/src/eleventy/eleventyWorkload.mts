@@ -36,9 +36,14 @@ export async function performWork(job: {
       if (msg.success) {
         resolve({ outputDir: msg.outputDir });
       } else {
-        const error = new Error(msg.error.message);
-        error.stack = msg.error.stack;
-        reject(error);
+        // Eleventy writes detailed template errors to stderr.
+        // Extract the numbered problem lines (e.g. "1. Having trouble..." "2. append expect 2 args")
+        // which are the actionable part, skipping stack traces and repeated blocks.
+        const problems = stderr.match(/^\[11ty\] \d+\. .+$/gm);
+        const message = problems
+          ? problems.map(l => l.replace('[11ty] ', '')).join('\n')
+          : msg.error.message;
+        reject(new Error(message));
       }
     });
 
