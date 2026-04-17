@@ -66,3 +66,13 @@ The page automatically reloads after each successful build.
 ## Log Panel
 
 The bottom panel shows timestamped log messages from the pipeline — node starts, completions, errors, and watcher events.
+
+## Log Files
+
+The application writes log files to the default system location for troubleshooting:
+
+- **macOS**: `/Users/yourname/Library/Logs/EFES-NG Prototype/`
+- **Windows**: `C:\Users\yourname\AppData\Roaming\EFES-NG Prototype\logs\`
+- **Linux**: `/home/yourname/.config/EFES-NG Prototype/logs/`
+
+Replace `yourname` with your system username.

@@ -2,8 +2,12 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import fs from 'node:fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import log from 'electron-log/main'
 import icon from '../../resources/icon.png?asset'
 import { PipelineManager } from './pipeline-manager'
+
+// Initialize logging: writes to ~/Library/Logs (macOS), %APPDATA%/logs (Windows), ~/.config/logs (Linux)
+log.initialize()
 
 let manager: PipelineManager | null = null
 
