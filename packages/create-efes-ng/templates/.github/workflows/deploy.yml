@@ -1,0 +1,84 @@
+# Deploy to GitHub Pages
+# Builds the EFES-NG pipeline and publishes the output to GitHub Pages.
+#
+# Setup: In your repository settings, go to Pages and set
+# "Source" to "GitHub Actions".
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      clean:
+        description: 'Clean build (ignore caches)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache EFES-NG installation
+        id: cache-efes
+        uses: actions/cache@v4
+        with:
+          path: /tmp/efes-ng
+          key: efes-ng-${{ hashFiles('.efes-ng-version', 'package.json') }}
+          restore-keys: efes-ng-
+
+      - name: Install EFES-NG
+        if: steps.cache-efes.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/olvidalo/efes-ng-prototype.git /tmp/efes-ng
+          cd /tmp/efes-ng
+          npm install
+          npm run build -w packages/core
+
+      - name: Link EFES-NG
+        run: cd /tmp/efes-ng && npm link -w packages/core
+
+      - name: Cache pipeline build
+        if: inputs.clean != true
+        uses: actions/cache@v4
+        with:
+          path: .efes-cache
+          key: pipeline-${{ hashFiles('source/**', 'pipeline.xml') }}
+          restore-keys: pipeline-
+
+      - name: Build site
+        run: efes-ng run
+        env:
+          PATH_PREFIX: /${{ github.event.repository.name }}/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _output
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

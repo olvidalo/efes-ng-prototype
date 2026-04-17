@@ -31,6 +31,7 @@ export default withMermaid(
               { text: 'Multi-Language Support', link: '/tutorial/multi-language' },
               { text: 'Authority Files and Places Index', link: '/tutorial/places-index' },
               { text: 'Bibliography', link: '/tutorial/bibliography' },
+              { text: 'Deploying', link: '/tutorial/deploying' },
             ],
           },
         ],
