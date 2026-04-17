@@ -37,13 +37,16 @@ jobs:
         with:
           node-version: 22
 
+      - name: Get EFES-NG version
+        id: efes-version
+        run: echo "sha=$(git ls-remote https://github.com/olvidalo/efes-ng-prototype.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+
       - name: Cache EFES-NG installation
         id: cache-efes
         uses: actions/cache@v4
         with:
           path: /tmp/efes-ng
-          key: efes-ng-${{ hashFiles('.efes-ng-version', 'package.json') }}
-          restore-keys: efes-ng-
+          key: efes-ng-${{ steps.efes-version.outputs.sha }}
 
       - name: Install EFES-NG
         if: steps.cache-efes.outputs.cache-hit != 'true'
@@ -54,7 +57,9 @@ jobs:
           npm run build -w packages/core
 
       - name: Link EFES-NG
-        run: cd /tmp/efes-ng && npm link -w packages/core
+        run: |
+          cd /tmp/efes-ng && npm link -w packages/core
+          echo "/tmp/efes-ng/node_modules/.bin" >> $GITHUB_PATH
 
       - name: Restore pipeline cache
         if: inputs.clean != true
