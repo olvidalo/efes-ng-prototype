@@ -10,6 +10,8 @@
 import type { WorkloadModule } from "../core/runtimeHelpers";
 import { resolveWorkloadPath, electronSafeEnv } from "../core/runtimeHelpers.ts";
 import { fork } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 export async function performWork(job: {
   sourceDir: string
@@ -19,10 +21,19 @@ export async function performWork(job: {
     import.meta.url, 'eleventyRunner.mts', 'eleventyRunner.mjs'
   );
 
+  // The project's eleventy.config.js uses require() to load @11ty/eleventy, which
+  // is installed in the framework's node_modules, not the project's. NODE_PATH makes
+  // the framework's packages available to the forked child process.
+  const eleventyPkg = fileURLToPath(import.meta.resolve('@11ty/eleventy'));
+  const frameworkNodeModules = eleventyPkg.replace(/[/\\]@11ty[/\\]eleventy[/\\].*$/, '');
+
   return new Promise((resolve, reject) => {
+    const env = electronSafeEnv();
+    env.NODE_PATH = [frameworkNodeModules, env.NODE_PATH].filter(Boolean).join(path.delimiter);
+
     const child = fork(runnerScript, [], {
       stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-      env: electronSafeEnv(),
+      env,
       execPath: process.execPath,
     });
 
@@ -36,14 +47,7 @@ export async function performWork(job: {
       if (msg.success) {
         resolve({ outputDir: msg.outputDir });
       } else {
-        // Eleventy writes detailed template errors to stderr.
-        // Extract the numbered problem lines (e.g. "1. Having trouble..." "2. append expect 2 args")
-        // which are the actionable part, skipping stack traces and repeated blocks.
-        const problems = stderr.match(/^\[11ty\] \d+\. .+$/gm);
-        const message = problems
-          ? problems.map(l => l.replace('[11ty] ', '')).join('\n')
-          : msg.error.message;
-        reject(new Error(message));
+        reject(new Error(msg.error.message));
       }
     });
 

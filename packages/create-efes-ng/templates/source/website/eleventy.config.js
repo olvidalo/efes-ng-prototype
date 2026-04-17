@@ -1,8 +1,8 @@
-import { I18nPlugin, HtmlBasePlugin } from '@11ty/eleventy';
-import fs from 'node:fs';
-import path from 'node:path';
+const { I18nPlugin, HtmlBasePlugin } = require('@11ty/eleventy');
+const fs = require('node:fs');
+const path = require('node:path');
 
-export default function (eleventyConfig) {
+module.exports = function (eleventyConfig) {
 
     // ── Project settings ──────────────────────────
 

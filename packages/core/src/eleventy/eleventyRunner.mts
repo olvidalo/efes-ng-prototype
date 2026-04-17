@@ -31,9 +31,18 @@ process.on('message', async (job: {
         process.send!({ success: true, outputDir: job.outputDir });
         process.exit(0);
     } catch (error: any) {
+        // Walk the cause/originalError chain to build a complete error message
+        const messages: string[] = [];
+        let current = error;
+        while (current) {
+            if (current.message && !messages.includes(current.message)) {
+                messages.push(current.message);
+            }
+            current = current.cause || current.originalError;
+        }
         process.send!({
             success: false,
-            error: { message: error.message, stack: error.stack }
+            error: { message: messages.join('\n'), stack: error.stack }
         });
         process.exit(1);
     }
