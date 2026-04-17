@@ -45,7 +45,7 @@ You can also trigger a build without pushing:
 
 ## Clean Builds
 
-If your site shows stale content (for example after renaming or deleting template files), run a clean build:
+If your build fails repeatedly or your site shows stale content (for example after renaming or deleting template files), a cached build artifact might be the cause. Try a clean build first before investigating further:
 
 1. Go to **Actions**
 2. Click **Deploy to GitHub Pages**
@@ -53,7 +53,7 @@ If your site shows stale content (for example after renaming or deleting templat
 4. Check **Clean build (ignore caches)**
 5. Click **Run workflow**
 
-This skips the build cache and reprocesses everything from scratch.
+This skips all build caches and reprocesses everything from scratch. If the clean build succeeds, the problem was a stale cache.
 
 ## Custom Domain
 
@@ -77,9 +77,11 @@ To use your own domain (e.g., `seals.example.org`) instead of `your-username.git
 
 ## Build Caching
 
-The workflow caches two things to speed up repeated builds:
+The first build will take a while (several minutes for large collections) because it processes every file from scratch. GitHub's CI servers are also slower than your local machine, so expect it to take longer than local builds.
+
+After the first build, the workflow caches the full build state:
 
 - **EFES-NG installation**: The framework itself. Cached until you change the version.
-- **Pipeline build cache** (`.efes-cache`): XSLT compilation and transformation results. Only changed files are reprocessed on the next build.
+- **Pipeline build state**: Compiled stylesheets, transformed files, and the assembled site. On the next build, only files you actually changed are reprocessed.
 
-A first build takes longer (a few minutes). Subsequent builds with small content changes are significantly faster.
+This means subsequent builds after small content changes (editing a few XML files, updating a template) should complete much faster.

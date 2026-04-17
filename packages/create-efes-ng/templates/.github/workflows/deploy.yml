@@ -56,12 +56,16 @@ jobs:
       - name: Link EFES-NG
         run: cd /tmp/efes-ng && npm link -w packages/core
 
-      - name: Cache pipeline build
+      - name: Restore pipeline cache
         if: inputs.clean != true
         uses: actions/cache@v4
         with:
-          path: .efes-cache
-          key: pipeline-${{ hashFiles('source/**', 'pipeline.xml') }}
+          path: |
+            .efes-cache
+            .efes-build
+            _assembly
+            _output
+          key: pipeline-${{ github.run_id }}
           restore-keys: pipeline-
 
       - name: Build site
