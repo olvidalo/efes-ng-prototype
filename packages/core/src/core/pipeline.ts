@@ -627,7 +627,7 @@ export class Pipeline extends EventEmitter implements PipelineContext {
                         if (isDir) {
                             throw new Error(`files() resolved to a directory: ${pattern}. Use dir() for directory paths or add a glob pattern (e.g., "${pattern}/**/*").`);
                         }
-                        throw new Error(`No files found for pattern: ${pattern}`);
+                        this.log(`Warning: no files found for pattern: ${pattern}`);
                     }
                     results.push(...matches.map(m => path.resolve(this.projectDir, m)));
                 }
