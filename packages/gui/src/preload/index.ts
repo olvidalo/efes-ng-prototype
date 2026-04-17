@@ -31,7 +31,10 @@ const api = {
   showDirectoryPicker: (): Promise<string | null> =>
     ipcRenderer.invoke('scaffold:pick-directory'),
   createProject: (outputDir: string, answers: Record<string, string>): Promise<string> =>
-    ipcRenderer.invoke('scaffold:create', outputDir, answers)
+    ipcRenderer.invoke('scaffold:create', outputDir, answers),
+  // Export
+  exportProject: (exportDir: string, pathPrefix: string): Promise<{ fileCount: number }> =>
+    ipcRenderer.invoke('pipeline:export', exportDir, pathPrefix)
 }
 
 if (process.contextIsolated) {

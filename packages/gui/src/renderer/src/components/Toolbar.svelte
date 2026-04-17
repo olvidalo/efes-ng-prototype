@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FolderOpen, Plus, Play, Square, X, Trash2, Eye } from 'lucide-svelte'
+  import { FolderOpen, Plus, Play, Square, X, Trash2, Eye, Share } from 'lucide-svelte'
 
   interface Props {
     phase: 'idle' | 'ready' | 'building' | 'watching'
@@ -12,6 +12,7 @@
     onCancel: () => void
     onClean: () => void
     onOpenPreview: () => void
+    onExport: () => void
   }
 
   let {
@@ -24,7 +25,8 @@
     onStop,
     onCancel,
     onClean,
-    onOpenPreview
+    onOpenPreview,
+    onExport
   }: Props = $props()
 </script>
 
@@ -64,6 +66,11 @@
   <button onclick={onOpenPreview} disabled={!serverUrl} title="Open Preview in Browser">
     <Eye size={15} />
     <span>Preview</span>
+  </button>
+
+  <button onclick={onExport} disabled={phase === 'idle' || phase === 'building'} title="Export site for static hosting">
+    <Share size={15} />
+    <span>Export</span>
   </button>
 
   {#if pipelineName}

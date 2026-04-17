@@ -6,11 +6,13 @@
   import NodeInspector from './components/NodeInspector.svelte'
   import LogPanel from './components/LogPanel.svelte'
   import CreateProjectDialog from './components/CreateProjectDialog.svelte'
+  import ExportDialog from './components/ExportDialog.svelte'
 
   let cleanup: (() => void) | null = null
   let refreshTrigger = $state(0)
   let statusMessage = $state('')
   let showCreateDialog = $state(false)
+  let showExportDialog = $state(false)
   let selectedNode = $state<string | null>(null)
   let nodeInfo = $state<any>(null)
   let activeLogTab = $state<'log' | 'messages'>('log')
@@ -128,6 +130,7 @@
     onCancel={handleCancel}
     onClean={handleClean}
     onOpenPreview={handleOpenPreview}
+    onExport={() => { showExportDialog = true }}
   />
   <div class="content">
     <NodeList nodes={pipelineState.nodes} {refreshTrigger} {selectedNode} onSelectNode={handleSelectNode} onShowMessages={handleShowMessages} />
@@ -157,6 +160,13 @@
   <CreateProjectDialog
     onClose={() => { showCreateDialog = false }}
     onCreate={handleCreateProject}
+  />
+{/if}
+
+{#if showExportDialog}
+  <ExportDialog
+    projectSlug={pipelineState.pipelineName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}
+    onClose={() => { showExportDialog = false }}
   />
 {/if}
 

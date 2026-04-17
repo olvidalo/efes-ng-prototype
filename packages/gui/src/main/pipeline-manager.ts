@@ -108,6 +108,37 @@ export class PipelineManager {
     this.devServer?.broadcast({ type: 'stopped' })
   }
 
+  async exportSite(exportDir: string, pathPrefix: string): Promise<{ fileCount: number }> {
+    if (!this.pipeline) throw new Error('No pipeline loaded')
+
+    // Set PATH_PREFIX for controlling SSG path prefix
+    const prevPrefix = process.env.PATH_PREFIX
+    process.env.PATH_PREFIX = pathPrefix || '/'
+    try {
+      await this.pipeline.run()
+
+      const siteDir = this.pipeline.meta.siteDir
+      if (!siteDir) throw new Error('Pipeline has no meta.siteDir configured')
+      const outputDir = path.resolve(this.pipeline.projectDir, siteDir)
+      fs.cpSync(outputDir, exportDir, { recursive: true })
+
+      // Count exported files
+      let fileCount = 0
+      const countFiles = (dir: string): void => {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+          if (entry.isFile()) fileCount++
+          else if (entry.isDirectory()) countFiles(path.join(dir, entry.name))
+        }
+      }
+      countFiles(exportDir)
+
+      return { fileCount }
+    } finally {
+      if (prevPrefix !== undefined) process.env.PATH_PREFIX = prevPrefix
+      else delete process.env.PATH_PREFIX
+    }
+  }
+
   async clean(): Promise<void> {
     if (!this.pipeline) throw new Error('No pipeline loaded')
     await this.pipeline.clean()

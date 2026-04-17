@@ -86,6 +86,12 @@ ipcMain.handle('pipeline:get-node-info', (_e, nodeName: string) => {
   return manager!.getNodeInfo(nodeName)
 })
 
+// --- Export handler ---
+
+ipcMain.handle('pipeline:export', async (_e, exportDir: string, pathPrefix: string) => {
+  return manager!.exportSite(exportDir, pathPrefix)
+})
+
 // --- Scaffold handlers ---
 
 ipcMain.handle('scaffold:get-questions', async () => {
