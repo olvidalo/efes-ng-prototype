@@ -1,0 +1,15 @@
+# EFES-NG build artifacts
+.efes-build/
+.efes-cache/
+_assembly/
+_output/
+_debug/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
