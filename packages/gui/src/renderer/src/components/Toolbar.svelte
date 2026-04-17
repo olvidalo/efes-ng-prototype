@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { FolderOpen, Play, Square, X, Trash2, ExternalLink, Eye } from 'lucide-svelte'
+  import { FolderOpen, Plus, Play, Square, X, Trash2, Eye } from 'lucide-svelte'
 
   interface Props {
     phase: 'idle' | 'ready' | 'building' | 'watching'
     pipelineName: string
     serverUrl: string
+    onNewProject: () => void
     onOpenProject: () => void
     onStart: () => void
     onStop: () => void
@@ -17,6 +18,7 @@
     phase,
     pipelineName,
     serverUrl,
+    onNewProject,
     onOpenProject,
     onStart,
     onStop,
@@ -27,9 +29,14 @@
 </script>
 
 <div class="toolbar">
+  <button onclick={onNewProject} title="New Project">
+    <Plus size={15} />
+    <span>New</span>
+  </button>
+
   <button onclick={onOpenProject} title="Open Project">
     <FolderOpen size={15} />
-    <span>Open Project</span>
+    <span>Open</span>
   </button>
 
   {#if phase === 'building'}

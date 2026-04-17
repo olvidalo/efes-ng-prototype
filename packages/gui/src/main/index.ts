@@ -50,6 +50,10 @@ ipcMain.handle('pipeline:open-project', async () => {
   return manager!.openProject(result.filePaths[0])
 })
 
+ipcMain.handle('pipeline:open-project-dir', async (_e, dir: string) => {
+  return manager!.openProject(dir)
+})
+
 ipcMain.handle('pipeline:watch', async () => {
   return manager!.startWatch()
 })
@@ -80,6 +84,74 @@ ipcMain.handle('pipeline:node-output-exists', (_e, nodeName: string) => {
 
 ipcMain.handle('pipeline:get-node-info', (_e, nodeName: string) => {
   return manager!.getNodeInfo(nodeName)
+})
+
+// --- Scaffold handlers ---
+
+ipcMain.handle('scaffold:get-questions', async () => {
+  const { scaffoldQuestions } = await import('create-efes-ng')
+  return scaffoldQuestions.map((q) => ({
+    id: q.id,
+    label: q.label,
+    type: q.type,
+    placeholder: 'placeholder' in q ? q.placeholder : undefined,
+    defaultValue: typeof q.defaultValue === 'function' ? undefined : q.defaultValue,
+    options: 'options' in q ? q.options : undefined,
+    condition: 'condition' in q && q.condition
+      ? (() => {
+          // Extract condition as [field, value] for simple equality checks
+          // The CLI questions use (answers) => answers.field === 'value'
+          const src = q.condition!.toString()
+          const match = src.match(/answers\.(\w+)\s*===?\s*['"](\w+)['"]/)
+          return match ? [match[1], match[2]] : undefined
+        })()
+      : undefined,
+    validate: 'validate' in q && !!q.validate,
+  }))
+})
+
+ipcMain.handle('scaffold:compute-defaults', async (_e, answers: Record<string, string>) => {
+  const { scaffoldQuestions } = await import('create-efes-ng')
+  const defaults: Record<string, string> = {}
+  for (const q of scaffoldQuestions) {
+    if (typeof q.defaultValue === 'function') {
+      defaults[q.id] = q.defaultValue(answers)
+    }
+  }
+  return defaults
+})
+
+ipcMain.handle('scaffold:validate', async (_e, answers: Record<string, string>) => {
+  const { scaffoldQuestions } = await import('create-efes-ng')
+  const errors: Record<string, string> = {}
+  for (const q of scaffoldQuestions) {
+    if ('validate' in q && q.validate) {
+      // Check condition first
+      if ('condition' in q && q.condition && !q.condition(answers)) continue
+      const error = q.validate(answers[q.id] ?? '')
+      if (error) errors[q.id] = error
+    }
+  }
+  return Object.keys(errors).length > 0 ? { errors } : {}
+})
+
+ipcMain.handle('scaffold:pick-directory', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Select Location for New Project',
+  })
+  if (result.canceled || result.filePaths.length === 0) return null
+  return result.filePaths[0]
+})
+
+ipcMain.handle('scaffold:create', async (_e, outputDir: string, answers: Record<string, string>) => {
+  const { scaffold } = await import('create-efes-ng')
+  const projectDir = await scaffold(outputDir, answers as any, {
+    onStatus: (msg) => {
+      BrowserWindow.getFocusedWindow()?.webContents.send('scaffold:status', msg)
+    },
+  })
+  return projectDir
 })
 
 // --- App lifecycle ---

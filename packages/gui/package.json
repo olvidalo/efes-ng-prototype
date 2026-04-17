@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@efes-ng/core": "*",
+    "create-efes-ng": "*",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "lucide-svelte": "^0.577.0",

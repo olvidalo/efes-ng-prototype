@@ -5,10 +5,12 @@
   import NodeList from './components/NodeList.svelte'
   import NodeInspector from './components/NodeInspector.svelte'
   import LogPanel from './components/LogPanel.svelte'
+  import CreateProjectDialog from './components/CreateProjectDialog.svelte'
 
   let cleanup: (() => void) | null = null
   let refreshTrigger = $state(0)
   let statusMessage = $state('')
+  let showCreateDialog = $state(false)
   let selectedNode = $state<string | null>(null)
   let nodeInfo = $state<any>(null)
   let activeLogTab = $state<'log' | 'messages'>('log')
@@ -95,6 +97,18 @@
     })
   }
 
+  async function handleCreateProject(outputDir: string, answers: Record<string, string>) {
+    const projectDir = await window.api.createProject(outputDir, answers)
+    showCreateDialog = false
+    // Open the newly created project
+    const result = await window.api.openProjectDir(projectDir)
+    if (result) {
+      selectedNode = null
+      nodeInfo = null
+      pipelineState.setPipelineInfo(result.name, result.nodeNames, result.serverUrl)
+    }
+  }
+
   function handleOpenPreview() {
     if (pipelineState.serverUrl) {
       window.open(pipelineState.serverUrl, '_blank')
@@ -107,6 +121,7 @@
     phase={pipelineState.phase}
     pipelineName={pipelineState.pipelineName}
     serverUrl={pipelineState.serverUrl}
+    onNewProject={() => { showCreateDialog = true }}
     onOpenProject={handleOpenProject}
     onStart={handleStart}
     onStop={handleStop}
@@ -137,6 +152,13 @@
     onFilterClear={() => { messageFilterNode = null }}
   />
 </main>
+
+{#if showCreateDialog}
+  <CreateProjectDialog
+    onClose={() => { showCreateDialog = false }}
+    onCreate={handleCreateProject}
+  />
+{/if}
 
 <style>
   main {
