@@ -67,18 +67,9 @@ ${nodeRefs}
   <!-- Pipeline metadata: project-level settings consumed by CLI, GUI, etc. -->
   <define name="meta">
     <element name="meta">
-      <a:documentation>Project-level metadata not used by the pipeline itself. Consumed by CLI, GUI, and other tools (e.g. siteDir for the dev server).</a:documentation>
-      <optional>
-        <attribute name="siteDir">
-          <a:documentation>Directory where the final site is generated. Used by the dev server for live preview and the CLI for status checks.</a:documentation>
-        </attribute>
-      </optional>
+      <a:documentation>Project metadata. Known attributes: siteDir (output directory for dev server and live preview). Additional custom attributes are allowed.</a:documentation>
       <zeroOrMore>
-        <attribute>
-          <anyName>
-            <except><name>siteDir</name></except>
-          </anyName>
-        </attribute>
+        <attribute><anyName/></attribute>
       </zeroOrMore>
     </element>
   </define>
