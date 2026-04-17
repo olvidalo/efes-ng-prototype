@@ -129,6 +129,22 @@ export abstract class PipelineNode<TConfig extends PipelineNodeConfig = Pipeline
     }
 
     /**
+     * Delete output files that were produced by the previous run but aren't in the current outputs.
+     * Useful for nodes whose input set can shrink (e.g., copyFiles when a source file is deleted).
+     */
+    protected async cleanStaleOutputs(context: PipelineContext, currentOutputs: string[]): Promise<void> {
+        const previous = await context.readNodeManifest(this.name);
+        if (previous.length === 0) return;
+        const current = new Set(currentOutputs);
+        for (const p of previous) {
+            if (!current.has(p)) {
+                await fs.unlink(p).catch(() => {});
+                this.debug(context, `Removed stale output: ${p}`);
+            }
+        }
+    }
+
+    /**
      * Hash an output file for cache tracking purposes.
      * Override in subclasses to normalize non-deterministic output before hashing
      * (e.g., strip compiler timestamps from generated files).

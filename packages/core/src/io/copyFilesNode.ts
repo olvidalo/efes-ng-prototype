@@ -68,6 +68,7 @@ export class CopyFilesNode extends PipelineNode<CopyFilesConfig, typeof outputKe
         }
 
         this.cacheStats = { hits: skipped, total: copiedFiles.length };
+        await this.cleanStaleOutputs(context, copiedFiles);
         return [{ copied: copiedFiles }];
     }
 }

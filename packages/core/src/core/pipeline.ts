@@ -35,6 +35,9 @@ export interface PipelineContext {
     stripBuildPrefix(inputPath: string): string;
     getNodeOutputs(nodeName: string): NodeOutput<any>[] | undefined;
     getNodeInstance(nodeName: string): PipelineNode;
+
+    /** Read the output manifest from the previous successful run of a node. */
+    readNodeManifest(nodeName: string): Promise<string[]>;
 }
 
 export class Pipeline extends EventEmitter implements PipelineContext {
@@ -484,6 +487,9 @@ export class Pipeline extends EventEmitter implements PipelineContext {
         try {
             const output = await node.run(this);
             this.nodeOutputs.set(node.name, output);
+            // Persist output manifest for stale file detection across runs
+            const allOutputPaths = output.flatMap(o => Object.values(o).flat());
+            await this.writeNodeManifest(node.name, allOutputPaths);
             const durationMs = performance.now() - nodeStart;
             this.nodeTimings.set(node.name, durationMs);
             this.emit('node:done', { name: node.name, durationMs, cacheStats: node.cacheStats });
@@ -654,5 +660,22 @@ export class Pipeline extends EventEmitter implements PipelineContext {
      */
     getNodeOutputs(nodeName: string): NodeOutput<any>[] | undefined {
         return this.nodeOutputs.get(nodeName);
+    }
+
+    /** Read the output manifest from the previous successful run of a node. */
+    async readNodeManifest(nodeName: string): Promise<string[]> {
+        const manifestPath = path.join(this.cacheDir, `${nodeName}.manifest.json`);
+        try {
+            return JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
+        } catch {
+            return [];
+        }
+    }
+
+    /** Write the output manifest after a successful node run. */
+    private async writeNodeManifest(nodeName: string, outputs: string[]): Promise<void> {
+        await fs.mkdir(this.cacheDir, { recursive: true });
+        const manifestPath = path.join(this.cacheDir, `${nodeName}.manifest.json`);
+        await fs.writeFile(manifestPath, JSON.stringify(outputs));
     }
 }
