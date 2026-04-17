@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
+
   interface Question {
     id: string
     label: string
@@ -22,6 +24,9 @@
   let errors = $state<Record<string, string>>({})
   let creating = $state(false)
   let statusMessage = $state('')
+  let overlayEl: HTMLDivElement
+
+  onMount(() => { overlayEl?.focus() })
 
   // Load questions from main process
   $effect(() => {
@@ -33,6 +38,10 @@
           answers[question.id] = String(question.defaultValue)
         }
       }
+      // Focus first input after render
+      requestAnimationFrame(() => {
+        overlayEl?.querySelector<HTMLInputElement>('input, select')?.focus()
+      })
     })
   })
 
@@ -47,8 +56,9 @@
   let manuallyEdited = new Set<string>()
 
   $effect(() => {
-    const _ = answers.projectName // trigger on name change
-    window.api.computeScaffoldDefaults({ ...answers }).then((defaults: Record<string, string>) => {
+    // Trigger on any answer change by reading the whole object
+    const snapshot = { ...answers }
+    window.api.computeScaffoldDefaults(snapshot).then((defaults: Record<string, string>) => {
       for (const [key, value] of Object.entries(defaults)) {
         if (!manuallyEdited.has(key)) {
           answers[key] = value
@@ -95,7 +105,7 @@
   }
 </script>
 
-<div class="overlay" onkeydown={(e) => { if (e.key === 'Escape' && !creating) onClose() }} role="dialog" tabindex="-1">
+<div class="overlay" bind:this={overlayEl} onkeydown={(e) => { if (e.key === 'Escape' && !creating) onClose() }} role="dialog" tabindex="-1">
   <div class="dialog">
     <h2>New Project</h2>
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import { FolderOpen } from 'lucide-svelte'
 
   interface Props {
@@ -14,6 +15,9 @@
   let status = $state('')
   let error = $state('')
   let done = $state(false)
+  let overlayEl: HTMLDivElement
+
+  onMount(() => { overlayEl?.focus() })
 
   let fullPath = $derived(parentDir && folderName ? parentDir + '/' + folderName : '')
 
@@ -47,7 +51,7 @@
   }
 </script>
 
-<div class="overlay" role="dialog" tabindex="-1" onkeydown={(e) => { if (e.key === 'Escape' && !exporting) onClose() }}>
+<div class="overlay" role="dialog" tabindex="-1" bind:this={overlayEl} onkeydown={(e) => { if (e.key === 'Escape' && !exporting) onClose() }}>
   <div class="dialog">
     <h2>Export Site</h2>
 
