@@ -30,7 +30,15 @@ nsis:
   installerIcon: build/icon.ico
   uninstallerIcon: build/icon.ico
 mac:
-  identity: null
+  # Ad-hoc signing: no Apple cert required, and `codesign` is built into
+  # macOS so any mac contributor can build without extra setup. Apple Silicon
+  # refuses to launch unsigned apps; ad-hoc satisfies that requirement.
+  # Gatekeeper still warns on first launch (right-click > Open to dismiss).
+  # For a real Developer ID signed build, replace `identity` with
+  # "Developer ID Application: <Name> (<TEAMID>)" and set CSC_LINK +
+  # CSC_KEY_PASSWORD env vars (paid Apple Developer Program account required).
+  identity: '-'
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
@@ -51,6 +59,9 @@ deb:
   artifactName: ${productName}-${version}.${ext}
 electronVersion: "40.8.3"
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
+# Auto-updates are not configured. To enable, replace this block with a
+# real provider (e.g. provider: github) and remove `--publish never`
+# from the release-gui workflow.
+# publish:
+#   provider: generic
+#   url: https://example.com/auto-updates

@@ -1,79 +1,110 @@
-# EFES-NG Phase 2 Proof of Concept
+# EFES-NG Prototype
 
-Prototype for generating static collection sites from EpiDoc/SigiDoc XML files, replacing the Cocoon/Kiln-based EFES system. Uses Saxon-JS for XSLT processing, Eleventy for static site generation, and a custom TypeScript pipeline for build orchestration.
+A modern pipeline-based framework for publishing EpiDoc/TEI XML as static websites.
 
-A demo deployment is available at https://olvidalo.github.io/efes-ng-phase-2-poc/.
+## Installing
 
-## Repository Structure
+Download the desktop application for your platform from the [Releases page](https://github.com/olvidalo/efes-ng-prototype/releases).
 
-```
-efes-ng-phase-2-poc/
-├── src/                       # Core pipeline system (TypeScript)
-│   ├── core/                 # Pipeline orchestration, caching, workers
-│   ├── xml/                  # XSLT compilation and transformation nodes
-│   ├── eleventy/             # Aggregate nodes (indices, search, bibliography)
-│   ├── search/               # FlexSearch index generation
-│   └── xslt/                # Shared XSLT stylesheets
-│       └── create-11ty-frontmatter.xsl  # Generic frontmatter extraction
-├── projects/                  # Two proof-of-concept implementations
-│   ├── ircyr-11ty/           # IRCyr inscriptions (~2,360 documents)
-│   └── sigidoc-feind-11ty/   # SigiDoc Feind seals (~320 documents, trilingual)
-└── pages/                     # Assembled output for GitHub Pages deployment
-```
+### macOS
 
-## Projects
+1. Download the `.dmg` file.
+2. Open the DMG and drag **EFES-NG Prototype** to your Applications folder.
+3. **First launch:** right-click the app in Applications and choose **Open**, then **Open** again in the dialog that appears. The app is ad-hoc signed, so Gatekeeper warns the first time. After this, you can launch it normally from the Dock or Launchpad.
 
-Each project follows the same structure:
+> **Note:** Builds are currently produced for Apple Silicon (arm64) only. On an Intel Mac, [build from source](#building-from-source).
 
-- `1-input/`: Source files — XML documents, stylesheets, Eleventy templates, authority files, configuration
-- `2-intermediate/`: Generated during build — frontmatter JSON, aggregated index/search data
-- `3-output/`: Final static website
-- `*.pipeline.ts`: Pipeline definition. Run with `npx tsx <project>.pipeline.ts` from the project directory.
+### Windows
 
-### IRCyr-11ty
+1. Download the `-setup.exe` file.
+2. Run the installer. You can customise the install location.
+3. Launch from the Start menu or desktop shortcut.
 
-Generates a static site from the IRCyr (Inscriptions of Roman Cyrenaica) EpiDoc collection.
+> **Note:** Builds are unsigned, so Windows SmartScreen may warn on first launch. Click **More info** → **Run anyway** to proceed.
 
-**Input Structure**
+### Linux
 
-- `epidoc-stylesheets/`: EpiDoc XSLT stylesheet submodule from https://github.com/EpiDoc/Stylesheets/
-- `inscriptions/`: EpiDoc XML source files from the IRCyR EFES repo
-- `authority/`: XML authority files from the IRCyR EFES repo
-- `metadata-config.xsl`: Central configuration — defines all entity extraction templates, search facets
-- `eleventy-site/`: Eleventy templates, layouts, index/search pages, partials, and static assets
-- `stylesheets/`:
-    - `create-11ty-frontmatter-for-epidoc.xsl`: Thin wrapper importing the shared generic XSL and `metadata-config.xsl`
+Two package formats are provided.
 
-### SigiDoc-Feind-11ty
-
-Generates a trilingual (EN/DE/EL) static site from the Robert Feind seal collection.
-
-**Input Structure**
-
-- `sigidoc-stylesheets/`: SigiDoc XSLT stylesheet submodule from https://github.com/SigiDoc/Stylesheets/
-- `feind-collection/`: SigiDoc XML source file submodule from https://github.com/byzantinistik-koeln/feind-collection
-- `authority/`: Authority file submodule from https://github.com/byzantinistik-koeln/authority
-- `metadata-config.xsl`: Central configuration — entity extraction, search facets
-- `eleventy-site/`: Eleventy templates with multilingual support, index/search/bibliography pages, partials, and static assets
-- `stylesheets/`:
-    - `create-11ty-frontmatter-for-sigidoc.xsl`: Thin wrapper importing the shared generic XSL and `metadata-config.xsl`
-    - `epidoc-to-html.xsl`: Imports SigiDoc stylesheets and performs i18n label replacement
-    - `prune-to-language.xsl`: Filters multilingual content to produce language-specific outputs (based on the original EFES)
-
-## Building
+**AppImage** (works on most distributions):
 
 ```bash
-# Install dependencies
-npm install
-
-# Build all projects
-npm run build:all
-
-# Or build individually
-npm run build:ircyr-11ty
-npm run build:sigidoc-feind-11ty
-
-# Assemble for GitHub Pages deployment
-npm run assemble
-npm run relativize
+chmod +x "EFES-NG Prototype-X.Y.Z.AppImage"
+./"EFES-NG Prototype-X.Y.Z.AppImage"
 ```
+
+**Debian / Ubuntu (`.deb`)**:
+
+```bash
+sudo dpkg -i "EFES-NG Prototype-X.Y.Z.deb"
+```
+
+> **Note:** AppImage requires FUSE 2 on the host. On Ubuntu 22.04 and later, install it with `sudo apt install libfuse2`.
+
+## Building from Source
+
+Prerequisites: [Node.js](https://nodejs.org/) 22 or later.
+
+```bash
+git clone https://github.com/olvidalo/efes-ng-prototype.git
+cd efes-ng-prototype
+npm install
+npm run build
+```
+
+This builds the core pipeline engine, the project scaffolder, and the search component. To make the `efes-ng` CLI available globally:
+
+```bash
+npm link -w packages/core
+```
+
+> **Note:** EFES-NG is not yet published on npm. Once it is, you'll be able to install the CLI globally with `npm install -g @efes-ng/core` instead of cloning and linking.
+
+### Running the CLI
+
+After linking, `efes-ng` is available as a global command:
+
+```bash
+cd /path/to/your-project
+efes-ng run      # Build the pipeline
+efes-ng watch    # Watch for changes and rebuild
+efes-ng clean    # Remove generated files and caches
+efes-ng status   # Show pipeline info
+```
+
+### Creating a New Project
+
+```bash
+npx create-efes-ng my-project
+```
+
+### Running the Desktop Application
+
+For development with hot reload:
+
+```bash
+cd packages/gui
+npm run dev
+```
+
+To produce a packaged installer for your platform (`.dmg` on macOS, `-setup.exe` on Windows, `.AppImage` and `.deb` on Linux):
+
+```bash
+npm -w @efes-ng/gui run build:mac    # or build:win, build:linux
+```
+
+The output appears in `packages/gui/dist/`.
+
+## Documentation
+
+See the [documentation site](https://olvidalo.github.io/efes-ng-prototype/) for the full guide, tutorial, and reference.
+
+## License
+
+Copyright (c) 2025-2026 CNRS / UMR 8167 Orient et Mediterranee
+
+Author: Marcel Schaeben
+
+The framework (pipeline engine, GUI, CLI) is licensed under the GNU Lesser General Public License v3 or later. See [LICENSE](LICENSE) for details.
+
+Project templates and scaffolded files (generated by `create-efes-ng`) are licensed under the MIT License. You may use, modify, and distribute them in your own projects without additional attribution requirements. See [packages/create-efes-ng/LICENSE](packages/create-efes-ng/LICENSE).

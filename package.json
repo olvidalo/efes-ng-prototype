@@ -5,7 +5,8 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm -w @efes-ng/core run build",
+    "build": "npm -w @efes-ng/search run build && npm -w @efes-ng/core run build && npm -w create-efes-ng run build",
+    "build:gui": "npm run build && npm -w @efes-ng/gui run build",
     "efes": "tsx packages/core/src/cli.ts",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
