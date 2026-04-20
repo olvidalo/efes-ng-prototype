@@ -5,6 +5,7 @@ export default withMermaid(
   defineConfig({
     title: 'EFES-NG Prototype',
     description: 'A modern pipeline-based framework for publishing EpiDoc/TEI XML as static websites',
+    base: process.env.DOCS_BASE || '/',
     themeConfig: {
       search: { provider: 'local', options: { detailedView: true } },
       outline: { level: [2, 3] },
@@ -52,6 +53,7 @@ export default withMermaid(
             items: [
               { text: 'What is EFES-NG?', link: '/' },
               { text: 'Getting Started', link: '/guide/getting-started' },
+              { text: 'Example Projects', link: '/guide/example-projects' },
             ],
           },
           {
@@ -68,6 +70,8 @@ export default withMermaid(
               { text: 'Project Structure', link: '/guide/project-structure' },
               { text: 'Static Site Generation', link: '/guide/static-site-generation' },
               { text: 'Multi-Language Architecture', link: '/guide/multi-language-architecture' },
+              { text: 'Design Decisions', link: '/guide/design-decisions' },
+              { text: 'Designing Sustainable Projects', link: '/guide/designing-sustainable-projects' },
               { text: 'Desktop Application', link: '/guide/gui' },
             ],
           },
@@ -88,6 +92,12 @@ export default withMermaid(
             text: 'Deployment',
             items: [
               { text: 'Publishing Your Site', link: '/guide/deployment' },
+            ],
+          },
+          {
+            text: 'Project Status',
+            items: [
+              { text: 'Limitations and Future Work', link: '/guide/limitations-and-future-work' },
             ],
           },
         ],
