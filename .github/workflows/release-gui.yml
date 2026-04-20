@@ -20,6 +20,12 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    # Redirect Electron and electron-builder downloads to a known cacheable
+    # path that is identical on all three runners.
+    env:
+      ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
+      ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,6 +34,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+
+      - name: Cache Electron and electron-builder downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.cache/electron
+            ${{ github.workspace }}/.cache/electron-builder
+          key: electron-${{ runner.os }}-${{ hashFiles('packages/gui/package.json', 'packages/gui/electron-builder.yml') }}
+          restore-keys: |
+            electron-${{ runner.os }}-
 
       - name: Install dependencies
         run: npm install
