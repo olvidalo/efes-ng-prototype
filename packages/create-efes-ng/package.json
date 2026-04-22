@@ -1,6 +1,6 @@
 {
   "name": "create-efes-ng",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Scaffold a new EFES-NG collection project",
   "bin": {
     "create-efes-ng": "./dist/cli.mjs"

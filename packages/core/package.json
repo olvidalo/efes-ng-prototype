@@ -1,6 +1,6 @@
 {
   "name": "@efes-ng/core",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "EFES-NG pipeline library and CLI for XSLT-based XML-to-HTML transformation",
   "exports": {
     ".": {
