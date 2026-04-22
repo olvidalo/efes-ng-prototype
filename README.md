@@ -1,6 +1,6 @@
 # EFES-NG Prototype
 
-A modern pipeline-based framework for publishing EpiDoc/TEI XML as static websites.
+A pipeline-based framework for publishing EpiDoc/TEI XML as static websites.
 
 ## Installing
 
