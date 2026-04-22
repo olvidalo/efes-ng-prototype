@@ -30,6 +30,12 @@ nsis:
   installerIcon: build/icon.ico
   uninstallerIcon: build/icon.ico
 mac:
+  # Universal binary: a single .dmg that runs natively on both Apple Silicon
+  # and Intel Macs. Doubles download size but spares users from picking the
+  # right architecture.
+  target:
+    - target: dmg
+      arch: universal
   # Ad-hoc signing: no Apple cert required, and `codesign` is built into
   # macOS so any mac contributor can build without extra setup. Apple Silicon
   # refuses to launch unsigned apps; ad-hoc satisfies that requirement.
