@@ -31,11 +31,12 @@ title: Search
             </span>
             <span class="efes-sort-label">Sort by</span>
             <efes-sort>
-                <field key="sortKey">Document ID</field>
+                <field key="sortKey">ID</field>
                 <field key="title">Title</field>
             </efes-sort>
         </div>
 
+        <!-- The template below is displayed for each search result -->
         {% set resultUrl = "/" + page.lang + "/inscriptions/{documentId}/" %}
         <efes-results result-url="{{ resultUrl | url }}">
             <template>

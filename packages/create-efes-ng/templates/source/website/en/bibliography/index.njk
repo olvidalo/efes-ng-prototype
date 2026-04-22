@@ -1,27 +1,21 @@
 ---
 layout: layouts/base.njk
-permalink: "{{ langCode }}/bibliography/index.html"
-pagination:
-    data: languages.codes
-    size: 1
-    alias: langCode
-eleventyComputed:
-    title: "{{ 'bibliography' | t }}"
+title: Bibliography
 ---
 
-<p class="entry-count-info">{{ indices.bibliography.entries | length }} {{ "bibliography" | t | lower }}</p>
+<p class="entry-count-info">{{ indices.bibliography.entries | length }} entries.</p>
 
 <table class="data-table index-table">
     <thead>
         <tr>
-            <th>{{ "shortCitation" | t }}</th>
-            <th>{{ "fullCitation" | t }}</th>
+            <th>Reference</th>
+            <th>Citation</th>
         </tr>
     </thead>
     <tbody>
     {% for entry in indices.bibliography.entries %}
         <tr>
-            <td><a href="/{{ page.lang }}/bibliography/{{ entry.bibRef[page.lang] }}/">{{ entry.shortCitation[page.lang] or entry.shortCitation.en or entry.bibRef[page.lang] or '-' }}</a></td>
+            <td><a href="/{{ page.lang }}/bibliography/{{ entry.bibRef[page.lang] or entry.bibRef.en }}/">{{ entry.shortCitation[page.lang] or entry.shortCitation.en or entry.bibRef[page.lang] or '-' }}</a></td>
             {% set fc = entry.fullCitation[page.lang] if entry.fullCitation[page.lang] else entry.fullCitation.en %}
             <td>
                 {%- if fc and fc.authors %}{{ fc.authors }}, {% endif %}

@@ -36,21 +36,27 @@
          ═══════════════════════════════════════════════ -->
 
     <xsl:template match="tei:TEI" mode="extract-metadata">
-        <!-- For multi-language: add <xsl:param name="language" tunnel="yes"/>
-             and use $language to select language-specific content -->
-        <!-- Title: first <title> in titleStmt, falls back to filename -->
-        <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
-        <title>
-            <xsl:choose>
-                <xsl:when test="string-length($tei-title) > 0">
-                    <xsl:value-of select="$tei-title"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="$filename"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </title>
+        <!-- For multi-language: uncomment <xsl:param name="language" tunnel="yes"/>
+                    and use $language to select language-specific content, e.g.,
+                       //tei:title[@xml:lang='$language'],
+                    or with a fallback to English:
+                       (//tei:title[@xml:lang='$language'], //tei:title[@xml:lang='en'])[1]
+                    or with a fallback to the first non-empty title in any language:
+                       (//tei:title[@xml:lang='$language'], //tei:title[.])[1]
 
+                    The [.] predicate in the above expression filters out any element
+                    where its content is empty or the empty string, such as:
+                    <tei:title/> or <tei:title></tei:title>
+               -->
+        <!-- This template is evaluated once per configured language ("languages"
+            xslt param, e.g. "en de"), with the $language tunnel param set to the
+            currently processed language on each pass. -->
+        <!-- <xsl:param name="language" tunnel="yes"/>-->
+
+        <!-- Title: first <title> in titleStmt, falls back to filename -->
+        <title><xsl:value-of select="(//tei:titleStmt/tei:title[1]/normalize-space(.)[.], $filename)[1]"/></title>
+
+        <!-- re-usable $sortKey variable defined at the top of this file -->
         <sortKey><xsl:value-of select="$sortKey"/></sortKey>
 
         <!-- Uncomment to add more page metadata fields:
@@ -69,7 +75,8 @@
     Uncomment the index definition, extraction template, and the
     apply-templates call in extract-all-entities below.
     Adapt the XPath in extract-persons to match your TEI encoding.
-
+    -->
+    <!--
     <idx:index id="persons" nav="indices" order="10">
         <idx:title>Persons</idx:title>
         <idx:description>Persons attested in the collection.</idx:description>
@@ -84,8 +91,18 @@
          EXTRACTION TEMPLATES
          Implement extract-{id} templates for each index.
 
+         Each template needs to return a sequence of <entity> elements with
+         the indexType attribute set to the index id it does the extraction
+         for, and child elements named after the column keys defined for the
+         index (except for the references column), e.g.,
+            <entity indexType="persons">
+                <name>Bardas</name>
+                <sortKey>bardas</sortKey>
+            </entity>
+
          Use xml:id on <entity> for cross-document merging.
-         For multi-language: add <xsl:param name="language" tunnel="yes"/>
+         For multi-language: add <xsl:param name="language" tunnel="yes"/> and
+         select by [@xml:lang=$language].
          ═══════════════════════════════════════════════ -->
 
     <!--
@@ -103,14 +120,22 @@
     <!--
     Example: Bibliography index
     Uncomment and add bibliography-file parameter to pipeline and stylesheet.
+   -->
 
+    <!--
     <idx:index id="bibliography" nav="bibliography" order="10">
         <idx:title>Bibliography</idx:title>
         <idx:description>Bibliographic references cited in the collection.</idx:description>
         <idx:columns>
-            <idx:column key="shortCitation"><idx:label>Citation</idx:label></idx:column>
-            <idx:column key="fullCitation"><idx:label>Full Citation</idx:label></idx:column>
-            <idx:column key="references" type="references"><idx:label>Documents</idx:label></idx:column>
+            <idx:column key="shortCitation">
+                <idx:label>Citation</idx:label>
+            </idx:column>
+            <idx:column key="fullCitation">
+                <idx:label>Full Citation</idx:label>
+            </idx:column>
+            <idx:column key="references" type="references">
+                <idx:label>Documents</idx:label>
+            </idx:column>
         </idx:columns>
     </idx:index>
 
@@ -161,8 +186,7 @@
 
     <xsl:template match="tei:TEI" mode="extract-search">
         <xsl:variable name="tei-title" select="normalize-space(//tei:titleStmt/tei:title[1])"/>
-        <title><xsl:value-of select="if (string-length($tei-title) > 0)
-            then $tei-title else $filename"/></title>
+        <title><xsl:value-of select="(//tei:titleStmt/tei:title[1]/normalize-space(.)[.], $filename)[1]"/></title>
         <sortKey><xsl:value-of select="$sortKey"/></sortKey>
         <material><xsl:value-of select="normalize-space(//tei:material)"/></material>
 

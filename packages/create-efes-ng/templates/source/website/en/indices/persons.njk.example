@@ -1,13 +1,3 @@
-{#
-  Example index page template for a "persons" index.
-
-  To use:
-  1. Rename this file to persons.njk
-  2. Uncomment the persons index definition and extraction template in metadata-config.xsl
-  3. Uncomment the aggregate-indices node in pipeline.xml
-  4. Update documentBasePath below to match where your document pages live
-     (e.g. "/" + page.lang + "/seals" or "/" + page.lang + "/inscriptions")
-#}
 ---
 layout: layouts/base.njk
 title: Persons
@@ -16,3 +6,15 @@ title: Persons
 {% set documentBasePath = "/" + page.lang + "/inscriptions" %}
 {% set indexData = indices.persons %}
 {% include "partials/index-table.njk" %}
+
+
+{#
+  Example index page template for a "persons" index.
+
+  To use:
+  1. Rename this file to persons.njk
+  2. Uncomment the persons index definition and extraction template in metadata-config.xsl
+  3. Uncomment the aggregate-indices node in pipeline.xml
+  4. Update documentBasePath above to match where your document pages live
+     (e.g. "/" + page.lang + "/seals" or "/" + page.lang + "/inscriptions")
+#}

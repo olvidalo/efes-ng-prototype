@@ -30,7 +30,7 @@ var require_worker_threads = __commonJS({
   }
 });
 
-// node_modules/.pnpm/flexsearch@0.8.212/node_modules/flexsearch/dist/flexsearch.bundle.module.min.mjs
+// ../../node_modules/flexsearch/dist/flexsearch.bundle.module.min.mjs
 var w;
 function H(a, c, b) {
   const e = typeof b, d = typeof a;

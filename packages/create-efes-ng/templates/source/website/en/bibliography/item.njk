@@ -1,0 +1,48 @@
+---
+layout: layouts/base.njk
+permalink: "/en/bibliography/{{ item.bibRef.en or item.bibRef }}/index.html"
+eleventyComputed:
+    title: "{{ item.shortCitation.en or item.shortCitation }}"
+pagination:
+    data: indices.bibliography.entries
+    size: 1
+    alias: item
+---
+{# Where citing-document links should point. Change "inscriptions" to match
+   your collection's URL structure (e.g. "seals" for sigillographic projects). #}
+{% set documentBasePath = "/" + page.lang + "/inscriptions" %}
+
+{% set fc = item.fullCitation[page.lang] if item.fullCitation[page.lang] else item.fullCitation.en %}
+{% if fc %}
+<p class="full-citation">
+    {%- if fc.authors %}{{ fc.authors }}, {% endif %}
+    {%- if fc.title %}<i>{{ fc.title }}</i>{% endif %}
+    {%- if fc.pubPlace %}, {{ fc.pubPlace }}{% endif %}
+    {%- if fc.publisher %}, {{ fc.publisher }}{% endif %}
+    {%- if fc.date %}, {{ fc.date }}{% endif -%}
+    .
+</p>
+{% endif %}
+
+<p><a href="/{{ page.lang }}/bibliography/">&larr; Back to bibliography</a></p>
+
+{% if item.references and item.references | length %}
+<table class="data-table index-table">
+    <thead>
+        <tr>
+            <th>Cited range</th>
+            <th>Documents</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ref in item.references %}
+        <tr>
+            <td>{{ ref.citedRange[page.lang] | default(ref.citedRange.en) | default('-') }}</td>
+            <td class="references">
+                <a href="{{ documentBasePath }}/{{ ref.documentId }}/"><strong>{{ ref.documentId }}</strong></a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}

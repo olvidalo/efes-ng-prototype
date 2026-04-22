@@ -20,6 +20,16 @@ module.exports = function (eleventyConfig) {
     eleventyConfig.addPlugin(HtmlBasePlugin);
     eleventyConfig.addFilter('t', createTranslationFilter());
 
+    // ── Index fallbacks ───────────────────────────
+    // Empty defaults for indices that may not be populated yet by the
+    // pipeline. Real data, e.g., from _data/indices/{name}.json (produced by
+    // aggregate-indices when the index is configured in metadata-config.xsl)
+    // overrides these via the data cascade. Keeps the build working for
+    // templates that are scaffolded but not yet wired up.
+    eleventyConfig.addGlobalData('indices', {
+        bibliography: { entries: [] },
+    });
+
     return {
         pathPrefix: process.env.PATH_PREFIX || '/',
     };
