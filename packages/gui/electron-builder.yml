@@ -30,12 +30,10 @@ nsis:
   installerIcon: build/icon.ico
   uninstallerIcon: build/icon.ico
 mac:
-  # Universal binary: a single .dmg that runs natively on both Apple Silicon
-  # and Intel Macs. Doubles download size but spares users from picking the
-  # right architecture.
-  target:
-    - target: dmg
-      arch: universal
+  # Build for the host architecture. CI runs both macos-latest (arm64) and
+  # macos-13 (x64) so we publish two DMGs. We don't use a universal binary
+  # because `tsx` is a runtime dep and ships per-arch esbuild binaries that
+  # the universal merger can't reconcile from a single-arch pnpm install.
   # Ad-hoc signing: no Apple cert required, and `codesign` is built into
   # macOS so any mac contributor can build without extra setup. Apple Silicon
   # refuses to launch unsigned apps; ad-hoc satisfies that requirement.
@@ -51,7 +49,9 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
 dmg:
-  artifactName: ${productName}-${version}.${ext}
+  # ${arch} included so the arm64 and x64 builds (uploaded together by CI)
+  # don't overwrite each other in the release.
+  artifactName: ${productName}-${version}-${arch}.${ext}
 linux:
   target:
     - AppImage

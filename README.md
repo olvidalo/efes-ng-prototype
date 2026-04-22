@@ -8,11 +8,12 @@ Download the desktop application for your platform from the [Releases page](http
 
 ### macOS
 
-1. Download the `.dmg` file.
+1. Pick the right `.dmg` for your Mac:
+   - `…-arm64.dmg` for Apple Silicon (M1, M2, M3, M4, ...)
+   - `…-x64.dmg` for Intel Macs
+   If you're not sure, click  > About This Mac. Apple Silicon shows "Chip", Intel shows "Processor".
 2. Open the DMG and drag **EFES-NG Prototype** to your Applications folder.
 3. **First launch:** right-click the app in Applications and choose **Open**, then **Open** again in the dialog that appears. The app is ad-hoc signed, so Gatekeeper warns the first time. After this, you can launch it normally from the Dock or Launchpad.
-
-> **Note:** Builds are currently produced for Apple Silicon (arm64) only. On an Intel Mac, [build from source](#building-from-source).
 
 ### Windows
 

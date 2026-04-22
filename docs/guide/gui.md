@@ -4,7 +4,7 @@ The EFES-NG Prototype includes an Electron-based desktop application for managin
 
 ![](images/gui-screenshot.png)
 
-> Download the latest version of the EFES-NG Prototype desktop application from [here](https://github.com/olvidalo/efes-ng-prototype/releases) by expanding *Assets* and choosing the installer for your operating system (`-setup.exe` for Windows, `.dmg` for Mac, `.AppImage` or `.deb` for Linux). See the GitHub repository's [`README`](https://github.com/olvidalo/efes-ng-prototype#installing) for complete instructions.
+> Download the latest version of the EFES-NG Prototype desktop application from [here](https://github.com/olvidalo/efes-ng-prototype/releases) by expanding *Assets* and choosing the installer for your operating system (`-setup.exe` for Windows, `.dmg` for Mac, `.AppImage` or `.deb` for Linux). On Mac, pick the `…-arm64.dmg` for Apple Silicon (M1, M2, M3, M4, ...) or `…-x64.dmg` for Intel Macs (check  > About This Mac if unsure). See the GitHub repository's [`README`](https://github.com/olvidalo/efes-ng-prototype#installing) for complete instructions.
 
 ## Creating a New Project
 

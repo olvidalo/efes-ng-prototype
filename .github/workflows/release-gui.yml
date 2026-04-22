@@ -11,12 +11,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Apple Silicon (M-series): macos-latest is arm64 since 2024.
           - os: macos-latest
             platform: mac
+            artifact: mac-arm64
+          # Intel: macos-13 is the last x64 image GitHub provides.
+          - os: macos-13
+            platform: mac
+            artifact: mac-x64
           - os: windows-latest
             platform: win
+            artifact: win
           - os: ubuntu-latest
             platform: linux
+            artifact: linux
 
     runs-on: ${{ matrix.os }}
 
@@ -58,7 +66,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: efes-ng-${{ matrix.platform }}
+          name: efes-ng-${{ matrix.artifact }}
           path: |
             packages/gui/dist/*.dmg
             packages/gui/dist/*.zip
@@ -85,6 +93,7 @@ jobs:
           draft: true
           generate_release_notes: true
           files: |
-            artifacts/efes-ng-mac/*
+            artifacts/efes-ng-mac-arm64/*
+            artifacts/efes-ng-mac-x64/*
             artifacts/efes-ng-win/*
             artifacts/efes-ng-linux/*
