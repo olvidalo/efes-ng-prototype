@@ -5,11 +5,12 @@
  *        npx create-efes-ng
  */
 import * as clack from '@clack/prompts';
-import { scaffold, scaffoldQuestions, type ScaffoldAnswers } from './index';
+import { scaffold, getScaffoldQuestions, type ScaffoldAnswers } from './index';
 
 async function main() {
     clack.intro('Create a new EFES-NG project');
 
+    const scaffoldQuestions = await getScaffoldQuestions();
     const answers: Record<string, string> = {};
 
     for (const question of scaffoldQuestions) {

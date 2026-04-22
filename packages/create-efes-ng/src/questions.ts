@@ -4,6 +4,7 @@
  * Each question defines what to ask. The rendering (terminal prompts
  * or dialog inputs) is handled by the consumer.
  */
+import { resolveGitIdentity } from './gitIdentity';
 
 export interface ScaffoldQuestionBase {
     id: string
@@ -34,8 +35,10 @@ export type ScaffoldQuestion = TextQuestion | ConfirmQuestion | SelectQuestion
 export interface ScaffoldAnswers {
     projectName: string
     projectSlug: string
-    initGit: string       // 'true' | 'false'
-    stylesheets: string   // 'epidoc' | 'sigidoc' | 'custom' | 'none'
+    initGit: string             // 'true' | 'false'
+    gitAuthorName?: string      // required when initGit === 'true'
+    gitAuthorEmail?: string     // required when initGit === 'true'
+    stylesheets: string         // 'epidoc' | 'sigidoc' | 'custom' | 'none'
     stylesheetRepo?: string
 }
 
@@ -51,54 +54,81 @@ export const STYLESHEET_REPOS: Record<string, { url: string; dir: string }> = {
     sigidoc: { url: 'https://github.com/SigiDoc/Stylesheets', dir: 'sigidoc' },
 }
 
-export const scaffoldQuestions: ScaffoldQuestion[] = [
-    {
-        id: 'projectName',
-        label: 'Project Name',
-        type: 'text',
-        placeholder: 'Inscriptions of My Collection',
-        validate: (v) => v.trim() ? undefined : 'Project name is required',
-    },
-    {
-        id: 'projectSlug',
-        label: 'Project Directory',
-        type: 'text',
-        placeholder: 'my-collection',
-        defaultValue: (answers) => slugify(answers.projectName || ''),
-        validate: (v) => {
-            if (!v.trim()) return 'Directory name is required'
-            if (!/^[a-z0-9][a-z0-9-]*$/.test(v)) return 'Use lowercase letters, numbers, and hyphens only'
-            return undefined
+/**
+ * Build the question list. Async because git-author defaults are read
+ * from `~/.gitconfig` (with OS-derived fallbacks).
+ */
+export async function getScaffoldQuestions(): Promise<ScaffoldQuestion[]> {
+    const identity = await resolveGitIdentity();
+    return [
+        {
+            id: 'projectName',
+            label: 'Project Name',
+            type: 'text',
+            placeholder: 'Inscriptions of My Collection',
+            validate: (v) => v.trim() ? undefined : 'Project name is required',
         },
-    },
-    {
-        id: 'stylesheets',
-        label: 'Inscription/seal stylesheets',
-        type: 'select',
-        options: [
-            { value: 'epidoc', label: 'EpiDoc (github.com/EpiDoc/Stylesheets)' },
-            { value: 'sigidoc', label: 'SigiDoc (github.com/SigiDoc/Stylesheets)' },
-            { value: 'custom', label: 'Custom repository' },
-            { value: 'none', label: 'None (add later)' },
-        ],
-        defaultValue: 'epidoc',
-    },
-    {
-        id: 'stylesheetRepo',
-        label: 'Stylesheet repository URL',
-        type: 'text',
-        placeholder: 'https://github.com/org/stylesheets',
-        condition: (answers) => answers.stylesheets === 'custom',
-        validate: (v) => {
-            if (!v.trim()) return 'Repository URL is required'
-            if (!v.startsWith('https://')) return 'URL must start with https://'
-            return undefined
+        {
+            id: 'projectSlug',
+            label: 'Project Directory',
+            type: 'text',
+            placeholder: 'my-collection',
+            defaultValue: (answers) => slugify(answers.projectName || ''),
+            validate: (v) => {
+                if (!v.trim()) return 'Directory name is required'
+                if (!/^[a-z0-9][a-z0-9-]*$/.test(v)) return 'Use lowercase letters, numbers, and hyphens only'
+                return undefined
+            },
         },
-    },
-    {
-        id: 'initGit',
-        label: 'Initialize git repository?',
-        type: 'confirm',
-        defaultValue: true,
-    },
-]
+        {
+            id: 'stylesheets',
+            label: 'Inscription/seal stylesheets',
+            type: 'select',
+            options: [
+                { value: 'epidoc', label: 'EpiDoc (github.com/EpiDoc/Stylesheets)' },
+                { value: 'sigidoc', label: 'SigiDoc (github.com/SigiDoc/Stylesheets)' },
+                { value: 'custom', label: 'Custom repository' },
+                { value: 'none', label: 'None (add later)' },
+            ],
+            defaultValue: 'epidoc',
+        },
+        {
+            id: 'stylesheetRepo',
+            label: 'Stylesheet repository URL',
+            type: 'text',
+            placeholder: 'https://github.com/org/stylesheets',
+            condition: (answers) => answers.stylesheets === 'custom',
+            validate: (v) => {
+                if (!v.trim()) return 'Repository URL is required'
+                if (!v.startsWith('https://')) return 'URL must start with https://'
+                return undefined
+            },
+        },
+        {
+            id: 'initGit',
+            label: 'Initialize git repository?',
+            type: 'confirm',
+            defaultValue: true,
+        },
+        {
+            id: 'gitAuthorName',
+            label: 'Git author name',
+            type: 'text',
+            defaultValue: identity.name,
+            condition: (answers) => answers.initGit === 'true',
+            validate: (v) => v.trim() ? undefined : 'Author name is required',
+        },
+        {
+            id: 'gitAuthorEmail',
+            label: 'Git author email',
+            type: 'text',
+            defaultValue: identity.email,
+            condition: (answers) => answers.initGit === 'true',
+            validate: (v) => {
+                if (!v.trim()) return 'Author email is required'
+                if (!/^\S+@\S+$/.test(v.trim())) return 'Enter a valid email address'
+                return undefined
+            },
+        },
+    ]
+}

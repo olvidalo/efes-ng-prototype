@@ -10,9 +10,10 @@ import ejs from 'ejs';
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node';
 
-export { scaffoldQuestions, slugify, STYLESHEET_REPOS } from './questions';
+export { getScaffoldQuestions, slugify, STYLESHEET_REPOS } from './questions';
 export type { ScaffoldAnswers, ScaffoldQuestion, TextQuestion, ConfirmQuestion, SelectQuestion } from './questions';
 import { STYLESHEET_REPOS } from './questions';
+import { registerAsSubmodule, commitInitialSnapshot } from './submoduleWorkaround';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -29,7 +30,15 @@ export interface ScaffoldProgress {
  */
 export async function scaffold(
     outputDir: string,
-    answers: { projectName: string; projectSlug: string; initGit?: string; stylesheets?: string; stylesheetRepo?: string },
+    answers: {
+        projectName: string;
+        projectSlug: string;
+        initGit?: string;
+        gitAuthorName?: string;
+        gitAuthorEmail?: string;
+        stylesheets?: string;
+        stylesheetRepo?: string;
+    },
     progress?: ScaffoldProgress
 ): Promise<string> {
     const log = progress?.onStatus ?? (() => {});
@@ -72,16 +81,18 @@ export async function scaffold(
     // 3. Init git if requested and not already in one
     if (wantGit && !inGitRepo) {
         log('Initializing git repository...');
-        await git.init({ fs: fsSync, dir: projectDir });
+        await git.init({ fs: fsSync, dir: projectDir, defaultBranch: 'main' });
     }
 
-    // 4. Clone stylesheets
+    // 4. Clone stylesheets, optionally registering them as a submodule.
+    let submodulePath: string | undefined;
     if (stylesheetChoice !== 'none') {
         const repoUrl = stylesheetChoice === 'custom'
             ? answers.stylesheetRepo!
             : STYLESHEET_REPOS[stylesheetChoice].url;
 
-        const targetDir = path.join(projectDir, 'source/stylesheets', stylesheetDir);
+        submodulePath = path.posix.join('source/stylesheets', stylesheetDir);
+        const targetDir = path.join(projectDir, ...submodulePath.split('/'));
 
         log(`Cloning stylesheets from ${repoUrl}...`);
         await git.clone({
@@ -93,22 +104,34 @@ export async function scaffold(
             singleBranch: true,
         });
 
-        // If user doesn't want git, remove .git from cloned stylesheets
-        if (!wantGit) {
+        if (wantGit && !inGitRepo) {
+            // We initialized the outer .git ourselves, so we can wire the
+            // clone in as a proper submodule. See ./submoduleWorkaround.ts
+            // for why this is implemented by hand rather than via
+            // `git submodule add`.
+            log('Registering stylesheets as a git submodule...');
+            await registerAsSubmodule(projectDir, submodulePath, repoUrl);
+        } else {
+            // No outer-git ownership (either no git at all, or scaffolding
+            // inside an existing repo whose .git we should not touch). Vendor
+            // the stylesheets by dropping the cloned .git, so they appear as
+            // ordinary files in whatever repo (if any) holds the project.
             await fs.rm(path.join(targetDir, '.git'), { recursive: true, force: true });
+            submodulePath = undefined;
         }
     }
 
-    // 5. Initial commit if git was initialized
+    // 5. Initial commit (when we own the outer .git).
     if (wantGit && !inGitRepo) {
+        if (!answers.gitAuthorName || !answers.gitAuthorEmail) {
+            throw new Error('gitAuthorName and gitAuthorEmail are required when initGit is enabled');
+        }
         log('Creating initial commit...');
-        await git.add({ fs: fsSync, dir: projectDir, filepath: '.' });
-        await git.commit({
-            fs: fsSync,
-            dir: projectDir,
-            message: 'Initial scaffold from create-efes-ng',
-            author: { name: 'EFES-NG', email: 'noreply@efes-ng.dev' },
-        });
+        await commitInitialSnapshot(
+            projectDir,
+            { name: answers.gitAuthorName, email: answers.gitAuthorEmail },
+            submodulePath,
+        );
     }
 
     return projectDir;
@@ -136,9 +159,13 @@ async function copyTemplateDir(
 
     for (const entry of entries) {
         const srcPath = path.join(srcDir, entry.name);
-        const destName = entry.name.endsWith('.ejs')
-            ? entry.name.slice(0, -4)
-            : entry.name;
+        // project.xpr.ejs is renamed to <projectSlug>.xpr so Oxygen's Recent
+        // Projects list and window title show a meaningful name.
+        const destName = entry.name === 'project.xpr.ejs'
+            ? `${data.projectSlug}.xpr`
+            : entry.name.endsWith('.ejs')
+                ? entry.name.slice(0, -4)
+                : entry.name;
         const destPath = path.join(destDir, destName);
 
         if (entry.name === '.gitkeep') continue;

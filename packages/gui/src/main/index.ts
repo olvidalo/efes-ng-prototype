@@ -99,7 +99,8 @@ ipcMain.handle('pipeline:export', async (_e, exportDir: string, pathPrefix: stri
 // --- Scaffold handlers ---
 
 ipcMain.handle('scaffold:get-questions', async () => {
-  const { scaffoldQuestions } = await import('create-efes-ng')
+  const { getScaffoldQuestions } = await import('create-efes-ng')
+  const scaffoldQuestions = await getScaffoldQuestions()
   return scaffoldQuestions.map((q) => ({
     id: q.id,
     label: q.label,
@@ -121,7 +122,8 @@ ipcMain.handle('scaffold:get-questions', async () => {
 })
 
 ipcMain.handle('scaffold:compute-defaults', async (_e, answers: Record<string, string>) => {
-  const { scaffoldQuestions } = await import('create-efes-ng')
+  const { getScaffoldQuestions } = await import('create-efes-ng')
+  const scaffoldQuestions = await getScaffoldQuestions()
   const defaults: Record<string, string> = {}
   for (const q of scaffoldQuestions) {
     if (typeof q.defaultValue === 'function') {
@@ -132,7 +134,8 @@ ipcMain.handle('scaffold:compute-defaults', async (_e, answers: Record<string, s
 })
 
 ipcMain.handle('scaffold:validate', async (_e, answers: Record<string, string>) => {
-  const { scaffoldQuestions } = await import('create-efes-ng')
+  const { getScaffoldQuestions } = await import('create-efes-ng')
+  const scaffoldQuestions = await getScaffoldQuestions()
   const errors: Record<string, string> = {}
   for (const q of scaffoldQuestions) {
     if ('validate' in q && q.validate) {
