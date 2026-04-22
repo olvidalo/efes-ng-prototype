@@ -25,6 +25,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history needed so VitePress can read per-file last-updated
+          # timestamps from git for each .md page.
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

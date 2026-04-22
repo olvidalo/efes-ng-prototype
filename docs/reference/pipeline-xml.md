@@ -5,7 +5,10 @@ The pipeline definition file (`pipeline.xml`) describes the processing graph for
 ## Root Element
 
 ```xml
-<pipeline name="Project Name">
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="efes-ng.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="efes-ng.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<pipeline xmlns="urn:efes-ng:pipeline" name="Project Name">
   <meta siteDir="_output"/>
   <!-- nodes -->
 </pipeline>
@@ -19,7 +22,7 @@ The pipeline definition file (`pipeline.xml`) describes the processing graph for
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
-| `siteDir` | Yes | Directory containing the final site output — used by the live preview server |
+| `siteDir` | Yes | Directory containing the final site output, used by the live preview server |
 
 ## Output Configuration
 
@@ -40,7 +43,7 @@ Most nodes accept an `<output>` element to control where results are written:
 | `filename` | Use a fixed output filename (for single-file outputs) |
 
 > [!tip]
-> If all consumers reference this node via `<from>`, you don't need `<output>` — the node writes to its default build directory (`.efes-build/{nodeName}/`).
+> If all consumers reference this node via `<from>`, you don't need `<output>`. The node writes to its default build directory (`.efes-build/{nodeName}/`).
 
 ## Common Patterns
 

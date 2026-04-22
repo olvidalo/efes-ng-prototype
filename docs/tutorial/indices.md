@@ -8,7 +8,7 @@ An index configuration has three parts:
 
 1. **Definition**: in `metadata-config.xsl`, an `<idx:index>` block declares the index (its ID, title, and column layout)
 2. **Extraction**: an XSLT template finds the relevant entities in each XML source file and outputs `<entity>` elements
-3. **Aggregation**: a pipeline node combines all extracted entities across documents into a single JSON file
+3. **Aggregation**: a pipeline node combines all extracted entities across documents into a single JSON file that can be read by Eleventy
 
 The data flows like this:
 
@@ -28,7 +28,10 @@ flowchart LR
 
 We already have the extraction step (`extract-epidoc-metadata`), but its `<entities>` section was empty because we hadn't defined any indices yet. Let's fix that.
 
-## Adding a Persons Index
+> [!tip] See also
+> This page walks through one specific index for the Feind project. For the broader picture, including the `<idx:index>` schema, the three hook templates, multilingual handling, and entity merging across documents, see the [Metadata Configuration](/guide/metadata-config) guide.
+
+## Step 1: Adding a Persons Index
 
 > [!info] We're working with: XSLT Index Configuration (source/metadata-config.xsl)
 
@@ -36,21 +39,28 @@ Open `source/metadata-config.xsl`. The scaffold includes a commented-out persons
 
 ### Define the Index
 
-Find the commented-out `<idx:index id="persons">` block and uncomment it. We'll also add a surname column, since the scaffold only has a generic `name` column but our SigiDoc seals have separate forenames and surnames:
+Find the commented-out `<idx:index id="persons">` block and uncomment it. We'll also rename *Name* to *Forname* add a *Surname* column, since the scaffold only has a generic *Name* column but our SigiDoc seals have separate forenames and surnames:
 
 ```xml
-<idx:index id="persons" title="Persons" nav="indices" order="10">
+<!-- [!code word:Forename] -->
+<!-- [!code word:forename] -->
+<!-- [!code word:Surname] -->
+<!-- [!code word:surname] -->
+<idx:index id="persons" nav="indices" order="10">
+    <idx:title>Persons</idx:title>
     <idx:description>Persons attested in the collection.</idx:description>
     <idx:columns>
-        <idx:column key="forename">Forename</idx:column>
-        <idx:column key="surname">Surname</idx:column>
-        <idx:column key="references" type="references">Seals</idx:column>
+        <idx:column key="forename"><idx:label>Forename</idx:label></idx:column> <!-- [!code highlight] -->
+        <idx:column key="surname"><idx:label>Surname</idx:label></idx:column><!-- [!code highlight] -->
+        <idx:column key="references" type="references"><idx:label>Seals</idx:label></idx:column>
     </idx:columns>
 </idx:index>
 ```
 
-This declares an index called "Persons" with three columns. Each `<idx:column>` has a `key` attribute (matching a field name in the extracted entity data) and a text content that becomes the column header. The `type="references"` tells the template to render the column as clickable links to seal pages.
+This declares an index called "Persons" with three columns. Each `<idx:column>` has a `key` attribute (matching a field name in the extracted entity data) and an `<idx:label>` that becomes the column header. The `type="references"` tells the template to render the column as clickable links to seal pages.
 
+::: tip Make sure you have adapted the both column `key` attribute as well as the `idx:label`for the *Name* to *Forename* change. 
+:::
 ### Adapt the Extraction Template
 
 Uncomment the `extract-persons` template below the index definition. The scaffold provides a generic version that extracts all `<tei:persName>` elements:
@@ -68,14 +78,35 @@ Uncomment the `extract-persons` template below the index definition. The scaffol
 </xsl:template>
 ```
 
-This works as a starting point, but for our SigiDoc project the person encoding is more specific: seal issuers are in `<listPerson type="issuer">` with separate forename and surname elements in multiple languages. Let's adapt it:
+This works as a starting point, but for our SigiDoc project the person encoding is more specific: seal issuers are in `<listPerson type="issuer">` with separate forename and surname elements in multiple languages:
+
+```xml
+<listPerson type="issuer">  
+	<person role="private" gender="M">  
+		<persName xml:lang="en">  
+			<forename>Manouel</forename>  
+			<surname>Mandromenos</surname>  
+		</persName>  
+		<persName xml:lang="de">  
+			<forename>Manouel</forename>  
+			<surname>Mandromenos</surname>  
+		</persName>  
+		<persName xml:lang="el">  
+			<forename>Μανουήλ</forename>  
+			<surname>Μανδρομηνοός</surname>  
+		</persName>  
+	</person>  
+</listPerson>
+```
+
+Let's adapt the extraction template accordingly (you can copy and paste it into your `metadata-config.xsl`, replacing the original `extract-persons` template):
 
 ```xml
 <!-- Adapted for SigiDoc seal issuers -->
 <xsl:template match="tei:TEI" mode="extract-persons">
     <xsl:param name="language" tunnel="yes"/>
     <xsl:for-each select=".//tei:listPerson[@type='issuer']/tei:person">
-        <xsl:variable name="name" select="(tei:persName[@xml:lang=$language], tei:persName)[1]"/>
+        <xsl:variable name="name" select="(tei:persName[@xml:lang='en'], tei:persName)[1]"/>
         <xsl:variable name="forename" select="normalize-space($name/tei:forename)"/>
         <xsl:variable name="surname" select="normalize-space($name/tei:surname)"/>
         <xsl:if test="$forename or $surname">
@@ -90,12 +121,12 @@ This works as a starting point, but for our SigiDoc project the person encoding 
 ```
 
 The key differences from the scaffold version:
-- We target `tei:listPerson[@type='issuer']` instead of all `tei:persName`
+- We target `tei:listPerson[@type='issuer']` instead of all `tei:persName
+- We target the English-language  `tei:persName` elements by selecting for `[@xml:lang='en']
 - We extract `forename` and `surname` as separate fields (matching our column definitions)
-- The framework calls this template once per language, passing `$language` as a tunnel param. `@xml:lang=$language` picks the name in the current language, falling back to any available name
 - The `sortKey` combines forename and surname for alphabetical ordering
 
-Each `<entity>` must have:
+Each returned `<entity>` must have:
 - **`indexType`** matching the index ID (`"persons"`)
 - **Fields matching the column keys**: here `forename` and `surname`
 - **`sortKey`** for ordering
@@ -104,7 +135,7 @@ The framework auto-stamps `xml:lang` on your output fields, merges entities acro
 
 ### Register the Extraction
 
-Find the `extract-all-entities` template and uncomment the `apply-templates` line:
+Find the `extract-all-entities` template further down in `extract-metadata.xsl` and uncomment the `apply-templates` line:
 
 ```xml
 <xsl:template match="tei:TEI" mode="extract-all-entities">
@@ -116,7 +147,7 @@ This tells the metadata extraction to run your persons template for each documen
 
 ### Verify the Extraction
 
-Rebuild and inspect a metadata XML file (click the **folder icon** next to `extract-epidoc-metadata`). The `<entities>` section that was empty before should now contain person data:
+After the pipeline rebuild, inspect a metadata XML file (click the **folder icon** next to `extract-epidoc-metadata`), or test the metadata extraction in Oxygen. The `<entities>` section that was empty before should now contain person data. The extraction template we wrote above returned one `entity` element with `type="persons"`for each seal issuer.
 
 ```xml
 <entities>
@@ -126,17 +157,18 @@ Rebuild and inspect a metadata XML file (click the **folder icon** next to `extr
             <surname xml:lang="en">Mandromenos</surname>
             <sortKey xml:lang="en">manouel mandromenos</sortKey>
         </entity>
+        <!-- ... -->
     </persons>
 </entities>
 ```
 
-## Adding the Aggregation Node
+## Step 2: Adding the Aggregation Node
 
 > [!info] We're switching to: Pipeline Configuration (pipeline.xml)
 
 The extraction produces per-document entity data, but the index page needs all persons combined into one table. The `aggregate-indices` node does this.
 
-Uncomment it in `pipeline.xml`:
+Uncomment it in `pipeline.xml`, you can leave everything as is:
 
 ```xml
 <xsltTransform name="aggregate-indices">
@@ -158,12 +190,12 @@ Uncomment it in `pipeline.xml`:
 
 This node is different from the ones we've seen before:
 
-- **`metadata-files`**: passes all the metadata XML files from `extract-epidoc-metadata` as a parameter to the stylesheet. This is how the aggregation gets access to entity data from every document at once
-- **`metadata-config`**: passes your `metadata-config.xsl` so the aggregation knows which indices are defined and how their columns are structured
-- **`<initialTemplate>`**: instead of processing input files one by one, this node calls a named template (`aggregate`) that processes all metadata files at once to produce combined output
-- **`<output filename="_summary.json">`**: produces a single file rather than one per input. The aggregation stylesheet also produces individual JSON files for each index (e.g., `persons.json`) alongside the summary
+* Instead of using `<sourceFiles>` for processing input files one by one, this node uses **`<initialTemplate>`** to call a named template (`aggregate`) that processes all metadata files at once to produce combined output.
+- The **`metadata-files`**: XSL parameter passes all the metadata XML files from `extract-epidoc-metadata` as a parameter to the stylesheet. This is how the aggregation gets access to entity data from every document at once. It uses `<from>` to read the metadata files produced by the `extract-epidoc-metadata` node.
+- The **`metadata-config`** XSLT parameter passes your `metadata-config.xsl` so the `aggregate-indices.xsl` stylesheet knows which indices are defined and how their columns are structured
+- **`<output filename="_summary.json">`** produces a single file rather than one per input. The aggregation stylesheet also produces individual JSON files for each index (e.g., `persons.json`) alongside the summary
 
-### How Does Eleventy Know to Wait?
+::: info How Does Eleventy Know to Wait?
 
 You might wonder: we didn't add a `<from>` dependency between `aggregate-indices` and `eleventy-build`. How does the Eleventy build know to wait for the index data?
 
@@ -177,7 +209,7 @@ Look at the `eleventyBuild` node's configuration:
 ```
 
 Back in [Exploring the Project](./explore-project), we mentioned that `<collect>` would be explained later. Here's how it works. The `<collect>` element creates an implicit dependency on *all* nodes that write files into the specified directory. Since `aggregate-indices` writes to `_assembly/_data/indices/`, and `transform-epidoc` writes to `_assembly/en/seals/`, and `copy-eleventy-site` writes to `_assembly/`, this single `<collect>` ensures the Eleventy build waits for all of them to finish, without you having to list every dependency explicitly.
-
+:::
 ### Inspecting the Aggregated Data
 
 Rebuild and open the output directory for `aggregate-indices` (click the **folder icon**). You'll find two kinds of files:
@@ -197,7 +229,7 @@ Rebuild and open the output directory for `aggregate-indices` (click the **folde
 }
 ```
 
-The indices landing page (`en/indices/index.njk`) reads this file to show an overview card for each index.
+The indices landing page (`source/website/en/indices/index.njk`) reads this file to show an overview card for each index.
 
 **`persons.json`**: the full data for the persons index. You might wonder how this file got here. The pipeline only specifies `_summary.json` as the output filename. The aggregation stylesheet uses an XSLT feature called `xsl:result-document` to write additional files alongside the primary output. For each index it defines, it produces a separate JSON file. The file names are derived from the index IDs in your `metadata-config.xsl`.
 
@@ -231,32 +263,46 @@ Notice how the aggregation grouped all occurrences of each person across documen
 Eleventy has a special convention: any JSON file in a `_data/` directory is automatically loaded and made available to templates. The directory structure becomes the property path, so files in `_data/indices/` become properties of `indices`. So `_data/indices/persons.json` is available as `indices.persons`, and `_data/indices/_summary.json` as `indices._summary`. That's why the index page template can simply write `{% set indexData = indices.persons %}`, no configuration needed.
 :::
 
-## Creating the Index Page
+## Step 3: Creating the Index Page
 
 > [!info] We're switching to: Website Templates (source/website/)
 
-The indices landing page (`en/indices/index.njk`) already exists and will automatically show your new index as a card. But we need a page to display the actual persons table.
+The indices landing page (`source/website/en/indices/index.njk`) already exists and will automatically show your new index as a card. But we need a page to display the actual persons table.
 
-The scaffold includes an example template for this. Rename `source/website/en/indices/persons.njk.example` to `persons.njk`, then update the `documentBasePath` to point to our seals:
+The scaffold includes an example template for this. Rename `source/website/en/indices/persons.njk.example` to `persons.njk`.
 
-```html
+![](images/indices-rename-persons-template.png)
+
+Then update the `documentBasePath` to point to our seals instead of `/en/inscriptions`:
+
+```njk
 ---
 layout: layouts/base.njk
 title: Persons
 ---
-
-{% set documentBasePath = "/en/seals" %}
-{% set indexData = indices.persons %}
+<!-- [!code word:seals] -->
+{% set documentBasePath = "/" + page.lang + "/seals" %} <!-- [!code highlight] -->
+{% set indexData = indices.persons %}  
 {% include "partials/index-table.njk" %}
 ```
 
-The template is short because the heavy lifting is done by the shared `index-table.njk` partial. It reads the `persons.json` data and renders the table with the columns we defined in the index definition.
+The template is short because the heavy lifting is done by the shared `source/website/_includes/partials/index-table.njk` partial. It reads the `persons.json` data and renders the table with the columns we defined in the index definition.
 
 The `documentBasePath` variable tells the template where your seal pages live, so the reference links point to the right URLs (e.g., `/en/seals/Feind_Kr1/`).
 
 ## See It Work
 
-Rebuild and navigate to the Indices page. You should see a "Persons" card with an entry count. Click it to see the full table: person names with links to the seals they appear on.
+After the pipeline rebuilt, switch to the preview and navigate your browser to `🌎 /en/indices/` (or click the *Indices* main menu entry, and notice that a *Persons* entry has been added to the drop down menu that appears when hovering it):
+
+![](images/indices-menu.png)
+
+On the *Indices* landing page, you should see a "Persons" card with an entry count:
+![](images/indices-landing-page.png)
+
+Click it to see the full table at `🌎 /en/indices/persons/`: 
+
+![](images/indices-persons.png)
+
 
 > [!tip] Adding More Indices
 > To add another index (places, dignities, offices, etc.), repeat the pattern:
@@ -274,13 +320,14 @@ The persons index shows transliterated names ("Basileios Apokapes"), but the Sig
 First, add the column to the index definition in `metadata-config.xsl`:
 
 ```xml
-<idx:index id="persons" title="Persons" nav="indices" order="10">
+<idx:index id="persons" nav="indices" order="10">
+    <idx:title>Persons</idx:title>
     <idx:description>Persons attested in the collection.</idx:description>
     <idx:columns>
-        <idx:column key="forename">Forename</idx:column>
-        <idx:column key="surname">Surname</idx:column>
-        <idx:column key="greekName">Greek</idx:column>
-        <idx:column key="references" type="references">Seals</idx:column>
+        <idx:column key="forename"><idx:label>Forename</idx:label></idx:column>
+        <idx:column key="surname"><idx:label>Surname</idx:label></idx:column>
+        <idx:column key="greekName"><idx:label>Greek</idx:label></idx:column>
+        <idx:column key="references" type="references"><idx:label>Seals</idx:label></idx:column>
     </idx:columns>
 </idx:index>
 ```
@@ -324,6 +371,7 @@ flowchart TD
   idxjson(["_data/indices/*.json"])
   site(["templates, CSS, ..."])
   output(["_output/"])
+  assembly(["_assembly/"])
 
   seals --> prune --> pruned
   seals --> extract --> meta
@@ -332,10 +380,11 @@ flowchart TD
   meta --> agg --> idxjson
   templates --> copy --> site
 
-  html --> build
-  json --> build
-  idxjson --> build
-  site --> build
+  html --> assembly
+  json --> assembly
+  idxjson --> assembly
+  site --> assembly
+  assembly --> build
   build --> output
 
   style seals fill:#f5f5f5,stroke:#999
@@ -347,10 +396,11 @@ flowchart TD
   style idxjson fill:#e8f5e9,stroke:#4caf50
   style site fill:#e8f5e9,stroke:#4caf50
   style output fill:#fff3e0,stroke:#ff9800
+  style assembly fill:#fff3e0,stroke:#ff9800
   style agg stroke:#2563eb,stroke-width:3px
   style idxjson stroke:#2563eb,stroke-width:2px
 ```
 
 The `aggregate-indices` node (highlighted in blue) is new in this step. It reads the metadata we already extract and produces index JSON files that Eleventy renders as browsable tables.
 
-Next, let's make the content searchable. [Search →](./search)
+Next, let's make the seals searchable. [Search →](./search)

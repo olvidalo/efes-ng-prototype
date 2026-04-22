@@ -1,11 +1,26 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
+import { createRequire } from 'node:module'
+import { transformerNotationMap, transformerNotationWordHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
+
+const require = createRequire(import.meta.url)
+const pkg = require('../../package.json') as { version: string }
+const commitSha = (process.env.GITHUB_SHA ?? 'local').slice(0, 7)
+
+const xmlRemoveDiffTransformer = transformerNotationMap({
+  classMap: {
+    'rm': 'diff remove'
+  },
+  classActivePre: 'has-diff',
+  matchAlgorithm: 'v3',
+});
 
 export default withMermaid(
   defineConfig({
     title: 'EFES-NG Prototype',
     description: 'A modern pipeline-based framework for publishing EpiDoc/TEI XML as static websites',
     base: process.env.DOCS_BASE || '/',
+    lastUpdated: true,
     themeConfig: {
       search: { provider: 'local', options: { detailedView: true } },
       outline: { level: [2, 3] },
@@ -13,7 +28,18 @@ export default withMermaid(
         { text: 'Guide', link: '/' },
         { text: 'Tutorial', link: '/tutorial/' },
         { text: 'Reference', link: '/reference/pipeline-xml' },
+        { text: `v${pkg.version}`, link: 'https://github.com/olvidalo/efes-ng-prototype/releases' },
       ],
+
+      lastUpdated: {
+        text: 'Last updated',
+        formatOptions: { dateStyle: 'medium', timeStyle: 'short' },
+      },
+
+      footer: {
+        message: `v${pkg.version} · <code>${commitSha}</code> · Documentation under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>`,
+        copyright: 'Copyright (c) 2025-2026 CNRS / UMR 8167 Orient et Mediterranee · Author: Marcel Schaeben',
+      },
 
       sidebar: {
         '/tutorial/': [
@@ -43,6 +69,8 @@ export default withMermaid(
               { text: 'Pipeline XML', link: '/reference/pipeline-xml' },
               { text: 'Node Types', link: '/reference/node-types' },
               { text: 'Input Types', link: '/reference/input-types' },
+              { text: 'Library Stylesheets', link: '/reference/library-stylesheets' },
+              { text: 'efes-search Component', link: '/reference/efes-search' },
               { text: 'CLI', link: '/reference/cli' },
             ],
           },
@@ -54,6 +82,8 @@ export default withMermaid(
               { text: 'What is EFES-NG?', link: '/' },
               { text: 'Getting Started', link: '/guide/getting-started' },
               { text: 'Example Projects', link: '/guide/example-projects' },
+              { text: 'Desktop Application', link: '/guide/gui' },
+
             ],
           },
           {
@@ -65,14 +95,15 @@ export default withMermaid(
           {
             text: 'Concepts',
             items: [
-              { text: 'Content and Templates', link: '/guide/two-worlds' },
               { text: 'Pipeline & Nodes', link: '/guide/pipeline-and-nodes' },
+              { text: 'Content and Templates', link: '/guide/two-worlds' },
               { text: 'Project Structure', link: '/guide/project-structure' },
               { text: 'Static Site Generation', link: '/guide/static-site-generation' },
+              { text: 'Metadata Configuration', link: '/guide/metadata-config' },
+              { text: 'Search', link: '/guide/search' },
               { text: 'Multi-Language Architecture', link: '/guide/multi-language-architecture' },
               { text: 'Design Decisions', link: '/guide/design-decisions' },
               { text: 'Designing Sustainable Projects', link: '/guide/designing-sustainable-projects' },
-              { text: 'Desktop Application', link: '/guide/gui' },
             ],
           },
           {
@@ -104,8 +135,18 @@ export default withMermaid(
       },
 
       socialLinks: [
-        { icon: 'github', link: 'https://github.com/EpiDoc/efes-ng' },
+        { icon: 'github', link: 'https://github.com/olvidalo/efes-ng-prototype' },
       ],
     },
+    markdown: {
+      codeTransformers: [
+        xmlRemoveDiffTransformer,
+        transformerNotationWordHighlight(),
+        transformerMetaWordHighlight()
+      ],
+      languageAlias: {
+        "njk": "jinja"
+      }
+    }
   }),
 )

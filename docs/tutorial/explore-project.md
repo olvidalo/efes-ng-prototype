@@ -1,6 +1,8 @@
 # Exploring the Project
 
-Before adding content, let's understand what we generated. Open `pipeline.xml` in a text editor (or in [Oxygen XML Editor](https://www.oxygenxml.com/), if you have it).
+Before adding content, let's understand what we generated. Open `pipeline.xml` in a text editor.
+> [!tip] Tip 
+> If you have [Oxygen XML Editor](https://www.oxygenxml.com/), open the `sigidoc-feind-collextion.xpr` project created as part of your project files. This Oxygen project is for pipeline and metadata configuration validation, documentation, and transformations set up for inspecting and debugging individual steps. See [Oxygen Project](../guide/oxygen-project.md) for details.
 
 ## The Pipeline
 
@@ -10,6 +12,7 @@ Here's a simplified view of what a typical pipeline does:
 
 ```mermaid
 flowchart TD
+  src[/"XML sources"/]
   copy["Copy website\ntemplates"]
   transform["Transform XML\nto HTML"]
   extract["Extract\nmetadata"]
@@ -18,6 +21,8 @@ flowchart TD
   search["Aggregate\nsearch data"]
   build["Build final\nwebsite"]
 
+  src --> transform
+  src --> extract
   copy --> build
   transform --> build
   extract --> data
@@ -27,6 +32,7 @@ flowchart TD
   indices --> build
   search --> build
 
+  style src fill:#f5f5f5,stroke:#999
   style copy fill:#e8f5e9
   style transform fill:#e3f2fd
   style extract fill:#e3f2fd
@@ -48,16 +54,18 @@ The pipeline automatically figures out the correct execution order from the depe
 
 Let's look at the actual `pipeline.xml`. Every pipeline starts with a root element and some metadata:
 
-```xml
+```xml [pipeline.xml]
 <?xml version="1.0" encoding="UTF-8"?>
-<pipeline name="My SigiDoc Project">
+<?xml-model href="efes-ng.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="efes-ng.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<pipeline xmlns="urn:efes-ng:pipeline" name="My SigiDoc Project">
   <meta siteDir="_output"/>
 
-  <!-- Nodes go here -->
+  <!-- Nodes are here -->
 </pipeline>
 ```
 
-The `name` is a display label. `siteDir` tells the live preview server which directory contains the pipeline's final output, so it can serve and preview that directory.
+The `name` attribute is a display label. `siteDir` tells the live preview server which directory contains the pipeline's final output, so it can serve and preview that directory.
 
 ### Nodes
 
@@ -65,11 +73,15 @@ Each node is an XML element inside `<pipeline>`. The element name determines the
 
 #### Copying the Website Template
 
-```xml
-<copyFiles name="copy-eleventy-site">
-  <sourceFiles><files>source/website/**/*</files></sourceFiles>
-  <output to="_assembly" stripPrefix="source/website"/>
-</copyFiles>
+```xml{3-6}
+<pipeline xmlns="urn:efes-ng:pipeline" name="My SigiDoc Project">
+	<!-- ... -->
+	<copyFiles name="copy-eleventy-site">
+	  <sourceFiles><files>source/website/**/*</files></sourceFiles>
+	  <output to="_assembly" stripPrefix="source/website"/>
+	</copyFiles>
+	<!-- ... -->
+</pipeline>
 ```
 
 This node copies the website template files (layouts, CSS, homepage) into the `_assembly` directory. It's the simplest kind of node: take files from here, put them there.
@@ -96,18 +108,11 @@ You'll also notice several commented-out nodes in the generated pipeline, for XS
 </eleventyBuild>
 ```
 
-The last node uses [Eleventy](https://www.11ty.dev/) to build the final website from everything that was assembled in the `_assembly` directory. The `<collect>` element is another way to declare dependencies. We'll explain how it works later, once you're familiar with `<files>` and `<from>`.
+The last node uses [Eleventy](https://www.11ty.dev/) to build the final website from everything that was assembled in the `_assembly` directory. The `<collect>` element is a way to declare dependencies (2e'll explain how it works later).
 
-<!-- TODO: Move this explanation to a later tutorial step (after <files> and <from> are familiar):
-
-::: details What does `<collect>` do?
-The `<collect>` element creates an implicit dependency on *all* nodes that write files into the specified directory. Since multiple nodes write into `_assembly/` (the template copy, the HTML transforms, the data files, the indices), this single `<collect>` ensures the Eleventy build waits for all of them to finish.
-:::
-
--->
 
 ::: details What is a static site generator?
-A static site generator (SSG) takes content files and templates and produces a complete set of HTML pages: a "static" website that can be served by any web server without a database or application runtime.
+A [static site generator](https://en.wikipedia.org/wiki/Static_site_generator) (SSG) takes content files and templates and produces a complete set of HTML pages: a "static" website that can be served by any web server without a database or application runtime.
 
 [Eleventy](https://www.11ty.dev/) is the SSG used in this prototype. It processes the [Nunjucks](https://mozilla.github.io/nunjucks/) templates in the `source/website/` directory, wrapping the HTML fragments produced by XSLT into complete pages with headers, footers, and navigation.
 
@@ -119,5 +124,8 @@ Using Eleventy is one possible choice. The pipeline system is flexible enough th
 The desktop application shows the pipeline as a node list with real-time status. Open your project and you'll see each node listed. Click any node to inspect its configuration, dependencies, and outputs in the side panel.
 
 When you click **Start**, you can watch the nodes execute. Independent nodes run in parallel, and each node shows a progress counter as it processes files.
+
+![](images/explore-project-gui-side-panel.png)
+The green badge in the upper right corner of the window indicates that the pipeline is in **Watch** mode. This means that on any change made to a source file, the pipeline will run again and the browser will automatically re-load the preview site, making your changes immediately visible as soon as the build ends.
 
 Now that we understand the pipeline structure, let's customize the site: [Customizing the Site →](./customize-site)

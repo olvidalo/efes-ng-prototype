@@ -69,10 +69,6 @@ Runs an [Eleventy](https://www.11ty.dev/) build on the assembled site.
 ```xml
 <eleventyBuild name="eleventy-build">
   <sourceDir><collect>_assembly</collect></sourceDir>
-  <passthroughCopy>
-    <param name="search-data">search-data</param>
-    <param name="assets">assets</param>
-  </passthroughCopy>
   <output to="_output"/>
 </eleventyBuild>
 ```
@@ -80,8 +76,9 @@ Runs an [Eleventy](https://www.11ty.dev/) build on the assembled site.
 | Element | Required | Description |
 |---------|----------|-------------|
 | `<sourceDir>` | Yes | Assembled site directory (typically via `<collect>`) |
-| `<passthroughCopy>` | No | Directories to pass through without Eleventy processing |
 | `<output>` | Yes | Final site output directory |
+
+Passthrough copy (for assets, search data, etc.) is configured in the project's `eleventy.config.js`, not in the pipeline.
 
 ## `<zipCompress>`
 

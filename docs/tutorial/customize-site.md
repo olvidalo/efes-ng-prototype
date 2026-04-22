@@ -1,39 +1,46 @@
 # Customizing the Site
 
-Before adding seal content, let's personalize the generated website.
+Before adding seal content, let's customise the generated website.
 
 > [!info] We're now working with: Website Templates (source/website/)
-> The files in this step are HTML and CSS with some [Nunjucks](https://mozilla.github.io/nunjucks/) template expressions. You don't need any XML or XSLT knowledge here. See [Content and Templates](/guide/two-worlds) for how the two worlds relate.
-
-Open the `source/website/` folder in any text editor or IDE (or [Oxygen XML Editor](https://www.oxygenxml.com/), if you prefer).
+> The files in this step are HTML and CSS with some [Nunjucks](https://mozilla.github.io/nunjucks/) template expressions. See [Content and Templates](/guide/two-worlds) for how the two worlds relate.
 
 ## Changing the Site Title and Header
 
-Open `source/website/_includes/header.njk`. You'll see the site title and navigation links. Change the title to your project's name:
+Open `source/website/_includes/header.njk` in the editor. You'll see the site title and navigation links. Change the title to your project's name:
 
-```html
+```html{3}
 <a href="/en/" class="site-title-link">
     <!-- Website Title -->
-    <span class="site-title-full">Feind Seal Test</span>
+    <span class="site-title-full">SigiDoc Feind Collection</span>
 </a>
 ```
 
 ## Updating the Navigation
 
-In the same file, you'll find the navigation menu. The generated template includes an "Inscriptions" link. Let's rename it to "Seals" since that's what we'll be publishing, and point the link (`href`) to `/en/seals/`:
+In the same file, you'll find the navigation menu. The generated template includes an "Inscriptions" link. Let's rename it to "Seals" (in the element's content) since that's what we'll be publishing, and point the link (`href` attribute) to `/en/seals/` instead of `inscriptions`:
 
-```html
-<a href="/en/seals/" class="nav-link">Seals</a>
+```njk
+<!-- Navigation Menu -->  
+<nav class="site-nav">  
+    <!-- before --> <!--[!code --] -->
+    <a href="<%- '/{{ page.lang }}/inscriptions/' %>" class="nav-link">Inscriptions</a> <!--[!code --] -->
+    
+    <!-- after --> <!--[!code ++] -->
+    <a href="<%- '/{{ page.lang }}/seals/' %>" class="nav-link">Seals</a> <!--[!code ++] -->
 ```
 
-We changed where the link points, but the actual listing page still lives at `source/website/en/inscriptions/`. This `index.njk` template generates the index page, the browsable list of all documents in the collection. The website template's directory structure determines the URL on the final site, so we need to rename the folder to match. Rename `source/website/en/inscriptions/` to `source/website/en/seals/`.
+We changed where the link points, but the actual listing page still lives at `source/website/en/inscriptions/`. This `index.njk` template in that folder generates the index page, the browsable list of all documents in the collection. The website template's directory structure determines the URL on the final site, so we need to rename the folder to match. Rename `source/website/en/inscriptions/` to `source/website/en/seals/`.
 
-Then open the `index.njk` inside your renamed folder and update the title in the `---` block at the top from "Inscriptions" to "Seals" (we'll explain what this block does [below](#what-did-we-just-do)):
+![](images/customize-site-rename-dir-seals.png)
 
-```yaml
+Then open the `index.njk` inside your renamed folder and update the title in the `---` block at the top from "Inscriptions" to "Seals":
+
+```yaml{3}
 ---
 layout: layouts/base.njk
-title: Seals
+title: Inscriptions # [!code --]
+title: Seals # [!code ++]
 ---
 ```
 
@@ -43,9 +50,9 @@ Open `source/website/_includes/footer.njk` and update the footer text: add your 
 
 ## Editing the Homepage
 
-Open `source/website/index.njk` and replace the placeholder content with a description of your project:
+Open `source/website/en/index.njk` and replace the placeholder content with a description of your project:
 
-```html
+```njk{6-10}
 ---
 layout: layouts/base.njk
 title: Home
@@ -54,17 +61,18 @@ title: Home
 <h2>Robert Feind Collection</h2>
 <p>
   A digital edition of Byzantine lead seals from the Robert Feind Collection,
-  encoded following the <a href="https://sigidoc.huma-num.fr/">SigiDoc</a> standard.
+  encoded following the <a href="https://github.com/SigiDoc">SigiDoc</a> standard.
 </p>
 ```
 
 ## See Your Changes
 
-Click **Start** in the GUI (or run `npx efes-ng run` on the command line), then open the preview. You should see your updated title, navigation, and homepage.
+If the pipeline hasn't started yet, click **Start** in the GUI (or run `efes-ng run` on the command line), then open the preview. You should see your updated title, navigation, and homepage.
 
 > [!tip] Watch Mode
-> If you use **Start** in the GUI, the pipeline enters watch mode after the initial build. Any changes you save to template files will trigger an automatic rebuild. Just save and switch to the preview.
+> If you use **Start** in the GUI, the pipeline enters watch mode after the initial build. Any changes you save to template files will trigger an automatic rebuild. Just save and switch to the preview in your browser.
 
+![](images/customize-site-site-screenshot.png)
 ## Customizing Colors
 
 You may also want to adjust colors or fonts. The CSS is organized into three files in `source/website/assets/css/`:
@@ -150,18 +158,18 @@ That's why we changed the title to "Seals" earlier: it controls both the browser
 
 ### How Files Become Pages
 
-You might be wondering: how did `index.njk` end up as the homepage? The answer is straightforward: the file's path inside `source/website/` determines its URL on the final site.
+You might be wondering: how did `en/index.njk` end up as the homepage? The answer is straightforward: the file's path inside `source/website/` determines its URL on the final site.
 
 Remember that the `copy-eleventy-site` node copies everything from `source/website/` into `_assembly/`, stripping the `source/website/` prefix. Then Eleventy turns each file in `_assembly/` into a page, preserving the directory structure:
 
-| File in `source/website/` | Copied to `_assembly/` | URL on the site |
-|----------------------------|------------------------|-----------------|
-| `index.njk` | `index.njk` | `/` |
-| `en/seals/index.njk` | `en/seals/index.njk` | `/en/seals/` |
-| `bibliography/index.njk` | `bibliography/index.njk` | `/bibliography/` |
+| File in `source/website/`   | Copied to `_assembly/`   | URL on the site     |
+| --------------------------- | ------------------------ | ------------------- |
+| `📄 en/index.njk`           | `en/index.njk`           | `🌎 /`              |
+| `📄 en/seals/index.njk`     | `en/seals/index.njk`     | `🌎 /en/seals/`     |
+| `📄 bibliography/index.njk` | `bibliography/index.njk` | `🌎 /bibliography/` |
 
-The same principle applies to content generated by the pipeline. When a later step writes a transformed seal to `_assembly/en/seals/Feind_Kr1.html`, Eleventy turns it into the page at `/en/seals/Feind_Kr1/`.
+The same principle applies to content generated by the pipeline. When a later step writes a transformed seal to `📄 _assembly/en/seals/Feind_Kr1.html`, Eleventy turns it into the page at `🌎 /en/seals/Feind_Kr1/`.
 
-In short: **directory structure = URL structure**. If you want a page at `/about/`, create `source/website/about/index.njk` (or `source/website/about.njk`).
+In short: **directory structure = URL structure**. If you want a page at `🌎 /about/`, create `📄 source/website/about/index.njk` (or `📄 source/website/about.njk`).
 
 Now let's add actual content. [Adding Content →](./adding-content)

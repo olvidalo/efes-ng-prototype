@@ -1,6 +1,6 @@
 # Search
 
-The indices let readers browse entities by category, but what if they want to find a specific seal by keyword? Let's add full-text search.
+Currently, the *Search* page is still empty. Let's get it working.
 
 ## How Search Works
 
@@ -10,11 +10,9 @@ The search follows the same extract-then-aggregate pattern as indices:
 2. A new `aggregate-search-data` pipeline node combines all search data into a `documents_en.json` file
 3. The search page uses a client-side search component that loads the language-specific file and builds a full-text index in the browser
 
-No server needed: the search runs entirely in the reader's browser.
-
 The scaffold already provides a working `extract-search` template in `metadata-config.xsl` with default fields (`title`, `material`, `fullText`), so the search data is already being extracted. We just need to enable the aggregation node and update the search page.
 
-## Adding the Aggregation Node
+## Step 1: Add the Aggregation Node
 
 > [!info] We're working with: Pipeline Configuration (pipeline.xml)
 
@@ -53,75 +51,27 @@ This works just like `aggregate-indices`: it uses `<initialTemplate>` to process
 > 3. `aggregate-search-data` reads all metadata files and selects the fields matching the requested language into a `documents_en.json` array
 > 4. The search page loads `documents_en.json` in the browser and builds a search index from it
 
-## Updating the Search Page
+## Step 2: Update the Search Page
 
 > [!info] We're switching to: Website Templates (source/website/)
 
-The scaffold already includes a search page at `source/website/en/search/index.njk` with the search component set up. Open it and update the `result-url` on `<efes-results>` to point to your seal pages:
+The scaffold already includes a search page at `source/website/en/search/index.njk` with the `efes-search` component set up which provides the user interface for the search feature. Open it and update the `result-url` on `<efes-results>` to point to your `seals` pages instead of `inscriptions` (you'll find it around line 40):
 
-```html
-{% set resultUrl = "/" + page.lang + "/seals/{documentId}/" %}
-<efes-results result-url="{{ resultUrl | url }}">
+```njk
+<efes-search data-url="{{ searchDataUrl | url }}" text-fields="fullText,title" match-mode="prefix">
+	<!-- ... -->
+	
+	<!-- The template below is displayed for each search result -->  
+	<!-- [!code word:seals] -->
+	{% set resultUrl = "/" + page.lang + "/seals/{documentId}/" %} <!-- [!code highlight] --> 
+	<efes-results result-url="{{ resultUrl | url }}">
+	
+	<!-- ... -->
 ```
 
 The `{documentId}` placeholder is replaced with each result's `documentId` field to create the link to the seal page for each result.
 
-Let's look at the full structure of the search page:
-
-```html
-<efes-search data-url="{{ searchDataUrl | url }}" text-fields="fullText,title" match-mode="prefix">
-    <aside class="efes-facet-sidebar">
-        <h2>Filter Results</h2>
-        <efes-search-input placeholder="Search..."></efes-search-input>
-
-        <!-- facet filters go here -->
-
-        <div class="efes-filter-actions">
-            <button data-action="clear-all">Clear All Filters</button>
-        </div>
-    </aside>
-
-    <div class="efes-search-main">
-        <efes-active-filters></efes-active-filters>
-
-        <div class="efes-results-bar">
-            <span class="efes-results-status">
-                <efes-result-count
-                    template="Found {total} documents."
-                    filtered-template="Found {count} of {total} documents.">
-                </efes-result-count>
-            </span>
-            <span class="efes-sort-label">Sort by</span>
-            <efes-sort>
-                <field key="sortKey">Document ID</field>
-                <field key="title">Title</field>
-            </efes-sort>
-        </div>
-
-        {% set resultUrl = "/" + page.lang + "/seals/{documentId}/" %}
-        <efes-results result-url="{{ resultUrl | url }}">
-            <template>
-                <a>
-                    <div class="efes-result-title">
-                        <span class="doc-id" data-field="documentId"></span>
-                        <span data-field="title"></span>
-                    </div>
-                </a>
-            </template>
-        </efes-results>
-    </div>
-</efes-search>
-```
-
-The page is split into a **sidebar** (search input, facets, clear button) and a **main area** (active filters, results bar, results list).
-
-### The Results Bar
-
-The `.efes-results-bar` sits above the results list and contains two components:
-
-**`<efes-result-count>`** displays the current result count. The `template` attribute is shown when no filters are active (e.g. `"Found {total} documents."`), and `filtered-template` when filters narrow the results (e.g. `"Found {count} of {total} documents."`). The component replaces `{total}` and `{count}` at runtime.
-
-**`<efes-sort>`** renders a dropdown for sorting results. Each `<field>` child defines a sort option, where `key` is the JSON field name and the element text becomes the label. Add the `numeric` attribute for numeric fields (dates, counts) so they sort as numbers rather than alphabetically.
+The search page wires up a handful of Web Components to provide the user interface: the sidebar holds the search input and filter facets, the main area shows the active filters, a result count, a sort dropdown, and the results list. See the [Search](/guide/search) guide for the full page structure and how the components fit together, and the [efes-search reference](/reference/efes-search) for the complete component API.
 
 ### Search Configuration
 
@@ -144,20 +94,25 @@ The `<efes-search>` component is a set of Web Components that run entirely in th
 
 ## See It Work
 
-Rebuild and navigate to the Search page. Type a search term. Results appear instantly, showing the title of matching seals with links to their pages.
+After rebuild, switch to the preview navigate to the Search page (`🌎 /en/search`). When you type a search term, results appear instantly, showing the title of matching seals with links to their pages.
 
-## Customizing the Search
+![](images/search-page-titles-only.png)
+## Step 3: Customise Result Display
 
-Now that search works, let's improve it: add the dating to the results display, a filter facet, and sort options.
 
-### Adding More Info to Results
+> [!info] We're switching to: metadata extraction configuration (source/metadata-config.xsl)
 
-> [!info] We're switching to: XSLT Configuration (source/metadata-config.xsl)
-
-The search results currently show only the title. Let's add the dating so readers can see when a seal is from. Open `source/metadata-config.xsl` and find the `extract-search` template. Uncomment the `origDate` line:
+The search results currently show only the title. Let's add the dating so readers can see when a seal is from. Open `source/metadata-config.xsl` and find the `extract-search` template. Uncomment the `origDate` line, and adapt it for SigiDoc encoding:
 
 ```xml
-<origDate><xsl:value-of select="string-join(//tei:origDate, ', ')"/></origDate>
+<xsl:template match="tei:TEI" mode="extract-search">
+    <!-- ... -->
+    
+	<!-- [!code word:tei\:seg[@xml\:lang='en'\]] -->
+	<origDate><xsl:value-of select="string-join(//tei:origDate/tei:seg[@xml:lang='en'], ', ')"/></origDate> <!-- [!code highlight] -->
+	
+	<!-- ... -->
+</xsl:template>
 ```
 
 After rebuilding, inspect the search data (click the **folder icon** next to `aggregate-search-data`). Each document in `documents_en.json` now includes the dating:
@@ -166,15 +121,19 @@ After rebuilding, inspect the search data (click the **folder icon** next to `ag
 {
     "documentId": "Feind_Kr12",
     "title": "Seal of Manouel Mandromenos ...",
-    "material": "Lead",
+    "material": "Lead Blei Μόλυβδος",
     "origDate": "11th c., second half",
     "fullText": "Κύριε βοήθει τῷ σῷ δούλῳ Μανουὴλ ..."
 }
 ```
 
-To display `origDate` in the search results, open `source/website/en/search/index.njk` and find the commented-out `<div class="efes-result-details">` block inside `<template>`. Uncomment it:
+To display `origDate` in the search results, open `source/website/en/search/index.njk` and find the commented-out `<div class="efes-result-details">` block inside `<template>`. 
 
-```html
+> [!info] We're switching to: Website Templates (source/website/)
+
+Uncomment it:
+
+```html{7-10}
 <template>
     <a>
         <div class="efes-result-title">
@@ -183,28 +142,40 @@ To display `origDate` in the search results, open `source/website/en/search/inde
         </div>
         <div class="efes-result-details">
             <span data-field="origDate"></span>
-            <span data-field="milieu"></span>
+            <span data-field="material"></span>
         </div>
     </a>
 </template>
 ```
 
-The entire result box is clickable. The `efes-result-title` row shows the document ID and title, and `efes-result-details` adds secondary information below in a smaller font. Each `<span data-field="...">` maps to a field in the search data JSON, and the search component fills in the values automatically.
+The entire result box is clickable. The `efes-result-title` row shows the document ID and title, and `efes-result-details` adds secondary information below in a smaller font. Each `<span data-field="...">` maps to a field in the extracted search metadata through the search data JSON, and the search component fills in the values automatically.
 
-### Adding a Filter Facet
+When you reload the search page, the details will now appear for each result:
 
-The scaffold includes a commented-out `material` facet, but since all our seals are lead, that's not very useful. Let's add a `milieu` facet instead, which shows the social context of each seal issuer (military, aristocracy, civil, etc.) and has a nice distribution of values.
+![](images/search-results-with-details.png)
+
+> [!note]
+> You'll notice the *material* field which is included in the scaffold as an example detail. Since it is not useful for a collection consisting only of lead seals, you can remove it or comment it out in `metadata-config.xsl` as well as in the result template in `source/website/en/search/index.njk`.
+
+
+## Step 4: Add a Filter Facet
+
+The scaffold includes a commented-out `material` facet, but since all the seals are lead, that's not very useful. Let's add a `milieu` facet instead, which shows the social context of each seal issuer (military, aristocracy, civil, etc.) and has a nice distribution of values.
 
 First, add the `milieu` field to `extract-search` in `metadata-config.xsl`:
 
 ```xml
-<milieu>
-    <xsl:for-each select="//tei:listPerson[@type='issuer']/tei:person/@role">
-        <xsl:for-each select="tokenize(normalize-space(.), ' ')">
-            <item><xsl:value-of select="translate(., '-', ' ')"/></item>
-        </xsl:for-each>
-    </xsl:for-each>
-</milieu>
+<xsl:template match="**tei:TEI**" mode="extract-search">
+	<!-- ... -->
+	
+	<milieu>
+	    <xsl:for-each select="//tei:listPerson[@type='issuer']/tei:person/@role">
+	        <xsl:for-each select="tokenize(normalize-space(.), ' ')">
+	            <item><xsl:value-of select="translate(., '-', ' ')"/></item>
+	        </xsl:for-each>
+	    </xsl:for-each>
+	</milieu>
+</xsl:template>
 ```
 
 This is a multi-valued field: a seal can have multiple issuers with different roles, so each role becomes an `<item>`. The `@role` attribute can contain multiple space-separated values (e.g., `"monastic secular-church"`), so we `tokenize` by space first, then `translate` hyphens to spaces for cleaner display.
@@ -212,12 +183,18 @@ This is a multi-valued field: a seal can have multiple issuers with different ro
 Then add the facet to the search page (`source/website/en/search/index.njk`):
 
 ```html
-<efes-facet field="milieu" label="Milieu"></efes-facet>
+<efes-search data-url="{{ searchDataUrl | url }}" text-fields="fullText,title" match-mode="prefix">
+    <aside class="efes-facet-sidebar">
+        <h2>Filter Results</h2>
+        <efes-search-input placeholder="Search..."></efes-search-input>
+		<!-- ... -->
+		
+		<efes-facet field="milieu" label="Milieu" expanded></efes-facet> <!-- [!code highlight] -->
+		
+		<!-- ... -->
 ```
 
 The `field="milieu"` must match the element name in `extract-search`. The search component reads the values from `documents.json` and renders them as a clickable list with counts. Clicking one filters the results. For example, clicking "military" shows only seals issued by military officials.
-
-<!-- TODO: Document the `expanded` attribute on efes-facet (facets are collapsed by default, add `expanded` to start open). Mention in reference docs or a "search component" concept page -->
 
 ::: details How do I add more facets?
 To add a facet, you need two things: a field in `extract-search` (in `metadata-config.xsl`) and an `<efes-facet>` element on the search page.
@@ -230,32 +207,54 @@ For single-valued fields, the extraction is straightforward:
 
 For multi-valued fields (like our `milieu` example), use `<item>` children. The search component automatically treats these as multi-select facets.
 
-The SigiDoc FEIND project includes facets for object type, language, personal names, place names, dignities, offices, and more. See its `metadata-config.xsl` for reference.
+The full [SigiDoc example project](../guide/example-projects.md) project includes facets for object type, language, personal names, place names, dignities, and offices. See its [`metadata-config.xsl`](https://github.com/olvidalo/efes-ng-sigidoc-feind/blob/main/source/metadata-config.xsl) for reference.
 :::
 
-### Adding Sort Options
+Switch to the preview: After the search page reloads, the *Millieu* facet appears in the sidebar.
 
-The scaffold provides two default sort fields (Document ID and Title). Let's add sorting by date. Add `dateNotBefore` and `dateNotAfter` to `extract-search` in `metadata-config.xsl`:
+![](images/search-milieu-facet.png)
+## Step 5: Add Sort Options
+
+The scaffold provides two default sort fields (Document ID through the `sortKey` field and Title) defined in `source/website/en/search/index.njk`.
 
 ```xml
-<dateNotBefore><xsl:value-of select="//tei:origDate/@notBefore"/></dateNotBefore>
-<dateNotAfter><xsl:value-of select="//tei:origDate/@notAfter"/></dateNotAfter>
+<efes-sort>  
+	<field key="sortKey">ID</field>  
+	<field key="title">Title</field>  
+</efes-sort>
 ```
 
-Then add the sort fields to `<efes-sort>` in the search page:
+Let's add sorting by date. Add `dateNotBefore` and `dateNotAfter` to `extract-search` in `metadata-config.xsl`:
+
+```xml
+<xsl:template match="tei:TEI" mode="extract-search">
+	<!-- ... -->
+
+	<dateNotBefore><xsl:value-of select="//tei:origDate/@notBefore"/></dateNotBefore> <!-- [!code highlight] -->
+	<dateNotAfter><xsl:value-of select="//tei:origDate/@notAfter"/></dateNotAfter> <!-- [!code highlight] -->
+
+	<!-- ... -->
+</xsl:template>
+```
+
+Then add the sort fields to `<efes-sort>` in the search page (`source/website/en/search/index.njk`):
 
 ```html
 <efes-sort>
     <field key="sortKey">Seal ID</field>
-    <field key="dateNotBefore" numeric>Earliest Date</field>
-    <field key="dateNotAfter" numeric>Latest Date</field>
+    <field key="dateNotBefore" numeric>Earliest Date</field> <!-- [!code highlight] -->
+    <field key="dateNotAfter" numeric>Latest Date</field> <!-- [!code highlight] -->
     <field key="title">Title</field>
 </efes-sort>
 ```
 
-The `numeric` attribute tells the sort component to compare values as numbers rather than alphabetically. Readers can toggle between ascending and descending order with the direction button next to the dropdown.
+The `numeric` attribute tells the sort component to compare values as numbers rather than alphabetically. Readers can toggle between ascending and descending order with the direction button next to the dropdown. Note that we also changed the label of the *ID* sort option to *Seal ID*.
 
-### Sorting Mixed Alphanumeric Identifiers
+When the search page reloads, the new search options can be used from the dropdown menu:
+
+![](images/search-sort-options.png)
+
+::: details Sorting Mixed Alphanumeric Identifiers
 
 If your document IDs mix letters and numbers (like `Feind_Kr1`, `Feind_Kr2`, ... `Feind_Kr12`), alphabetical sorting will put `Feind_Kr10` before `Feind_Kr2`. The scaffold already handles this: at the top of `metadata-config.xsl`, a `$sortKey` variable zero-pads the trailing number:
 
@@ -279,7 +278,7 @@ In the search page, the default sort already uses `sortKey`:
 ```
 
 The dropdown label says "Seal ID", but the sort uses the zero-padded value behind the scenes. The `documentId` displayed in each result is unaffected.
-
+:::
 ## What We've Built So Far
 
 ```mermaid
@@ -304,6 +303,7 @@ flowchart TD
   searchjson(["search-data/documents_en.json"])
   site(["templates, CSS, ..."])
   output(["_output/"])
+  assembly(["_assembly/"])
 
   seals --> prune --> pruned
   pruned --> transform --> html
@@ -313,11 +313,12 @@ flowchart TD
   meta --> search --> searchjson
   templates --> copy --> site
 
-  html --> build
-  json --> build
-  idxjson --> build
-  searchjson --> build
-  site --> build
+  html --> assembly
+  json --> assembly
+  idxjson --> assembly
+  searchjson --> assembly
+  site --> assembly
+  assembly --> build
   build --> output
 
   style seals fill:#f5f5f5,stroke:#999
@@ -330,6 +331,7 @@ flowchart TD
   style searchjson fill:#e8f5e9,stroke:#4caf50
   style site fill:#e8f5e9,stroke:#4caf50
   style output fill:#fff3e0,stroke:#ff9800
+  style assembly fill:#fff3e0,stroke:#ff9800
   style search stroke:#2563eb,stroke-width:3px
   style searchjson stroke:#2563eb,stroke-width:2px
 ```
@@ -337,7 +339,3 @@ flowchart TD
 The `aggregate-search-data` node (highlighted in blue) completes the pipeline. All three consumers of the extracted metadata are now in place: sidecar data files, index aggregation, and search data.
 
 This is the complete pipeline for a single-language edition. Next, we'll look at adding multi-language support: [Multi-Language Support →](./multi-language)
-
-<!-- TODO: Continue tutorial with:
-  - Multi-language support
--->

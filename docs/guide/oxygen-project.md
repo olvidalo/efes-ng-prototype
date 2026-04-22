@@ -21,7 +21,7 @@ This gives you:
 
 ![Autocomplete for pipeline.xml](images/oxygen-autocomplete.png)
 
-If you add new node types to the framework, regenerate the schema with `npx efes-ng schema > efes-ng.rng`.
+If you add new node types to the framework, regenerate the schema with `efes-ng schema > efes-ng.rng`.
 
 ## Transformation Scenarios
 

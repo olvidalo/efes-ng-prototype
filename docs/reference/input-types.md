@@ -14,7 +14,7 @@ References files on disk using glob patterns or direct paths.
 Glob patterns follow standard syntax (`*`, `**`, `{}` alternation). Paths are relative to the project root.
 
 > [!warning]
-> `<files>` rejects directories — use `<dir>` instead if you need to pass a directory path.
+> `<files>` rejects directories. Use `<dir>` instead if you need to pass a directory path.
 
 ## `<from>`
 

@@ -1,6 +1,6 @@
 # XSLT Overrides
 
-EFES-NG provides a mechanism for overriding upstream XSLT templates without modifying the upstream stylesheets directly. This lets you customize rendering behavior while keeping upstream stylesheets updatable.
+The starter project template (scaffold) provides a mechanism for overriding upstream EpiDoc/SigiDoc XSLT templates without modifying the upstream stylesheets directly. This lets you customise rendering behavior while keeping upstream stylesheets updatable.
 
 ## How It Works
 
@@ -34,7 +34,7 @@ Any templates you define here will take precedence over the upstream EpiDoc styl
 
 ## Guidelines
 
-- **Keep overrides minimal** — only override what you need to change
-- **Match upstream templates exactly** — use the same `match` patterns
-- **Document your overrides** — add comments explaining why the override exists
-- **Check after updates** — when updating upstream stylesheets, verify your overrides still apply correctly
+- **Keep overrides minimal**: only override what you need to change
+- **Match upstream templates exactly**: use the same `match` patterns
+- **Document your overrides**: add comments explaining why the override exists
+- **Check after updates**: when updating upstream stylesheets, verify your overrides still apply correctly
