@@ -11,12 +11,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Apple Silicon (M-series): macos-latest is arm64 since 2024.
           - os: macos-latest
             platform: mac
             artifact: mac-arm64
-          # Intel: macos-13 is the last x64 image GitHub provides.
-          - os: macos-13
+          - os: macos-26-intel
             platform: mac
             artifact: mac-x64
           - os: windows-latest
