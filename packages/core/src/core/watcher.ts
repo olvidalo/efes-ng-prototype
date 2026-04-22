@@ -51,7 +51,7 @@ export class PipelineWatcher extends EventEmitter {
         }
 
         // Collect paths to watch from node configs + discovered dependencies
-        const watchPaths = [...this.collectWatchPaths(), this.configPath];
+        const watchPaths = [...(await this.collectWatchPaths()), this.configPath];
 
         if (watchPaths.length === 0) {
             console.log('No input paths found to watch.');
@@ -101,7 +101,7 @@ export class PipelineWatcher extends EventEmitter {
         });
 
         // Add discovered dependencies from the initial build to chokidar
-        this.updateWatchPaths();
+        await this.updateWatchPaths();
 
         this.watcher.on('change', (filePath) => this.onFileEvent('change', filePath));
         this.watcher.on('add', (filePath) => this.onFileEvent('add', filePath));
@@ -182,7 +182,7 @@ export class PipelineWatcher extends EventEmitter {
             if (this.buildCancelled) {
                 console.log(`\n--- Rebuild cancelled, restarting ---\n`);
             } else {
-                this.updateWatchPaths();
+                await this.updateWatchPaths();
                 const durationMs = performance.now() - start;
                 this.pipeline.emit('watch:rebuild:done', { durationMs });
                 console.log(`\n--- ${reloadPipeline ? 'Reload' : 'Rebuild'} complete (${(durationMs / 1000).toFixed(2)}s) ---\n`);
@@ -203,21 +203,28 @@ export class PipelineWatcher extends EventEmitter {
      * Collect all root filesystem dependencies from nodes after a pipeline run.
      * Includes glob patterns (from files() config) and absolute paths (discovered at runtime).
      */
-    private collectWatchPaths(): string[] {
+    private async collectWatchPaths(): Promise<string[]> {
         const paths = new Set<string>();
         for (const nodeName of this.pipeline.getNodeNames()) {
             const node = this.pipeline.getNodeInstance(nodeName);
             for (const dep of node.rootDependencies) {
                 paths.add(dep);
+                // chokidar can't watch a non-existent literal path: it stats, fails,
+                // and never fires `add` on creation. Also watch the parent dir so
+                // files that appear later trigger a rebuild.
+                if (!/[*?{}[\]]/.test(dep)) {
+                    const abs = path.resolve(this.projectDir, dep);
+                    try { await stat(abs); } catch { paths.add(path.dirname(dep)); }
+                }
             }
         }
         return [...paths].sort();
     }
 
     /** After a rebuild, add any newly discovered dependencies to chokidar. */
-    private updateWatchPaths(): void {
+    private async updateWatchPaths(): Promise<void> {
         if (!this.watcher) return;
-        const paths = this.collectWatchPaths();
+        const paths = await this.collectWatchPaths();
         if (paths.length > 0) {
             this.watcher.add(paths);
         }
