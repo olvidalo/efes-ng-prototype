@@ -51,7 +51,7 @@ flowchart LR
 3. The results are assembled into a website structure
 4. A static site generator builds the final website
 
-Working with EFES-NG involves two technologies: **XML/XSLT** for content transformation (the part DH scholars already know) and **HTML templates** for the site structure around it. Read [Content and Templates](/guide/two-worlds) for how the two relate, or just start with the [tutorial](/tutorial), which introduces each in context.
+Working with EFES-NG involves two technologies: **XML/XSLT** for content transformation (the part DH scholars already know) and **HTML templates** for the site structure around it. Read [Content and Templates](/guide/two-worlds) for how the two relate, or just start with the [tutorial](/tutorial/index.md), which introduces each in context.
 
 ## What does "modern alternative to EFES" mean?
 

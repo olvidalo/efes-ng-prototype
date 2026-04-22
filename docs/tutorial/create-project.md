@@ -89,7 +89,7 @@ Let's build the project to see what we have. Open the project folder in the EFES
 
 ![](images/create-project-gui-start.png)
 
-The pipeline will run through its steps and generate the website. Once complete, click **Preview** to open it in your browser. Usually, the preview is served under the address <http://localhost:8080>.
+The pipeline will run through its steps and generate the website. Once complete, click **Preview** to open it in your browser. Usually, the preview is served under the address `http://localhost:8080`.
 
 You should see a generic site with a header, navigation, and footer, but if you navigate to *Inscriptions*, there is no content yet. That's expected: we haven't added any XML source documents.
 ![](images/create-project-initial-preview-site.png)

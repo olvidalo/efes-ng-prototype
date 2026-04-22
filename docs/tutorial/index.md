@@ -1,6 +1,6 @@
 # Tutorial: Building a SigiDoc Edition
 
-In this tutorial, we will re-create the [SigiDoc]([https://sigidoc.huma-num.fr/](https://github.com/SigiDoc)) edition of the [Robert Feind Collection](https://feind.sigidoc.cceh.uni-koeln.de/de/) from scratch, using the already encoded SigiDoc files from the collection repository. By the end, you will have a working multi-language website that displays seal descriptions with metadata, indices, and search.
+In this tutorial, we will re-create the [SigiDoc](https://github.com/SigiDoc) edition of the [Robert Feind Collection](https://feind.sigidoc.cceh.uni-koeln.de/de/) from scratch, using the already encoded SigiDoc files from the collection repository. By the end, you will have a working multi-language website that displays seal descriptions with metadata, indices, and search.
 
 Much of the complexity of this tutorial goes back to the fact that the starter template ("scaffold") created by the EFES-NG Prototype is designed for mono-lingual (specifically English-only) editions for EpiDoc inscriptions, while the encoded Seals from the Feind collection contain data for multiple languages. Adapting the mono-lingual scaffold for a mutli-lingual edition should help to get familiar with the internal workings of this framework. We will do this step-by-step: First, we will try to get a basic English version of the website working based on the multi-lingual input data. Then, we will extend the project to include a multi-lingual website shell along with the seal pages in English, German, and Greek. 
 
@@ -45,6 +45,6 @@ The tutorial walks through these steps, each on its own page. They build on each
 > The preview server tries to bind to `localhost:8080`. If that port is in use it falls back to `8081`, `8082`, and so on. The exact URL is shown in the GUI's preview tab. Open the preview from there, then use the relative URLs from the tutorial within that window.
 
 > [!tip] Prerequisites
-> Before starting, download the latest version of the EFES-NG Prototype desktop application. See [Desktop Application](/gui) for instructions.
+> Before starting, download the latest version of the EFES-NG Prototype desktop application. See [Desktop Application](../guide/gui.md) for instructions.
 
-Let's get started: [Creating a Project →](./create-project)
+Get started: [Creating a Project →](./create-project)
